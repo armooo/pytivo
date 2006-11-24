@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<TiVoContainer>
+    <ItemStart>0</ItemStart>
+    <ItemCount>#echo len($files) #</ItemCount>
+    <Details>
+        <Title>$name</Title>
+        <ContentType>x-container/tivo-videos</ContentType>
+        <SourceFormat>x-container/folder</SourceFormat>
+        <TotalItems>$total</TotalItems>
+    </Details>
+    #for $file in $files
+    #if $isdir($file)
+    <Item>
+        <Details>
+            <Title>$file</Title>
+            <ContentType>x-container/folder</ContentType>
+            <SourceFormat>x-tivo-container/tivo-dvr</SourceFormat>
+        </Details>
+        <Links>
+            <Content>
+                    <Url>/TiVoConnect?Command=QueryContainer&amp;Container=$name/$file</Url>
+                    <ContentType>x-tivo-container/folder</ContentType>
+            </Content>
+        </Links>
+    </Item>
+    #else
+    <Item>
+        <Details>
+            <Title>$file</Title>
+            <ContentType>video/x-tivo-mpeg</ContentType>
+            <SourceFormat>video/x-tivo-mpeg</SourceFormat>
+            <SourceSize>5000000536</SourceSize>
+        </Details>
+        <Links>
+            <Content>
+                <ContentType>video/x-tivo-mpeg</ContentType>
+                    <AcceptsParams>No</AcceptsParams>
+                    <Url>/$name/$file</Url>
+                </Content>
+                <CustomIcon>
+                    <ContentType>video/*</ContentType>
+                    <AcceptsParams>No</AcceptsParams>
+                    <Url>urn:tivo:image:save-until-i-delete-recording</Url>
+                </CustomIcon>
+        </Links>
+    </Item>
+    #end if
+    #end for
+</TiVoContainer>
+
