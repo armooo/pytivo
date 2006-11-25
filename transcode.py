@@ -2,19 +2,17 @@ import subprocess, shutil, os, re, sys
 
 SCRIPTDIR = os.path.dirname(__file__)
 
+# XXX BIG HACK
 # subprocess is broken for me on windows so super hack
 def patchSubprocess():
     o = subprocess.Popen._make_inheritable
 
     def _make_inheritable(self, handle):
-        print 'MY _make_inheritable'
         if not handle: return subprocess.GetCurrentProcess()
         return o(self, handle)
 
     subprocess.Popen._make_inheritable = _make_inheritable
-
 mswindows = (sys.platform == "win32")
-
 if mswindows:
     patchSubprocess()
         
