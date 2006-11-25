@@ -1,0 +1,33 @@
+pyTivo lets you stream most videos from yout PC to your unhacked tivo. It uses the HMO server protocol.
+
+Download
+
+http://armooo.net/~armooo/pyTivo/pyTivo.zip
+
+Requirements
+Python - http://www.python.org/download/
+pywin32 (only to install as a service) - http://sourceforge.net/project/showfiles.php?group_id=78018&package_id=79063 
+
+Usage
+
+Edit pyTivo.conf
+
+[<name of share>]
+type=x-container/tivo-videos
+path=<path to videos>
+
+run pyTivo.py
+
+To install as a service
+
+run pyTivoService.pyc --startup auto install
+
+To remove service
+
+run pyTivoService.pyc remove
+
+Known Problems
+
+GUID in beacons hardcoded. So only 1 server per network.
+
+The max mpeg2 output size is 6000000000 bytes (hard coded in container.tmpl). It seems that unlike sending photos and music when sending video the tivo needs to know the size of video before hand. So we lie and tell the tivo that it is 6000000000 bytes. The tivo will stop downloading when it hits this size. If the download stops before it it reaches what it thinks is the end it will try resuming the download (HTTP Range header). I return a 404 when the tivo trys to resume and it will give up. You may see an error when you reach the end of the file.
