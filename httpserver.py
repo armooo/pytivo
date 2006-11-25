@@ -5,6 +5,8 @@ from cgi import parse_qs
 from Cheetah.Template import Template
 import transcode
 
+SCRIPTDIR = os.path.dirname(__file__)
+
 class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     containers = {}
 
@@ -45,7 +47,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.end_headers()
         if query['Container'][0] == '/':
-            t = Template(file="templates/root_container.tmpl")
+            t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'root_container.tmpl'))
             t.containers = self.server.containers
             t.hostname = socket.gethostname()
             self.wfile.write(t)
@@ -99,7 +101,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 path = container['path'] + '/' + file
                 return os.path.isdir(path)
             
-            t = Template(file="templates/container.tmpl")
+            t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
             t.name = subcname
             t.files = files
             t.total = totalFiles
@@ -125,7 +127,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-        t = Template(file="templates/info_page.tmpl")
+        t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'info_page.tmpl'))
         self.wfile.write(t)
         self.end_headers()
 
@@ -133,7 +135,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(404)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-        t = Template(file="templates/unsuported.tmpl")
+        t = Template(file=os.path.join(SCRIPTDIR,'templates','unsuported.tmpl'))
         t.query = query
         self.wfile.write(t)
        

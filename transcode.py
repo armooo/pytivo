@@ -1,5 +1,7 @@
 import subprocess, shutil, os, re
 
+SCRIPTDIR = os.path.dirname(__file__)
+
 def output_video(inFile, outFile):
     if tivo_compatable(inFile):
         f = file(inFile, 'rb')
@@ -10,7 +12,7 @@ def output_video(inFile, outFile):
 
 def transcode(inFile, outFile):
 
-    cmd = "ffmpeg_mp2.exe -i \"%s\" -vcodec mpeg2video -r 29.97 -b 4096 %s -ac 2 -ab 192 -f vob -" % (inFile, select_aspect(inFile))
+    cmd = SCRIPTDIR + "\\ffmpeg_mp2.exe -i \"%s\" -vcodec mpeg2video -r 29.97 -b 4096 %s -ac 2 -ab 192 -f vob -" % (inFile, select_aspect(inFile))
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
@@ -64,11 +66,9 @@ def tivo_compatable(inFile):
     return False
 
 def video_info(inFile):
-    cmd = "ffmpeg_mp2.exe -i \"%s\"" % inFile
-    print cmd
+    cmd = SCRIPTDIR + "\\ffmpeg_mp2.exe -i \"%s\"" % inFile
     ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     output = ffmpeg.stderr.read()
-    print ffmpeg.stdout.read()
     
     rezre = re.compile(r'.*Video: (.+), (\d+)x(\d+), (.+) fps.*')
     m = rezre.search(output)
