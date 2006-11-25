@@ -17,7 +17,7 @@ class PyTivoService(win32serviceutil.ServiceFramework):
         import sys, os
 
         p = os.path.dirname(__file__)
-        open(os.path.join(p, '/', 'pyTivo.conf'))
+        open(os.path.join(p, 'pyTivo.conf'))
       
         config = ConfigParser.ConfigParser()
         config.read( os.path.join(p, 'pyTivo.conf') )
