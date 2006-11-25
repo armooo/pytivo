@@ -33,7 +33,7 @@ def select_aspect(inFile):
         return '-aspect 16:9 -s 720x480'
     else:
         settings = []
-        settings.apppend('-aspect 16:9')
+        settings.append('-aspect 16:9')
       
         endHeight = (720*width)/height
         if endHeight % 2:

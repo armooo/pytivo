@@ -7,8 +7,8 @@
         <TotalItems>1</TotalItems>
     </Details>
 
+    #for $name, $details in $containers.items()
     <Item>
-        #for $name, $details in $containers.items()
         <Details>
             <Title>$name</Title>
             <ContentType>$details.type</ContentType>
@@ -20,8 +20,8 @@
                 <ContentType>$details.type</ContentType>
             </Content>
         </Links>
-        #end for
     </Item>
+    #end for
 
     <ItemStart>0</ItemStart>
     <ItemCount>#echo len($containers) #</ItemCount>
