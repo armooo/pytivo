@@ -1,4 +1,4 @@
-pyTivo lets you stream most videos from yout PC to your unhacked tivo. It uses the HMO server protocol.
+pyTivo lets you stream most videos from yout PC to your unhacked tivo. It uses the HMO server protocol. It will guess if your video is 4:3 or 16:9 and pad your video if it thinks it is needed (looked good on my tests).
 
 Download
 
