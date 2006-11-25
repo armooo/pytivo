@@ -2,8 +2,8 @@ import time, os, BaseHTTPServer, SocketServer, socket, shutil, os.path
 from urllib import unquote_plus
 from urlparse import urlparse
 from cgi import parse_qs
-
 from Cheetah.Template import Template
+from transcode import output_video
 
 class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     containers = {}
@@ -90,6 +90,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             t.name = subcname
             t.files = files
             t.total = totalFiles
+            t.start = index
             t.isdir = isdir
             self.wfile.write(t)
 
@@ -107,8 +108,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         #rfile = open(container['path'] + path[len(name)+1:], 'rb')
         #shutil.copyfileobj(rfile, self.wfile)
-        import transcode2
-        transcode2.transcode(container['path'] + path[len(name)+1:], self.wfile)
+        output_video(container['path'] + path[len(name)+1:], self.wfile)
     
     def infopage(self):
         self.send_response(200)
