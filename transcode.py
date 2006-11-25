@@ -1,18 +1,36 @@
-import subprocess, shutil, os, re
+import subprocess, shutil, os, re, sys
 
 SCRIPTDIR = os.path.dirname(__file__)
 
+# subprocess is broken for me on windows so super hack
+def patchSubprocess():
+    o = subprocess.Popen._make_inheritable
+
+    def _make_inheritable(self, handle):
+        print 'MY _make_inheritable'
+        if not handle: return subprocess.GetCurrentProcess()
+        return o(self, handle)
+
+    subprocess.Popen._make_inheritable = _make_inheritable
+
+mswindows = (sys.platform == "win32")
+
+if mswindows:
+    patchSubprocess()
+        
 def output_video(inFile, outFile):
     if tivo_compatable(inFile):
         f = file(inFile, 'rb')
         shutil.copyfileobj(f, outFile)
-        f.close()
+        f.close() 
     else:
         transcode(inFile, outFile)
 
 def transcode(inFile, outFile):
 
     cmd = SCRIPTDIR + "\\ffmpeg_mp2.exe -i \"%s\" -vcodec mpeg2video -r 29.97 -b 4096 %s -ac 2 -ab 192 -f vob -" % (inFile, select_aspect(inFile))
+    # subprocess is busted in my python 2.5 when run without a console. Setting all to PIPE fixes it.
+    # but now we get this nice select loop to dump the stderr data
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
@@ -67,7 +85,7 @@ def tivo_compatable(inFile):
 
 def video_info(inFile):
     cmd = SCRIPTDIR + "\\ffmpeg_mp2.exe -i \"%s\"" % inFile
-    ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
     output = ffmpeg.stderr.read()
     
     rezre = re.compile(r'.*Video: (.+), (\d+)x(\d+), (.+) fps.*')

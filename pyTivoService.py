@@ -2,7 +2,7 @@ import beacon, httpserver, ConfigParser
 import win32serviceutil 
 import win32service 
 import win32event
-import select
+import select, sys
 
 class PyTivoService(win32serviceutil.ServiceFramework):
     _svc_name_ = 'pyTivo'
@@ -17,8 +17,12 @@ class PyTivoService(win32serviceutil.ServiceFramework):
         import sys, os
 
         p = os.path.dirname(__file__)
-        open(os.path.join(p, 'pyTivo.conf'))
-      
+    
+        f = open(os.path.join(p, 'log.txt'), 'w')
+        sys.stdout = f
+        sys.stderr = f
+        print 'test'
+    
         config = ConfigParser.ConfigParser()
         config.read( os.path.join(p, 'pyTivo.conf') )
 
@@ -35,6 +39,7 @@ class PyTivoService(win32serviceutil.ServiceFramework):
         b.send_beacon_timer()
         
         while 1:
+            sys.stdout.flush()
             (rx, tx, er) = select.select((httpd,), (), (), 5)
             for sck in rx:
                 sck.handle_request()
