@@ -11,7 +11,6 @@ def output_video(inFile, outFile):
 def transcode(inFile, outFile):
 
     cmd = "ffmpeg_mp2.exe -i \"%s\" -vcodec mpeg2video -r 29.97 -b 4096 %s -ac 2 -ab 192 -f vob -" % (inFile, select_aspect(inFile))
-    print cmd
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
@@ -20,16 +19,14 @@ def transcode(inFile, outFile):
 
 def select_aspect(inFile):
     type, height, width, fps =  video_info(inFile)
-    print type, height, width, fps
     
     d = gcd(height,width)
 
     rheight, rwidth = height/d, width/d
-    print height, width
 
-    if (rheight, rwidth) == (4, 3):
+    if (rheight, rwidth) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
         return '-aspect 4:3 -s 720x480'
-    elif (rheight, rwidth) == (16, 9):
+    elif (rheight, rwidth) in [(16, 9), (20, 11), (40, 33), (118, 81), (59, 27)]:
         return '-aspect 16:9 -s 720x480'
     else:
         settings = []
@@ -38,7 +35,6 @@ def select_aspect(inFile):
         endHeight = (720*width)/height
         if endHeight % 2:
             endHeight -= 1
-        print endHeight
 
         settings.append('-s 720x' + str(endHeight))
 
@@ -69,8 +65,10 @@ def tivo_compatable(inFile):
 
 def video_info(inFile):
     cmd = "ffmpeg_mp2.exe -i \"%s\"" % inFile
-    ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE)
+    print cmd
+    ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     output = ffmpeg.stderr.read()
+    print ffmpeg.stdout.read()
     
     rezre = re.compile(r'.*Video: (.+), (\d+)x(\d+), (.+) fps.*')
     m = rezre.search(output)
@@ -78,7 +76,13 @@ def video_info(inFile):
         return m.group(1), int(m.group(2)), int(m.group(3)), m.group(4)
     else:
         return None, None, None, None
-        
+       
+def suported_format(inFile):
+    if video_info(inFile)[0]:
+        return True
+    else:
+        return False
+
 def win32kill(pid):
         import ctypes
         handle = ctypes.windll.kernel32.OpenProcess(1, False, pid)

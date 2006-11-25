@@ -3,7 +3,7 @@ from urllib import unquote_plus
 from urlparse import urlparse
 from cgi import parse_qs
 from Cheetah.Template import Template
-from transcode import output_video
+import transcode
 
 class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     containers = {}
@@ -62,19 +62,32 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             folders = subcname.split('/')
             path = container['path']
             for folder in folders[1:]:
+                if folder == '..':
+                    return
                 path = path + '/' + folder
            
+            def isdir(file):
+                path = container['path'] + '/' + file
+                return os.path.isdir(path)
+           
             files = os.listdir(path)
-            totalFiles = len(files)
+
+            files = filter(lambda f: os.path.isdir(path+'/'+f) or transcode.suported_format(path+'/'+f), files)
             
+            totalFiles = len(files)
+           
+            index = 0
             if query.has_key('ItemCount'):
                 count = int(query['ItemCount'] [0])
-                index = 0
                 
                 if query.has_key('AnchorItem'):
                     anchor = query['AnchorItem'] [0]
                     for i in range(len(files)):
-                        file_url = '/' + subcname + '/' + files[i]
+                        
+                        if isdir(files[i]):
+                            file_url = '/TiVoConnect?Command=QueryContainer&Container=' + subcname + '/' + files[i]
+                        else:                                
+                            file_url = '/' + subcname + '/' + files[i]
                         if file_url == anchor:
                             index = i + 1
                             break
@@ -106,9 +119,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         path = unquote_plus(o.path)
         self.send_response(200)
         self.end_headers()
-        #rfile = open(container['path'] + path[len(name)+1:], 'rb')
-        #shutil.copyfileobj(rfile, self.wfile)
-        output_video(container['path'] + path[len(name)+1:], self.wfile)
+        transcode.output_video(container['path'] + path[len(name)+1:], self.wfile)
     
     def infopage(self):
         self.send_response(200)
