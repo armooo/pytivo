@@ -20,11 +20,11 @@ run pyTivo.py
 
 To install as a service
 
-run pyTivoService.pyc --startup auto install
+run pyTivoService.py --startup auto install
 
 To remove service
 
-run pyTivoService.pyc remove
+run pyTivoService.py remove
 
 Known Problems
 
