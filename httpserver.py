@@ -1,6 +1,7 @@
 import time, os, BaseHTTPServer, SocketServer, socket, shutil, os.path
-from urllib import unquote_plus
+from urllib import unquote_plus, quote, unquote
 from urlparse import urlparse
+from xml.sax.saxutils import escape
 from cgi import parse_qs
 from Cheetah.Template import Template
 import transcode
@@ -53,7 +54,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write(t)
         else:
             
-            subcname = unquote_plus(query['Container'][0])
+            subcname = query['Container'][0]
             cname = subcname.split('/')[0]
              
             if not self.server.containers.has_key(cname):
@@ -69,15 +70,13 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 path = os.path.join(path, folder)
            
 
-           
             files = os.listdir(path)
 
-            files = filter(lambda f: os.path.isdir(os.path.join(path, f)) or transcode.suported_format(path+'/'+f), files)
+            files = filter(lambda f: os.path.isdir(os.path.join(path, f)) or transcode.suported_format(os.path.join(path,f)), files)
             
             totalFiles = len(files)
  
             def isdir(file):
-                print os.path.join(path, file)
                 return os.path.isdir(os.path.join(path, file))                     
 
             index = 0
@@ -85,7 +84,8 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 count = int(query['ItemCount'] [0])
                 
                 if query.has_key('AnchorItem'):
-                    anchor = query['AnchorItem'] [0]
+                    anchor = unquote(query['AnchorItem'][0])
+                    print anchor
                     for i in range(len(files)):
                         
                         if isdir(files[i]):
@@ -107,6 +107,8 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             t.total = totalFiles
             t.start = index
             t.isdir = isdir
+            t.quote = quote
+            t.escape = escape
             self.wfile.write(t)
 
     def send_static(self, name, container):
