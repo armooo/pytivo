@@ -66,18 +66,20 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             for folder in folders[1:]:
                 if folder == '..':
                     return
-                path = path + '/' + folder
+                path = os.path.join(path, folder)
            
-            def isdir(file):
-                path = container['path'] + '/' + file
-                return os.path.isdir(path)
+
            
             files = os.listdir(path)
 
-            files = filter(lambda f: os.path.isdir(path+'/'+f) or transcode.suported_format(path+'/'+f), files)
+            files = filter(lambda f: os.path.isdir(os.path.join(path, f)) or transcode.suported_format(path+'/'+f), files)
             
             totalFiles = len(files)
-           
+ 
+            def isdir(file):
+                print os.path.join(path, file)
+                return os.path.isdir(os.path.join(path, file))                     
+
             index = 0
             if query.has_key('ItemCount'):
                 count = int(query['ItemCount'] [0])
@@ -96,10 +98,8 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 if query.has_key('AnchorOffset'):
                     index = index +  int(query['AnchorOffset'][0])
                 files = files[index:index + count]
-            
-            def isdir(file):
-                path = container['path'] + '/' + file
-                return os.path.isdir(path)
+           
+
             
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
             t.name = subcname
