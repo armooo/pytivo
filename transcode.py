@@ -1,7 +1,7 @@
 import subprocess, shutil, os, re, sys
 
 SCRIPTDIR = os.path.dirname(__file__)
-FFMPEG = '/usr/bin/ffmpeg'
+FFMPEG = os.path.join(SCRIPTDIR, 'ffmpeg_mp2.exe')
 
 # XXX BIG HACK
 # subprocess is broken for me on windows so super hack
@@ -27,11 +27,7 @@ def output_video(inFile, outFile):
 
 def transcode(inFile, outFile):
 
-    cmd = "%s -i \"%s\" -vcodec mpeg2video -r 29.97 -b 4096 %s -ac 2 -ab 192 -f vob -" % (FFMPEG, inFile, select_aspect(inFile))
     cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', '4096'] + select_aspect(inFile)  +  ['-ac', '2', '-ab', '192', '-f', 'vob', '-' ]   
-
-    print cmd
- 
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
