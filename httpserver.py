@@ -89,7 +89,6 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 
                 if query.has_key('AnchorItem'):
                     anchor = unquote(query['AnchorItem'][0])
-                    print anchor
                     for i in range(len(files)):
                         
                         if isdir(files[i]):
