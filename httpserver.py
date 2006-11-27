@@ -10,6 +10,10 @@ SCRIPTDIR = os.path.dirname(__file__)
 
 class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     containers = {}
+    
+    def __init__(self, server_address, RequestHandlerClass):
+        BaseHTTPServer.HTTPServer.__init__(self, server_address, RequestHandlerClass)
+        self.daemon_threads = True
 
     def add_container(self, name, type, path):
         if self.containers.has_key(name) or name == 'TivoConnect':

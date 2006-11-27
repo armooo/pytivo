@@ -1,4 +1,4 @@
-import beacon, httpserver, ConfigParser, os
+import beacon, httpserver, ConfigParser, os, sys
 
 config = ConfigParser.ConfigParser()
 p = os.path.dirname(__file__)

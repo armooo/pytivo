@@ -1,6 +1,7 @@
 import subprocess, shutil, os, re, sys
 
 SCRIPTDIR = os.path.dirname(__file__)
+FFMPEG = '/usr/bin/ffmpeg'
 
 # XXX BIG HACK
 # subprocess is broken for me on windows so super hack
@@ -26,9 +27,11 @@ def output_video(inFile, outFile):
 
 def transcode(inFile, outFile):
 
-    cmd = SCRIPTDIR + "\\ffmpeg_mp2.exe -i \"%s\" -vcodec mpeg2video -r 29.97 -b 4096 %s -ac 2 -ab 192 -f vob -" % (inFile, select_aspect(inFile))
-    # subprocess is busted in my python 2.5 when run without a console. Setting all to PIPE fixes it.
-    # but now we get this nice select loop to dump the stderr data
+    cmd = "%s -i \"%s\" -vcodec mpeg2video -r 29.97 -b 4096 %s -ac 2 -ab 192 -f vob -" % (FFMPEG, inFile, select_aspect(inFile))
+    cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', '4096'] + select_aspect(inFile)  +  ['-ac', '2', '-ab', '192', '-f', 'vob', '-' ]   
+
+    print cmd
+ 
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
@@ -43,28 +46,32 @@ def select_aspect(inFile):
     rheight, rwidth = height/d, width/d
 
     if (rheight, rwidth) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
-        return '-aspect 4:3 -s 720x480'
+        return ['-aspect', '4:3', '-s', '720x480']
     elif (rheight, rwidth) in [(16, 9), (20, 11), (40, 33), (118, 81), (59, 27)]:
-        return '-aspect 16:9 -s 720x480'
+        return ['-aspect', '16:9', '-s', '720x480']
     else:
         settings = []
-        settings.append('-aspect 16:9')
+        settings.append('-aspect')
+        settings.append('16:9')
       
         endHeight = (720*width)/height
         if endHeight % 2:
             endHeight -= 1
 
-        settings.append('-s 720x' + str(endHeight))
+        settings.append('-s')
+        settings.append('720x' + str(endHeight))
 
         topPadding = ((480 - endHeight)/2)
         if topPadding % 2:
             topPadding -= 1
         
-        settings.append('-padtop ' + str(topPadding))
+        settings.append('-padtop')
+        settings.append(str(topPadding))
         bottomPadding = (480 - endHeight) - topPadding
-        settings.append('-padbottom ' + str(bottomPadding))
+        settings.append('-padbottom')
+        settings.append(str(bottomPadding))
             
-        return ' '.join(settings)
+        return settings
 
 def tivo_compatable(inFile):
     suportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
@@ -82,7 +89,7 @@ def tivo_compatable(inFile):
     return False
 
 def video_info(inFile):
-    cmd = SCRIPTDIR + "\\ffmpeg_mp2.exe -i \"%s\"" % inFile
+    cmd = [FFMPEG, '-i', inFile ] 
     ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
     output = ffmpeg.stderr.read()
     
