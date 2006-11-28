@@ -30,10 +30,13 @@ class Beacon():
     def send_beacon(self):
         self.UDPSock.sendto(self.format_beacon(), ('255.255.255.255', 2190))
 
-    def send_beacon_timer(self):
+    def start(self):
         self.send_beacon()
-        t = Timer(60, self.send_beacon_timer)
-        t.start()
+        self.timer = Timer(60, self.start)
+        self.timer.start()
+
+    def stop(self):
+        self.timer.cancel()
 
 if __name__ == '__main__':
     b = Beacon()

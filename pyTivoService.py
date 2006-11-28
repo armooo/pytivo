@@ -36,7 +36,7 @@ class PyTivoService(win32serviceutil.ServiceFramework):
 
         b = beacon.Beacon()
         b.add_service('TiVoMediaServer:' + str(port) + '/http')
-        b.send_beacon_timer()
+        b.start()
         
         while 1:
             sys.stdout.flush()
@@ -45,6 +45,7 @@ class PyTivoService(win32serviceutil.ServiceFramework):
                 sck.handle_request()
             rc = win32event.WaitForSingleObject(self.stop_event, 5)
             if rc == win32event.WAIT_OBJECT_0:
+                b.stop()
                 break
 
     def SvcStop(self):

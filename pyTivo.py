@@ -14,6 +14,9 @@ for section in config.sections():
 
 b = beacon.Beacon()
 b.add_service('TiVoMediaServer:' + str(port) + '/http')
-b.send_beacon_timer()
+b.start()
 
-httpd.serve_forever()
+try:
+    httpd.serve_forever()
+except KeyboardInterrupt:
+    b.stop()
