@@ -1,4 +1,4 @@
-import time, os, BaseHTTPServer, SocketServer, socket, shutil, os.path
+import time, os, BaseHTTPServer, SocketServer, socket, re
 from urllib import unquote_plus, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
@@ -99,6 +99,45 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         files = os.listdir(path)
         files = filter(lambda f: os.path.isdir(os.path.join(path, f)) or transcode.suported_format(os.path.join(path,f)), files)
         totalFiles = len(files)
+
+        def dir_sort(x, y):
+            xdir = os.path.isdir(os.path.join(path, x))
+            ydir = os.path.isdir(os.path.join(path, y))
+
+            if xdir and ydir:
+                return name_sort(x, y)
+            elif xdir:
+                return -1
+            elif ydir:
+                return 1
+            else:
+                return name_sort(x, y)
+
+        def name_sort(x, y):
+            numbername = re.compile(r'(\d*)(.*)')
+            m = numbername.match(x)
+            xNumber = m.group(1)
+            xStr = m.group(2)
+            m = numbername.match(y)
+            yNumber = m.group(1)
+            yStr = m.group(2)
+            
+            print xNumber, ':', xStr
+
+            if xNumber and yNumber:
+                xNumber, yNumber = int(xNumber), int(yNumber)
+                if xNumber == yNumber:
+                    return cmp(xStr, yStr)
+                else:
+                    return cmp(xNumber, yNumber)
+            elif xNumber:
+                return -1
+            elif yNumber:
+                return 1
+            else:
+                return cmp(xStr, yStr)
+
+        files.sort(dir_sort)
 
         index = 0
         if query.has_key('ItemCount'):
