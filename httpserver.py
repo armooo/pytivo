@@ -49,70 +49,77 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         
         if not query.has_key('Container'):
             query['Container'] = ['/']
-        self.send_response(200)
-        self.end_headers()
+        
         if query['Container'][0] == '/':
             t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'root_container.tmpl'))
             t.containers = self.server.containers
             t.hostname = socket.gethostname()
+            self.send_response(200)
+            self.end_headers()
             self.wfile.write(t)
         else:
-            
             subcname = query['Container'][0]
             cname = subcname.split('/')[0]
              
-            if not self.server.containers.has_key(cname):
+            if not self.server.containers.has_key(cname) or not self.get_local_path(query):
+                self.send_response(404)
+                self.end_headers()
                 return
             
-            container = self.server.containers[cname]
-
-            folders = subcname.split('/')
-            path = container['path']
-            for folder in folders[1:]:
-                if folder == '..':
-                    return
-                path = os.path.join(path, folder)
-           
-
-            files = os.listdir(path)
-
-            files = filter(lambda f: os.path.isdir(os.path.join(path, f)) or transcode.suported_format(os.path.join(path,f)), files)
-            
-            totalFiles = len(files)
- 
+            path = self.get_local_path(query)
             def isdir(file):
                 return os.path.isdir(os.path.join(path, file))                     
 
-            index = 0
-            if query.has_key('ItemCount'):
-                count = int(query['ItemCount'] [0])
-                
-                if query.has_key('AnchorItem'):
-                    anchor = unquote(query['AnchorItem'][0])
-                    for i in range(len(files)):
-                        
-                        if isdir(files[i]):
-                            file_url = '/TiVoConnect?Command=QueryContainer&Container=' + subcname + '/' + files[i]
-                        else:                                
-                            file_url = '/' + subcname + '/' + files[i]
-                        if file_url == anchor:
-                            index = i + 1
-                            break
-                if query.has_key('AnchorOffset'):
-                    index = index +  int(query['AnchorOffset'][0])
-                files = files[index:index + count]
-           
-
-            
+            self.send_response(200)
+            self.end_headers()
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
             t.name = subcname
-            t.files = files
-            t.total = totalFiles
-            t.start = index
+            t.files, t.total, t.start = self.get_files(query)
             t.isdir = isdir
             t.quote = quote
             t.escape = escape
             self.wfile.write(t)
+
+    def get_local_path(self, query):
+
+        subcname = query['Container'][0]
+        container = self.server.containers[subcname.split('/')[0]]
+
+        path = container['path']
+        for folder in subcname.split('/')[1:]:
+            if folder == '..':
+                return False
+            path = os.path.join(path, folder)
+        return path
+
+    def get_files(self, query):
+        subcname = query['Container'][0]
+        path = self.get_local_path(query)
+        
+        files = os.listdir(path)
+        files = filter(lambda f: os.path.isdir(os.path.join(path, f)) or transcode.suported_format(os.path.join(path,f)), files)
+        totalFiles = len(files)
+
+        index = 0
+        if query.has_key('ItemCount'):
+            count = int(query['ItemCount'] [0])
+            
+            if query.has_key('AnchorItem'):
+                anchor = unquote(query['AnchorItem'][0])
+                for i in range(len(files)):
+                    
+                    if os.path.isdir(os.path.join(path,files[i])):
+                        file_url = '/TiVoConnect?Command=QueryContainer&Container=' + subcname + '/' + files[i]
+                    else:                                
+                        file_url = '/' + subcname + '/' + files[i]
+                    if file_url == anchor:
+                        index = i + 1
+                        break
+            if query.has_key('AnchorOffset'):
+                index = index +  int(query['AnchorOffset'][0])
+            files = files[index:index + count]
+
+        return files, totalFiles, index
 
     def send_static(self, name, container):
 
