@@ -1,10 +1,9 @@
 import time, os, BaseHTTPServer, SocketServer, socket, re
 from urllib import unquote_plus, quote, unquote
 from urlparse import urlparse
-from xml.sax.saxutils import escape
 from cgi import parse_qs
 from Cheetah.Template import Template
-import transcode
+from plugin import GetPlugin
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -22,13 +21,16 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
-      
+ 
+        ## Get File
         for name, container in self.server.containers.items():
             #XXX make a regex
             if self.path.startswith('/' + name):
-                self.send_static(container, name)
+                plugin = GetPlugin(container['type'])
+                plugin.SendFile(self, container, name)
                 return
-        
+            
+        ## Not a file not a TiVo command fuck them
         if not self.path.startswith('/TiVoConnect'):
             self.infopage()
             return
@@ -38,12 +40,32 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         mname = False
         if query.has_key('Command') and len(query['Command']) >= 1:
-            mname = 'do_' + query['Command'][0]
-        if mname and hasattr(self, mname):
-            method = getattr(self, mname)
-            method(query)
+
+            command = query['Command'][0]
+
+            #If we are looking at the root container
+            if command == "QueryContainer" and ( not query.has_key('Container') or query['Container'][0] == '/'):
+                self.RootContiner()
+                return 
+           
+            #Dispatch to the container plugin
+            plugin = GetPlugin(container['type'])
+            if plugin.commands.has_key(command):
+                method = plugin.commands[command]
+                method(self, query)
+            else:
+                self.unsuported(query)
         else:
             self.unsuported(query)
+
+    def RootContiner(self):
+         t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'root_container.tmpl'))
+         t.containers = self.server.containers
+         t.hostname = socket.gethostname()
+         t.GetPlugin = GetPlugin
+         self.send_response(200)
+         self.end_headers()
+         self.wfile.write(t)
 
     def infopage(self):
         self.send_response(200)
