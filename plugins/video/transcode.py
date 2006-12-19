@@ -26,7 +26,9 @@ def output_video(inFile, outFile):
         transcode(inFile, outFile)
 
 def transcode(inFile, outFile):
-
+	
+    print select_aspect(inFile)
+    
     cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', '4096'] + select_aspect(inFile)  +  ['-ac', '2', '-ab', '192', '-f', 'vob', '-' ]   
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
@@ -45,7 +47,7 @@ def select_aspect(inFile):
         return ['-aspect', '4:3', '-s', '720x480']
     elif (rheight, rwidth) in [(16, 9), (20, 11), (40, 33), (118, 81), (59, 27)]:
         return ['-aspect', '16:9', '-s', '720x480']
-    else:
+    elif rwidth > rheight:
         settings = []
         settings.append('-aspect')
         settings.append('16:9')
@@ -68,6 +70,9 @@ def select_aspect(inFile):
         settings.append(str(bottomPadding))
             
         return settings
+    else:
+        #hope for the best
+        return ['-aspect', '4:3', '-s', '720x480']
 
 def tivo_compatable(inFile):
     suportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
