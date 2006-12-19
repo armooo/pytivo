@@ -25,7 +25,8 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         ## Get File
         for name, container in self.server.containers.items():
             #XXX make a regex
-            if self.path.startswith('/' + name):
+	    path = unquote_plus(self.path)
+            if path.startswith('/' + name):
                 plugin = GetPlugin(container['type'])
                 plugin.SendFile(self, container, name)
                 return
