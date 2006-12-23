@@ -9,16 +9,16 @@
         <TotalItems>$total</TotalItems>
     </Details>
     #for $file in $files
-    #if $isdir($file)
+    #if $isdir($file['path'])
     <Item>
         <Details>
-            <Title>$escape($file)</Title>
+            <Title>$escape($file.path)</Title>
             <ContentType>x-container/folder</ContentType>
             <SourceFormat>x-container/folder</SourceFormat>
         </Details>
         <Links>
             <Content>
-                    <Url>/TiVoConnect?Command=QueryContainer&amp;Container=$quote($name)/$quote($file)</Url>
+                    <Url>/TiVoConnect?Command=QueryContainer&amp;Container=$quote($name)/$quote($file.path)</Url>
                     <ContentType>x-tivo-container/folder</ContentType>
             </Content>
         </Links>
@@ -26,15 +26,20 @@
     #else
     <Item>
         <Details>
-            <Title>#echo '.'.join(file.split('.')[:-1]) #</Title>
+            <Title>#echo '.'.join(file['path'].split('.')[:-1]) #</Title>
             <ContentType>audio/*</ContentType>
             <SourceFormat>audio/mpeg</SourceFormat>
+
+            #for $key in $file
+                <$key>$file[$key]</$key>
+            #end for            
+
         </Details>
         <Links>
             <Content>
                 <ContentType>audio/*</ContentType>
                     <AcceptsParams>No</AcceptsParams>
-                    <Url>/$quote($name)/$quote($file)</Url>
+                    <Url>/$quote($name)/$quote($file.path)</Url>
                 </Content>
         </Links>
     </Item>

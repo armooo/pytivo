@@ -4,6 +4,7 @@ from plugin import Plugin
 from urllib import unquote_plus, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
+import eyeD3
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -34,13 +35,41 @@ class music(Plugin):
         
         path = self.get_local_path(handler, query)
         def isdir(file):
-            return os.path.isdir(os.path.join(path, file))                     
+            return os.path.isdir(os.path.join(path, file))
 
+        def media_data(file):
+            dict = {}
+            dict['path'] = file
+
+            file = os.path.join(path, file)
+
+            if isdir(file) or not eyeD3.isMp3File(file):
+                return dict
+            
+            audioFile = eyeD3.Mp3AudioFile(file)
+            dict['Duration'] = audioFile.getPlayTime() * 1000
+            dict['SourceBitRate'] = audioFile.getBitRate()[1]
+            dict['SourceSampleRate'] = audioFile.getSampleFreq()
+
+            tag = audioFile.getTag()
+            dict['ArtistName'] = str(tag.getArtist())
+            dict['AlbumTitle'] = str(tag.getAlbum())
+            dict['SongTitle'] = str(tag.getTitle())
+            dict['AlbumYear'] = tag.getYear()
+            
+            try:
+                dict['MusicGenre'] = tag.getGenre().getName()
+            except:
+                pass
+            
+            return dict
+            
         handler.send_response(200)
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
         t.name = subcname
         t.files, t.total, t.start = self.get_files(handler, query)
+        t.files = map(media_data, t.files)
         t.isdir = isdir
         t.quote = quote
         t.escape = escape
