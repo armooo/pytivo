@@ -6,7 +6,6 @@ def GetPlugin(name):
 
 class Plugin:
 
-    commands = {}
     content_type = ''
 
     def SendFile():

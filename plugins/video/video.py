@@ -9,12 +9,7 @@ SCRIPTDIR = os.path.dirname(__file__)
 
 class video(Plugin):
     
-    def __init__(self):
-    
-        self.commands = {
-            'QueryContainer' : self.QueryContainer
-        }
-        self.content_type = 'x-container/tivo-videos'
+    content_type = 'x-container/tivo-videos'
 
     def SendFile(self, handler, container, name):
         
@@ -32,38 +27,27 @@ class video(Plugin):
         
     def QueryContainer(self, handler, query):
         
-        if not query.has_key('Container'):
-            query['Container'] = ['/']
+        subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
+         
+        if not handler.server.containers.has_key(cname) or not self.get_local_path(handler, query):
+            handler.send_response(404)
+            handler.end_headers()
+            return
         
-        if query['Container'][0] == '/':
-            t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'root_container.tmpl'))
-            t.containers = handler.server.containers
-            t.hostname = socket.gethostname()
-            handler.send_response(200)
-            handler.end_headers()
-            handler.wfile.write(t)
-        else:
-            subcname = query['Container'][0]
-            cname = subcname.split('/')[0]
-             
-            if not handler.server.containers.has_key(cname) or not self.get_local_path(handler, query):
-                handler.send_response(404)
-                handler.end_headers()
-                return
-            
-            path = self.get_local_path(handler, query)
-            def isdir(file):
-                return os.path.isdir(os.path.join(path, file))                     
+        path = self.get_local_path(handler, query)
+        def isdir(file):
+            return os.path.isdir(os.path.join(path, file))                     
 
-            handler.send_response(200)
-            handler.end_headers()
-            t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
-            t.name = subcname
-            t.files, t.total, t.start = self.get_files(handler, query)
-            t.isdir = isdir
-            t.quote = quote
-            t.escape = escape
-            handler.wfile.write(t)
+        handler.send_response(200)
+        handler.end_headers()
+        t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
+        t.name = subcname
+        t.files, t.total, t.start = self.get_files(handler, query)
+        t.isdir = isdir
+        t.quote = quote
+        t.escape = escape
+        handler.wfile.write(t)
 
     def get_local_path(self, handler, query):
 

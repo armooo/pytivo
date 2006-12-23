@@ -48,14 +48,19 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if command == "QueryContainer" and ( not query.has_key('Container') or query['Container'][0] == '/'):
                 self.RootContiner()
                 return 
-           
-            #Dispatch to the container plugin
-            plugin = GetPlugin(container['type'])
-            if plugin.commands.has_key(command):
-                method = plugin.commands[command]
-                method(self, query)
-            else:
-                self.unsuported(query)
+            
+            if query.has_key('Container'):
+                #Dispatch to the container plugin
+                for name, container in self.server.containers.items():
+                    print name, query['Container'][0]
+                    if query['Container'][0].startswith(name):
+                        plugin = GetPlugin(container['type'])
+                        if hasattr(plugin,command):
+                            method = getattr(plugin, command)
+                            method(self, query)
+                        else:
+                            self.unsuported(query)
+                        break
         else:
             self.unsuported(query)
 
