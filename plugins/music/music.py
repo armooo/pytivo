@@ -68,6 +68,9 @@ class music(Plugin):
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
         t.name = subcname
+        print '----'
+        print len(self.get_files(handler, query)[0])
+        print len(map(media_data, self.get_files(handler, query)[0]))
         t.files, t.total, t.start = self.get_files(handler, query)
         t.files = map(media_data, t.files)
         t.isdir = isdir
@@ -132,22 +135,32 @@ class music(Plugin):
         files.sort(dir_sort)
 
         index = 0
+        count = 10
         if query.has_key('ItemCount'):
             count = int(query['ItemCount'] [0])
             
-            if query.has_key('AnchorItem'):
-                anchor = unquote(query['AnchorItem'][0])
-                for i in range(len(files)):
-                    
-                    if os.path.isdir(os.path.join(path,files[i])):
-                        file_url = '/TiVoConnect?Command=QueryContainer&Container=' + subcname + '/' + files[i]
-                    else:                                
-                        file_url = '/' + subcname + '/' + files[i]
-                    if file_url == anchor:
+        if query.has_key('AnchorItem'):
+            anchor = unquote(query['AnchorItem'][0])
+            for i in range(len(files)):
+                if os.path.isdir(os.path.join(path,files[i])):
+                    file_url = '/TiVoConnect?Command=QueryContainer&Container=' + subcname + '/' + files[i]
+                else:                                
+                    file_url = '/' + subcname + '/' + files[i]
+                if file_url == anchor:
+                    if count > 0:
                         index = i + 1
-                        break
+                    elif count < 0:
+                        index = i - 1
+                    else:
+                        index = i
+                    break
             if query.has_key('AnchorOffset'):
                 index = index +  int(query['AnchorOffset'][0])
-            files = files[index:index + count]
-
-        return files, totalFiles, index
+                
+        if index < index + count:
+            files = files[max(index, 0):index + count ]
+            return files, totalFiles, index
+        else:
+            files = files[max(index + count, 0):index]
+            return files, totalFiles, index + count
+                
