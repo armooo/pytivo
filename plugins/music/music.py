@@ -1,4 +1,4 @@
-import transcode, os, socket, re
+import transcode, os, socket, re, sys
 from Cheetah.Template import Template
 from plugin import Plugin
 from urllib import unquote_plus, quote, unquote
@@ -9,9 +9,7 @@ SCRIPTDIR = os.path.dirname(__file__)
 
 class music(Plugin):
     
-    def __init__(self):
-    
-        self.content_type = 'x-container/tivo-music'
+    content_type = 'x-container/tivo-music'
         
     def QueryContainer(self, handler, query):
         
@@ -36,18 +34,18 @@ class music(Plugin):
             if isdir(file) or not eyeD3.isMp3File(file):
                 return dict
             
-            audioFile = eyeD3.Mp3AudioFile(file)
-            dict['Duration'] = audioFile.getPlayTime() * 1000
-            dict['SourceBitRate'] = audioFile.getBitRate()[1]
-            dict['SourceSampleRate'] = audioFile.getSampleFreq()
-
-            tag = audioFile.getTag()
-            dict['ArtistName'] = str(tag.getArtist())
-            dict['AlbumTitle'] = str(tag.getAlbum())
-            dict['SongTitle'] = str(tag.getTitle())
-            dict['AlbumYear'] = tag.getYear()
-            
             try:
+                audioFile = eyeD3.Mp3AudioFile(file)
+                dict['Duration'] = audioFile.getPlayTime() * 1000
+                dict['SourceBitRate'] = audioFile.getBitRate()[1]
+                dict['SourceSampleRate'] = audioFile.getSampleFreq()
+
+                tag = audioFile.getTag()
+                dict['ArtistName'] = str(tag.getArtist())
+                dict['AlbumTitle'] = str(tag.getAlbum())
+                dict['SongTitle'] = str(tag.getTitle())
+                dict['AlbumYear'] = tag.getYear()
+            
                 dict['MusicGenre'] = tag.getGenre().getName()
             except:
                 pass
@@ -58,10 +56,7 @@ class music(Plugin):
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
         t.name = subcname
-        print '----'
-        print len(self.get_files(handler, query)[0])
-        print len(map(media_data, self.get_files(handler, query)[0]))
-        t.files, t.total, t.start = self.get_files(handler, query)
+        t.files, t.total, t.start = self.get_files(handler, query, lambda f: isdir(f) or eyeD3.isMp3File(os.path.join(path, f)))
         t.files = map(media_data, t.files)
         t.isdir = isdir
         t.quote = quote
