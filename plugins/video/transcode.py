@@ -47,7 +47,8 @@ def select_aspect(inFile):
         return ['-aspect', '4:3', '-s', '720x480']
     elif (rheight, rwidth) in [(16, 9), (20, 11), (40, 33), (118, 81), (59, 27)]:
         return ['-aspect', '16:9', '-s', '720x480']
-    elif rwidth > rheight:
+#    elif rwidth > rheight:
+    else:
         settings = []
         settings.append('-aspect')
         settings.append('16:9')
@@ -70,9 +71,9 @@ def select_aspect(inFile):
         settings.append(str(bottomPadding))
             
         return settings
-    else:
+#    else:
         #hope for the best
-        return ['-aspect', '4:3', '-s', '720x480']
+#        return ['-aspect', '4:3', '-s', '720x480']
 
 def tivo_compatable(inFile):
     suportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
