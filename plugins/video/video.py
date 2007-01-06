@@ -7,6 +7,8 @@ from xml.sax.saxutils import escape
 
 SCRIPTDIR = os.path.dirname(__file__)
 
+playable_cache = {}
+
 class video(Plugin):
     
     content_type = 'x-container/tivo-videos'
@@ -25,6 +27,8 @@ class video(Plugin):
         handler.end_headers()
         transcode.output_video(container['path'] + path[len(name)+1:], handler.wfile)
         
+
+    
     def QueryContainer(self, handler, query):
         
         subcname = query['Container'][0]
@@ -39,11 +43,24 @@ class video(Plugin):
         def isdir(file):
             return os.path.isdir(os.path.join(path, file))                     
 
+        def VideoFileFilter(file):
+            full_path = os.path.join(path, file)
+
+            if playable_cache.has_key(full_path):
+                print 'Cache Hit'
+                return playable_cache[full_path]
+            if os.path.isdir(full_path) or transcode.suported_format(full_path):
+                playable_cache[full_path] = True
+                return True
+            else:
+                playable_cache[full_path] = False
+                return False
+
         handler.send_response(200)
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
         t.name = subcname
-        t.files, t.total, t.start = self.get_files(handler, query, lambda f: os.path.isdir(os.path.join(path, f)) or transcode.suported_format(os.path.join(path,f)) )
+        t.files, t.total, t.start = self.get_files(handler, query, VideoFileFilter)
         t.isdir = isdir
         t.quote = quote
         t.escape = escape
