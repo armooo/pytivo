@@ -7,11 +7,11 @@ from xml.sax.saxutils import escape
 
 SCRIPTDIR = os.path.dirname(__file__)
 
-playable_cache = {}
 
 class video(Plugin):
     
     content_type = 'x-container/tivo-videos'
+    playable_cache = {}
 
     def SendFile(self, handler, container, name):
         
@@ -46,14 +46,13 @@ class video(Plugin):
         def VideoFileFilter(file):
             full_path = os.path.join(path, file)
 
-            if playable_cache.has_key(full_path):
-                print 'Cache Hit'
-                return playable_cache[full_path]
+            if self.playable_cache.has_key(full_path):
+                return self.playable_cache[full_path]
             if os.path.isdir(full_path) or transcode.suported_format(full_path):
-                playable_cache[full_path] = True
+                self.playable_cache[full_path] = True
                 return True
             else:
-                playable_cache[full_path] = False
+                self.playable_cache[full_path] = False
                 return False
 
         handler.send_response(200)
