@@ -4,6 +4,7 @@ from plugin import Plugin
 from urllib import unquote_plus, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
+from lrucache import LRUCache
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -11,7 +12,7 @@ SCRIPTDIR = os.path.dirname(__file__)
 class video(Plugin):
     
     content_type = 'x-container/tivo-videos'
-    playable_cache = {}
+    playable_cache = LRUCache(1000)
 
     def SendFile(self, handler, container, name):
         
@@ -46,7 +47,7 @@ class video(Plugin):
         def VideoFileFilter(file):
             full_path = os.path.join(path, file)
 
-            if self.playable_cache.has_key(full_path):
+            if full_path in self.playable_cache:
                 return self.playable_cache[full_path]
             if os.path.isdir(full_path) or transcode.suported_format(full_path):
                 self.playable_cache[full_path] = True

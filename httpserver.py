@@ -52,7 +52,6 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             if query.has_key('Container'):
                 #Dispatch to the container plugin
                 for name, container in self.server.containers.items():
-                    print name, query['Container'][0]
                     if query['Container'][0].startswith(name):
                         plugin = GetPlugin(container['type'])
                         if hasattr(plugin,command):

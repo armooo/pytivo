@@ -112,9 +112,18 @@ class Plugin(object):
             if query.has_key('AnchorOffset'):
                 index = index +  int(query['AnchorOffset'][0])
                 
+        #foward count
         if index < index + count:
-            files = files[max(index, 0):index + count ]
+            files = files[index:index + count ]
             return files, totalFiles, index
+        #backwards count
         else:
-            files = files[max(index + count, 0):index]
+            print 'index, count', index, count
+            print index + count
+            #off the start of the list
+            if index + count < 0:
+                print 0 - (index + count)
+                index += 0 - (index + count)
+            print index + count
+            files = files[index + count:index]
             return files, totalFiles, index + count
