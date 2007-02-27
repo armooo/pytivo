@@ -1,3 +1,6 @@
+#!/usr/bin/env python2.4
+
+
 import beacon, httpserver, ConfigParser, os, sys
 
 config = ConfigParser.ConfigParser()

@@ -44,14 +44,22 @@ class video(Plugin):
         def isdir(file):
             return os.path.isdir(os.path.join(path, file))                     
 
+        def duration(file):
+            full_path = os.path.join(path, file)
+            return self.playable_cache[full_path]
+
         def VideoFileFilter(file):
             full_path = os.path.join(path, file)
 
             if full_path in self.playable_cache:
                 return self.playable_cache[full_path]
-            if os.path.isdir(full_path) or transcode.suported_format(full_path):
+            if os.path.isdir(full_path):
                 self.playable_cache[full_path] = True
                 return True
+            millisecs = transcode.suported_format(full_path)
+            if millisecs:
+                self.playable_cache[full_path] = millisecs
+                return millisecs
             else:
                 self.playable_cache[full_path] = False
                 return False
@@ -61,6 +69,7 @@ class video(Plugin):
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
         t.name = subcname
         t.files, t.total, t.start = self.get_files(handler, query, VideoFileFilter)
+        t.duration = duration
         t.isdir = isdir
         t.quote = quote
         t.escape = escape

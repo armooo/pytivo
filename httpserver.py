@@ -37,7 +37,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return
         
         o = urlparse("http://fake.host" + self.path)
-        query = parse_qs(o.query)
+        query = parse_qs(o[4])
 
         mname = False
         if query.has_key('Command') and len(query['Command']) >= 1:

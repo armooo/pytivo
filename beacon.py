@@ -1,7 +1,7 @@
 from socket import *
 from threading import Timer
 
-class Beacon():
+class Beacon:
 
     UDPSock = socket(AF_INET, SOCK_DGRAM)
     UDPSock.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)

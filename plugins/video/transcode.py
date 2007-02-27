@@ -1,7 +1,11 @@
-import subprocess, shutil, os, re, sys
+import subprocess, shutil, os, re, sys, ConfigParser
 
-SCRIPTDIR = os.path.dirname(__file__)
-FFMPEG = os.path.join(SCRIPTDIR, 'ffmpeg_mp2.exe')
+config = ConfigParser.ConfigParser()
+config.read(os.path.join(os.getcwd(), 'pyTivo.conf'))
+FFMPEG = config.get('Server', 'ffmpeg')
+#SCRIPTDIR = os.path.dirname(__file__)
+#FFMPEG = os.path.join(SCRIPTDIR, 'ffmpeg_mp2.exe')
+#FFMPEG = '/usr/bin/ffmpeg'
 
 # XXX BIG HACK
 # subprocess is broken for me on windows so super hack
@@ -29,7 +33,7 @@ def transcode(inFile, outFile):
 	
     print select_aspect(inFile)
     
-    cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', '4096'] + select_aspect(inFile)  +  ['-ac', '2', '-ab', '192', '-f', 'vob', '-' ]   
+    cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', '4096'] + select_aspect(inFile)  +  ['-comment', 'pyTivo.py', '-ac', '2', '-ab', '192', '-f', 'vob', '-' ]   
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
@@ -37,7 +41,7 @@ def transcode(inFile, outFile):
         win32kill(ffmpeg.pid)
 
 def select_aspect(inFile):
-    type, height, width, fps =  video_info(inFile)
+    type, height, width, fps, millisecs =  video_info(inFile)
     
     d = gcd(height,width)
 
@@ -77,7 +81,7 @@ def select_aspect(inFile):
 
 def tivo_compatable(inFile):
     suportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
-    type, height, width, fps =  video_info(inFile)
+    type, height, width, fps, millisecs =  video_info(inFile)
 
     if not type == 'mpeg2video':
         return False
@@ -94,17 +98,19 @@ def video_info(inFile):
     cmd = [FFMPEG, '-i', inFile ] 
     ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
     output = ffmpeg.stderr.read()
-    
+    durre = re.compile(r'.*Duration: (.{2}):(.{2}):(.{2})\.(.)')
+    d = durre.search(output)
     rezre = re.compile(r'.*Video: (.+), (\d+)x(\d+), (.+) fps.*')
     m = rezre.search(output)
     if m:
-        return m.group(1), int(m.group(2)), int(m.group(3)), m.group(4)
+        millisecs = ((int(d.group(1))*3600) + (int(d.group(2))*60) + int(d.group(3)))*1000 + (int(d.group(4))*100)
+        return m.group(1), int(m.group(2)), int(m.group(3)), m.group(4), millisecs
     else:
-        return None, None, None, None
+        return None, None, None, None, None
        
 def suported_format(inFile):
     if video_info(inFile)[0]:
-        return True
+        return video_info(inFile)[4]
     else:
         return False
 
