@@ -38,7 +38,11 @@ def transcode(inFile, outFile):
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
     except:
-        win32kill(ffmpeg.pid)
+        if mswindows:
+            win32kill(ffmpeg.pid)
+        else:
+            import os, signal
+            os.kill(ffmpeg.pid, signal.SIGTERM)
 
 def select_aspect(inFile):
     type, height, width, fps, millisecs =  video_info(inFile)
