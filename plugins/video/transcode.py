@@ -1,7 +1,7 @@
 import subprocess, shutil, os, re, sys, ConfigParser
 
-config = ConfigParser.ConfigParser()
-config.read(os.path.join(os.getcwd(), 'pyTivo.conf'))
+from Config import config
+
 FFMPEG = config.get('Server', 'ffmpeg')
 #SCRIPTDIR = os.path.dirname(__file__)
 #FFMPEG = os.path.join(SCRIPTDIR, 'ffmpeg_mp2.exe')

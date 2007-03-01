@@ -16,15 +16,14 @@ class PyTivoService(win32serviceutil.ServiceFramework):
        
         import sys, os
 
+        from Config import config
+
         p = os.path.dirname(__file__)
     
         f = open(os.path.join(p, 'log.txt'), 'w')
         sys.stdout = f
         sys.stderr = f
-        print 'test'
     
-        config = ConfigParser.ConfigParser()
-        config.read( os.path.join(p, 'pyTivo.conf') )
 
         port = config.get('Server', 'Port')
 

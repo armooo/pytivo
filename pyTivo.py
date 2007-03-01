@@ -1,11 +1,9 @@
 #!/usr/bin/env python2.4
 
 
-import beacon, httpserver, ConfigParser, os, sys
+import beacon, httpserver, os, sys
 
-config = ConfigParser.ConfigParser()
-p = os.path.dirname(__file__)
-config.read(os.path.join(p, 'pyTivo.conf'))
+from Config import config
 
 port = config.get('Server', 'Port')
 
