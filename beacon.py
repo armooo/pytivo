@@ -17,10 +17,17 @@ class Beacon:
     def format_beacon(self):
         beacon = []
 
+        from Config import config
+
+        if config.has_option('Server', 'GUID'):
+            guid = config.get('Server', 'GUID')
+        else:
+            guid = '123456'
+
         beacon.append('tivoconnect=1')
         beacon.append('swversion=1')
         beacon.append('method=broadcast')
-        beacon.append('identity={AD78BB50-6E59-45E3-B955-1CA740E434C9}')
+        beacon.append('identity=%s' % guid)
         beacon.append('machine=Armooo-Py')
         beacon.append('platform=pc')
         beacon.append('services=' + self.format_services())
