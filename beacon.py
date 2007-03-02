@@ -28,7 +28,9 @@ class Beacon:
         beacon.append('swversion=1')
         beacon.append('method=broadcast')
         beacon.append('identity=%s' % guid)
-        beacon.append('machine=%s' % guid)
+
+        import socket
+        beacon.append('machine=%s' % socket.gethostname())
         beacon.append('platform=pc')
         beacon.append('services=' + self.format_services())
 
