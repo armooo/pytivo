@@ -16,9 +16,13 @@ class video(Plugin):
 
     def SendFile(self, handler, container, name):
         
-        #cheep hack 
+        #No longer a 'cheep' hack :p
         if handler.headers.getheader('Range') and not handler.headers.getheader('Range') == 'bytes=0-':
-            handler.send_response(404)
+            handler.send_response(206)
+	    handler.send_header('Connection', 'close')
+	    handler.send_header('Content-Type', 'video/x-tivo-mpeg')
+	    handler.send_header('Transfer-Encoding', 'chunked')
+	    handler.send_header('Server', 'TiVo Server/1.4.257.475')
             handler.end_headers()
             return
         
