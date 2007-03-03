@@ -39,10 +39,10 @@ def transcode(inFile, outFile):
             win32kill(ffmpeg.pid)
         else:
             import os, signal
-            os.kill(ffmpeg.pid, signal.SIGTERM)
+            os.kill(ffmpeg.pid, signal.SIGKILL)
 
 def select_aspect(inFile):
-    type, height, width, fps, millisecs =  video_info(inFile)
+    type, width, height, fps, millisecs =  video_info(inFile)
     
     d = gcd(height,width)
     ratio = (width*100)/height
@@ -80,7 +80,7 @@ def select_aspect(inFile):
             bottomPadding = (480 - endHeight) - topPadding
             settings.append('-padbottom')
             settings.append(str(bottomPadding))
-                
+            
             return settings
         #If video is taller than 4:3 add left and right padding, this is rare
         else:
@@ -104,7 +104,7 @@ def select_aspect(inFile):
 
 def tivo_compatable(inFile):
     suportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
-    type, height, width, fps, millisecs =  video_info(inFile)
+    type, width, height, fps, millisecs =  video_info(inFile)
 
     if not type == 'mpeg2video':
         return False
@@ -113,7 +113,7 @@ def tivo_compatable(inFile):
         return False
 
     for mode in suportedModes:
-        if (mode[0], mode[1]) == (height, width):
+        if (mode[0], mode[1]) == (width, height):
             return True
     return False
 
