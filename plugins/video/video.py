@@ -52,6 +52,10 @@ class video(Plugin):
             full_path = os.path.join(path, file)
             return self.playable_cache[full_path]
 
+        def est_size(file):
+	    #Size is estimated by taking audio and video bit rate adding 2%
+	    return int((duration(file)/1000)*((4288 * 1.02 * 1000)/8))
+
         def VideoFileFilter(file):
             full_path = os.path.join(path, file)
 
@@ -74,6 +78,7 @@ class video(Plugin):
         t.name = subcname
         t.files, t.total, t.start = self.get_files(handler, query, VideoFileFilter)
         t.duration = duration
+        t.est_size = est_size
         t.isdir = isdir
         t.quote = quote
         t.escape = escape

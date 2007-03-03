@@ -1,14 +1,11 @@
-Ver 147
-
 ---Changes
-- Duration has been added
-so now the green bar on the bottom of the screen is accurate.  I thought this would help the deleting problem but it didn't.
+- Transfer End Properly
 
-- Single form of code
-so now this works with no changes on linux and windows
+- File Sizes are estimated now. Sending 6gig estimates for a 400meg file caused TiVo to unnecessarily dump shows for space. New estimation will generally still be over but by a reasonable amount now.
 
-- ffmpeg entry in config file
-allows you to move ffmpeg and allows a single version of code for multiple platforms
+- Ratios are altered.  Filed that are almost 4:3 or 16:9 will be crammed into those formats, looks better on TV and streching image by less than 1% is not noticable.
+
+- Padding for videos that have a lower ratio than 4:3 is added. This allows for black bars on left and right for oddly shaped movies.
 
 ---Description
 
@@ -51,21 +48,9 @@ run pyTivoService.py remove
 
 ---Known Problems
 
-- Only one pyTivo server per network
-GUID in beacons hardcoded. So only 1 server per network. This will be fixed soon.
-
-- Max MPEG size
-The max mpeg2 output size is 6000000000 bytes (hard coded in container.tmpl). 
-It seems that unlike sending photos and music when sending video the tivo needs to know the size of video before hand. So we lie and tell the tivo that it is 6000000000 bytes. The tivo will stop downloading when it hits this size. If the download stops before it it reaches what it thinks is the end it will try resuming the download (HTTP Range header). I return a 404 when the tivo trys to resume and it will give up. You may see an error when you reach the end of the file.
-
-- Files delete before you watch them
-Currently the only way to end a stream to the TiVo involves sending a 404. This is true for all transcoders currently.  Some people will see an error at the end of all of their streamed videos which says "Transfer Interrupted" this is only becuase TiVo thinks the file is larger than it is.
-As a side effect of this some peoples videos will also delete before they watch them.  As far as I can tell the only way to keep a file is to play it all the way to the end as it is streaming to you.  If the file finishes streaming and you are not watchin it, it will delete itself before you watch it.  
-My only suggestion is to either pause the stream on the TiVo and turn off the TV and come back and watch it.  Or get a wired connection so that you can watch the streams live.
-
 - Now Playing List disappears
 This seems to be an error with the TiVo software.  But what happens is that the NPL is replaced with the directory listing of your pyTivo server.  Very odd.
 Workaround - go to the bottom of the page and either select "Recently Deleted" or your pyTivo server that is listed and then hit the left arrow.  Your NPL will be back to normal
 
 ---Notes
-Most of the work has been done by armooo.  Updates in this version were contributed by krkeegan.
+Most of the work has been done by armooo.  With minor updates by KRKeegan.
