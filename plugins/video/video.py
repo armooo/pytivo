@@ -24,6 +24,7 @@ class video(Plugin):
 	    handler.send_header('Transfer-Encoding', 'chunked')
 	    handler.send_header('Server', 'TiVo Server/1.4.257.475')
             handler.end_headers()
+            handler.wfile.write("\x30\x0D\x0A")
             return
         
         o = urlparse("http://fake.host" + handler.path)
