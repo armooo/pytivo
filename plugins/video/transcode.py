@@ -64,7 +64,7 @@ def select_aspect(inFile):
         #If video is wider than 4:3 add top and bottom padding
         if (ratio > 133):
       
-            endHeight = (720*width)/height
+            endHeight = (720*height)/width
             if endHeight % 2:
                 endHeight -= 1
 
