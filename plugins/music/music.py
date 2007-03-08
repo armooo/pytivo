@@ -1,4 +1,4 @@
-import transcode, os, socket, re, sys
+import os, socket, re, sys
 from Cheetah.Template import Template
 from plugin import Plugin
 from urllib import unquote_plus, quote, unquote
