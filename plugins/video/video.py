@@ -19,10 +19,10 @@ class video(Plugin):
         #No longer a 'cheep' hack :p
         if handler.headers.getheader('Range') and not handler.headers.getheader('Range') == 'bytes=0-':
             handler.send_response(206)
-	    handler.send_header('Connection', 'close')
-	    handler.send_header('Content-Type', 'video/x-tivo-mpeg')
-	    handler.send_header('Transfer-Encoding', 'chunked')
-	    handler.send_header('Server', 'TiVo Server/1.4.257.475')
+            handler.send_header('Connection', 'close')
+            handler.send_header('Content-Type', 'video/x-tivo-mpeg')
+            handler.send_header('Transfer-Encoding', 'chunked')
+            handler.send_header('Server', 'TiVo Server/1.4.257.475')
             handler.end_headers()
             handler.wfile.write("\x30\x0D\x0A")
             return
@@ -55,11 +55,11 @@ class video(Plugin):
 
         def est_size(file):
             full_path = os.path.join(path, file)
-           #Size is estimated by taking audio and video bit rate adding 2%
+            #Size is estimated by taking audio and video bit rate adding 2%
             if transcode.tivo_compatable(full_path):  # Is TiVo compatible mpeg2
-              return int(os.stat(full_path).st_size)
+                return int(os.stat(full_path).st_size)
             else:  # Must be re-encoded
-	      return int((duration(file)/1000)*((4288 * 1.02 * 1000)/8))
+	            return int((duration(file)/1000)*((4288 * 1.02 * 1000)/8))
 
         def VideoFileFilter(file):
             full_path = os.path.join(path, file)
