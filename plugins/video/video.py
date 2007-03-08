@@ -54,8 +54,12 @@ class video(Plugin):
             return self.playable_cache[full_path]
 
         def est_size(file):
-	    #Size is estimated by taking audio and video bit rate adding 2%
-	    return int((duration(file)/1000)*((4288 * 1.02 * 1000)/8))
+            full_path = os.path.join(path, file)
+           #Size is estimated by taking audio and video bit rate adding 2%
+            if transcode.tivo_compatable(full_path):  # Is TiVo compatible mpeg2
+              return int(os.stat(full_path).st_size)
+            else:  # Must be re-encoded
+	      return int((duration(file)/1000)*((4288 * 1.02 * 1000)/8))
 
         def VideoFileFilter(file):
             full_path = os.path.join(path, file)

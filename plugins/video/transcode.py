@@ -105,31 +105,54 @@ def select_aspect(inFile):
 def tivo_compatable(inFile):
     suportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
     type, width, height, fps, millisecs =  video_info(inFile)
+    #print type, width, height, fps, millisecs
 
     if not type == 'mpeg2video':
+        #print 'Not Tivo Codec'
         return False
 
     if not fps == '29.97':
+        #print 'Not Tivo fps'
         return False
 
     for mode in suportedModes:
         if (mode[0], mode[1]) == (width, height):
+            #print 'Is TiVo!'
             return True
+        #print 'Not Tivo dimensions'
     return False
 
 def video_info(inFile):
     cmd = [FFMPEG, '-i', inFile ] 
     ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
     output = ffmpeg.stderr.read()
-    durre = re.compile(r'.*Duration: (.{2}):(.{2}):(.{2})\.(.)')
+    durre = re.compile(r'.*Duration: (.{2}):(.{2}):(.{2})\.(.),')
     d = durre.search(output)
-    rezre = re.compile(r'.*Video: (.+), (\d+)x(\d+), (.+) fps.*')
-    m = rezre.search(output)
-    if m:
-        millisecs = ((int(d.group(1))*3600) + (int(d.group(2))*60) + int(d.group(3)))*1000 + (int(d.group(4))*100)
-        return m.group(1), int(m.group(2)), int(m.group(3)), m.group(4), millisecs
+
+    rezre = re.compile(r'.*Video: ([^,]+),.*')
+    x = rezre.search(output)
+    if x:
+        codec = x.group(1)
     else:
-        return None, None, None, None, None
+        return None, None, None, None, None, None
+
+    rezre = re.compile(r'.*Video: .+, (\d+)x(\d+),.*')
+    x = rezre.search(output)
+    if x:
+        width = int(x.group(1))
+        height = int(x.group(2))
+    else:
+        return None, None, None, None, None, None
+
+    rezre = re.compile(r'.*Video: .+, (.+) fps.*')
+    x = rezre.search(output)
+    if x:
+        fps = x.group(1)
+    else:
+        return None, None, None, None, None, None
+
+    millisecs = ((int(d.group(1))*3600) + (int(d.group(2))*60) + int(d.group(3)))*1000 + (int(d.group(4))*100)
+    return codec, width, height, fps, millisecs
        
 def suported_format(inFile):
     if video_info(inFile)[0]:
