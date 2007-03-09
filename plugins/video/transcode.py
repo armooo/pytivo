@@ -107,6 +107,9 @@ def tivo_compatable(inFile):
     type, width, height, fps, millisecs =  video_info(inFile)
     #print type, width, height, fps, millisecs
 
+    if (inFile[-5:]).lower() == '.tivo':
+        return True
+
     if not type == 'mpeg2video':
         #print 'Not Tivo Codec'
         return False
@@ -123,6 +126,8 @@ def tivo_compatable(inFile):
     return False
 
 def video_info(inFile):
+    if (inFile[-5:]).lower() == '.tivo':
+        return True, True, True, True, True
     cmd = [FFMPEG, '-i', inFile ] 
     ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
     output = ffmpeg.stderr.read()
@@ -134,7 +139,7 @@ def video_info(inFile):
     if x:
         codec = x.group(1)
     else:
-        return None, None, None, None, None, None
+        return None, None, None, None, None
 
     rezre = re.compile(r'.*Video: .+, (\d+)x(\d+),.*')
     x = rezre.search(output)
@@ -142,14 +147,14 @@ def video_info(inFile):
         width = int(x.group(1))
         height = int(x.group(2))
     else:
-        return None, None, None, None, None, None
+        return None, None, None, None, None
 
     rezre = re.compile(r'.*Video: .+, (.+) fps.*')
     x = rezre.search(output)
     if x:
         fps = x.group(1)
     else:
-        return None, None, None, None, None, None
+        return None, None, None, None, None
 
     millisecs = ((int(d.group(1))*3600) + (int(d.group(2))*60) + int(d.group(3)))*1000 + (int(d.group(4))*100)
     return codec, width, height, fps, millisecs
