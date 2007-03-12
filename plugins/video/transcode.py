@@ -1,6 +1,8 @@
-import subprocess, shutil, os, re, sys, ConfigParser
+import subprocess, shutil, os, re, sys, ConfigParser, time, lrucache 
 
 from Config import config
+
+info_cache = lrucache.LRUCache(1000)
 
 FFMPEG = config.get('Server', 'ffmpeg')
 #SCRIPTDIR = os.path.dirname(__file__)
@@ -30,17 +32,13 @@ def output_video(inFile, outFile):
         transcode(inFile, outFile)
 
 def transcode(inFile, outFile):
-    cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', '4096K'] + select_aspect(inFile)  +  ['-comment', 'pyTivo.py', '-ac', '2', '-ab', '192', '-f', 'vob', '-' ]   
+    cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', '4096K'] + select_aspect(inFile)  +  ['-comment', 'pyTivo.py', '-ac', '2', '-ab', '192','-ar', '44100', '-f', 'vob', '-' ]   
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
     except:
-        if mswindows:
-            win32kill(ffmpeg.pid)
-        else:
-            import os, signal
-            os.kill(ffmpeg.pid, signal.SIGKILL)
-
+        kill(ffmpeg.pid)
+       
 def select_aspect(inFile):
     type, width, height, fps, millisecs =  video_info(inFile)
     
@@ -126,11 +124,30 @@ def tivo_compatable(inFile):
     return False
 
 def video_info(inFile):
+    print  inFile
+    if inFile in info_cache:
+        return info_cache[inFile]
+
     if (inFile[-5:]).lower() == '.tivo':
+        info_cache[inFile] = (True, True, True, True, True)
         return True, True, True, True, True
+
     cmd = [FFMPEG, '-i', inFile ] 
     ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+
+    # wait 4 sec if ffmpeg is not back give up
+    for i in range(80):
+        time.sleep(.05)
+        if not ffmpeg.poll() == None:
+            break
+    
+    if ffmpeg.poll() == None:
+        kill(ffmpeg.pid)
+        info_cache[inFile] = (None, None, None, None, None)
+        return None, None, None, None, None
+
     output = ffmpeg.stderr.read()
+
     durre = re.compile(r'.*Duration: (.{2}):(.{2}):(.{2})\.(.),')
     d = durre.search(output)
 
@@ -139,6 +156,7 @@ def video_info(inFile):
     if x:
         codec = x.group(1)
     else:
+        info_cache[inFile] = (None, None, None, None, None)
         return None, None, None, None, None
 
     rezre = re.compile(r'.*Video: .+, (\d+)x(\d+),.*')
@@ -147,6 +165,7 @@ def video_info(inFile):
         width = int(x.group(1))
         height = int(x.group(2))
     else:
+        info_cache[inFile] = (None, None, None, None, None)
         return None, None, None, None, None
 
     rezre = re.compile(r'.*Video: .+, (.+) fps.*')
@@ -154,9 +173,16 @@ def video_info(inFile):
     if x:
         fps = x.group(1)
     else:
+        info_cache[inFile] = (None, None, None, None, None)
         return None, None, None, None, None
 
+    rezre = re.compile(r'.*film source: (\d+).*')
+    x = rezre.search(output.lower())
+    if x:
+        fps = x.group(1)
+
     millisecs = ((int(d.group(1))*3600) + (int(d.group(2))*60) + int(d.group(3)))*1000 + (int(d.group(4))*100)
+    info_cache[inFile] = (codec, width, height, fps, millisecs)
     return codec, width, height, fps, millisecs
        
 def suported_format(inFile):
@@ -164,6 +190,13 @@ def suported_format(inFile):
         return video_info(inFile)[4]
     else:
         return False
+
+def kill(pid):
+    if mswindows:
+        win32kill(pid)
+    else:
+        import os, signal
+        os.kill(pid, signal.SIGKILL)
 
 def win32kill(pid):
         import ctypes

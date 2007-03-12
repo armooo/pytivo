@@ -20,6 +20,11 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         self.containers[name] = {'type' : type, 'path' : path}
 
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+
+    def address_string(self):
+        host, port = self.client_address[:2]
+        return host
+
     def do_GET(self):
  
         ## Get File
