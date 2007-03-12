@@ -124,7 +124,6 @@ def tivo_compatable(inFile):
     return False
 
 def video_info(inFile):
-    print  inFile
     if inFile in info_cache:
         return info_cache[inFile]
 
