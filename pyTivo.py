@@ -11,7 +11,9 @@ httpd = httpserver.TivoHTTPServer(('', int(port)), httpserver.TivoHTTPHandler)
 
 for section in config.sections():
     if not section == 'Server':
-        httpd.add_container(section, config.get(section, 'type'), config.get(section, 'path'))
+        settings = {}
+        settings.update(config.items(section))
+        httpd.add_container(section, settings)
 
 b = beacon.Beacon()
 b.add_service('TiVoMediaServer:' + str(port) + '/http')
@@ -21,3 +23,4 @@ try:
     httpd.serve_forever()
 except KeyboardInterrupt:
     b.stop()
+

@@ -14,10 +14,10 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         BaseHTTPServer.HTTPServer.__init__(self, server_address, RequestHandlerClass)
         self.daemon_threads = True
 
-    def add_container(self, name, type, path):
+    def add_container(self, name, settings):
         if self.containers.has_key(name) or name == 'TivoConnect':
             raise "Container Name in use"
-        self.containers[name] = {'type' : type, 'path' : path}
+        self.containers[name] = settings
 
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
