@@ -31,7 +31,9 @@ class PyTivoService(win32serviceutil.ServiceFramework):
 
         for section in config.sections():
             if not section == 'Server':
-                httpd.add_container(section, config.get(section, 'type'), config.get(section, 'path'))
+                setting = {}
+                settings.update(config.items(section))
+                httpd.add_container(section, settings)
 
         b = beacon.Beacon()
         b.add_service('TiVoMediaServer:' + str(port) + '/http')
