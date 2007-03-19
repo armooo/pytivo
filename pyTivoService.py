@@ -31,7 +31,7 @@ class PyTivoService(win32serviceutil.ServiceFramework):
 
         for section in config.sections():
             if not section == 'Server':
-                setting = {}
+                settings = {}
                 settings.update(config.items(section))
                 httpd.add_container(section, settings)
 
