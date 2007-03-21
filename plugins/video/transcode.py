@@ -1,26 +1,12 @@
 import subprocess, shutil, os, re, sys, ConfigParser, time, lrucache
 from ConfigParser import ConfigParser, NoOptionError
 from Config import config
+import Config
 
 info_cache = lrucache.LRUCache(1000)
 
-try:
-    debug = config.get('Server', 'debug')
-    if debug.lower() == 'true':
-        debug = True
-    else:
-        debug = False
-except NoOptionError:
-    debug = False
 
-try:
-    aspect169 = config.get('Server', 'aspect169')
-    if aspect169.lower() == 'true':
-        aspect169 = True
-    else:
-        aspect169 = False
-except NoOptionError: #default to 4:3 unless specified in config
-    aspect169 = False
+debug = Config.getDebug()
 
 FFMPEG = config.get('Server', 'ffmpeg')
 
@@ -47,7 +33,7 @@ mswindows = (sys.platform == "win32")
 if mswindows:
     patchSubprocess()
         
-def output_video(inFile, outFile):
+def output_video(inFile, outFile, tsn=''):
     if tivo_compatable(inFile):
         debug_write(['output_video: ', inFile, ' is tivo compatible\n'])
         f = file(inFile, 'rb')
@@ -55,10 +41,10 @@ def output_video(inFile, outFile):
         f.close() 
     else:
         debug_write(['output_video: ', inFile, ' is not tivo compatible\n'])
-        transcode(inFile, outFile)
+        transcode(inFile, outFile, tsn)
 
-def transcode(inFile, outFile):
-    cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', '4096K'] + select_aspect(inFile)  +  ['-comment', 'pyTivo.py', '-ac', '2', '-ab', '192','-ar', '44100', '-f', 'vob', '-' ]   
+def transcode(inFile, outFile, tsn=''):
+    cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', '4096K'] + select_aspect(inFile, tsn)  +  ['-comment', 'pyTivo.py', '-ac', '2', '-ab', '192','-ar', '44100', '-f', 'vob', '-' ]   
     debug_write(['transcode: ffmpeg command is ', ''.join(cmd), '\n'])
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
@@ -66,9 +52,15 @@ def transcode(inFile, outFile):
     except:
         kill(ffmpeg.pid)
        
-def select_aspect(inFile):
+def select_aspect(inFile, tsn = ''):
     type, width, height, fps, millisecs =  video_info(inFile)
-     
+
+    debug_write(['tsn:', tsn, '\n'])
+
+    aspect169 = Config.get169Setting(tsn)
+
+    debug_write(['aspect169:', aspect169, '\n'])
+
     d = gcd(height,width)
     ratio = (width*100)/height
     rheight, rwidth = height/d, width/d

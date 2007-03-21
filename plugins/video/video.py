@@ -26,12 +26,14 @@ class video(Plugin):
             handler.end_headers()
             handler.wfile.write("\x30\x0D\x0A")
             return
-        
+
+        tsn =  handler.headers.getheader('tsn', '')
+
         o = urlparse("http://fake.host" + handler.path)
         path = unquote_plus(o[2])
         handler.send_response(200)
         handler.end_headers()
-        transcode.output_video(container['path'] + path[len(name)+1:], handler.wfile)
+        transcode.output_video(container['path'] + path[len(name)+1:], handler.wfile, tsn)
         
 
     

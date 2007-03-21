@@ -3,6 +3,7 @@ import win32serviceutil
 import win32service 
 import win32event
 import select, sys
+import Config
 
 class PyTivoService(win32serviceutil.ServiceFramework):
     _svc_name_ = 'pyTivo'
@@ -29,11 +30,10 @@ class PyTivoService(win32serviceutil.ServiceFramework):
 
         httpd = httpserver.TivoHTTPServer(('', int(port)), httpserver.TivoHTTPHandler)
 
-        for section in config.sections():
-            if not section == 'Server':
-                settings = {}
-                settings.update(config.items(section))
-                httpd.add_container(section, settings)
+        for section in Config.getShares():
+            settings = {}
+            settings.update(config.items(section))
+            httpd.add_container(section, settings)
 
         b = beacon.Beacon()
         b.add_service('TiVoMediaServer:' + str(port) + '/http')
