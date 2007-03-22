@@ -1,4 +1,5 @@
 import ConfigParser, os
+from ConfigParser import NoOptionError
 
 BLACKLIST_169 = ('540', '649')
 
