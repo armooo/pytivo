@@ -1,4 +1,5 @@
 import ConfigParser, os
+import re
 from ConfigParser import NoOptionError
 
 BLACKLIST_169 = ('540', '649')
@@ -35,3 +36,40 @@ def getDebug():
             return False
     except NoOptionError:
         return False
+
+def get(section, key):
+    return config.get(section, key)
+
+def getValidWidths():
+    return [720, 704, 544, 480, 352]
+
+def getValidHeights():
+    return [480] # Technically 240 is also supported
+
+# Return the number in list that is nearest to x
+# if two values are equidistant, return the larger
+def nearest(x, list):
+    return reduce(lambda a, b: a if abs(x-a) < abs(x-b) or (abs(x-a) == abs(x-b)and a>b) else b, list)
+
+def nearestTivoWidth(width):
+    return nearest(width, getValidWidths())
+
+def getTivoWidth():
+    try:
+        width = int(config.get('Server', 'width'))
+        return nearestTivoWidth(width)
+    except NoOptionError: #default
+        return 544
+
+def getAudioBR():
+    try:
+        return config.get('Server', 'audio_br')
+    except NoOptionError: #default to 192
+        return '192K'
+
+def getVideoBR():
+    try:
+        return config.get('Server', 'video_br')
+    except NoOptionError: #default to 4096K
+        return '4096K'
+

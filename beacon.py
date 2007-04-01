@@ -1,5 +1,6 @@
 from socket import *
 from threading import Timer
+from Config import config
 
 class Beacon:
 
@@ -37,7 +38,12 @@ class Beacon:
         return '\n'.join(beacon)
 
     def send_beacon(self):
-        self.UDPSock.sendto(self.format_beacon(), ('255.255.255.255', 2190))
+        if config.has_option('Server', 'beacon'):
+            beacon_ips = config.get('Server', 'beacon')
+        else:
+            beacon_ips = '255.255.255.255'
+        for beacon_ip in beacon_ips.split():
+            self.UDPSock.sendto(self.format_beacon(), (beacon_ip, 2190))
 
     def start(self):
         self.send_beacon()

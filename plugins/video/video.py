@@ -5,6 +5,7 @@ from urllib import unquote_plus, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
+import Config
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -58,10 +59,14 @@ class video(Plugin):
         def est_size(file):
             full_path = os.path.join(path, file)
             #Size is estimated by taking audio and video bit rate adding 2%
+
             if transcode.tivo_compatable(full_path):  # Is TiVo compatible mpeg2
                 return int(os.stat(full_path).st_size)
             else:  # Must be re-encoded
-	            return int((duration(file)/1000)*((4288 * 1.02 * 1000)/8))
+                audioBPS = strtod(Config.getAudioBR())
+                videoBPS = strtod(Config.getVideoBR())
+                bitrate =  audioBPS + videoBPS
+                return int((duration(file)/1000)*(bitrate * 1.02 / 8))
 
         def VideoFileFilter(file):
             full_path = os.path.join(path, file)
@@ -90,3 +95,28 @@ class video(Plugin):
         t.quote = quote
         t.escape = escape
         handler.wfile.write(t)
+
+        
+# Parse a bitrate using the SI/IEEE suffix values as if by ffmpeg
+# For example, 2K==2000, 2Ki==2048, 2MB==16000000, 2MiB==16777216
+# Algorithm: http://svn.mplayerhq.hu/ffmpeg/trunk/libavcodec/eval.c
+def strtod(value):
+    prefixes = {"y":-24,"z":-21,"a":-18,"f":-15,"p":-12,"n":-9,"u":-6,"m":-3,"c":-2,"d":-1,"h":2,"k":3,"K":3,"M":6,"G":9,"T":12,"P":15,"E":18,"Z":21,"Y":24}
+    p = re.compile(r'^(\d+)(?:([yzafpnumcdhkKMGTPEZY])(i)?)?([Bb])?$')
+    m = p.match(value)
+    if m is None:
+        raise SyntaxError('Invalid bit value syntax')
+    (coef, prefix, power, byte) = m.groups()
+    if prefix is None:
+        value = float(coef)
+    else:
+        exponent = float(prefixes[prefix])
+        if power == "i":
+            # Use powers of 2
+            value = float(coef) * pow(2.0, exponent/0.3)
+        else:
+            # Use powers of 10
+            value = float(coef) * pow(10.0, exponent)
+    if byte == "B": # B==Byte, b=bit
+        value *= 8;
+    return value
