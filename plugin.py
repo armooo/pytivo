@@ -25,7 +25,7 @@ class Plugin(object):
 
     def SendFile(self, handler, container, name):
         o = urlparse("http://fake.host" + handler.path)
-        path = unquote_plus(o.path)
+        path = unquote_plus(o[2])
         handler.send_response(200)
         handler.end_headers()
         f = file(container['path'] + path[len(name)+1:], 'rb')
