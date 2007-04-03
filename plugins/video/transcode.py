@@ -209,11 +209,13 @@ def tivo_compatable(inFile):
     return False
 
 def video_info(inFile):
-    if inFile in info_cache:
-        return info_cache[inFile]
+    mtime = os.stat(inFile).st_mtime
+    if inFile in info_cache and info_cache[inFile][0] == mtime:
+        debug_write(['video_info: ', inFile, ' cache hit!', '\n'])
+        return info_cache[inFile][1]
 
     if (inFile[-5:]).lower() == '.tivo':
-        info_cache[inFile] = (True, True, True, True, True)
+        info_cache[inFile] = (mtime, (True, True, True, True, True))
         debug_write(['video_info: ', inFile, ' ends in .tivo.\n'])
         return True, True, True, True, True
 
@@ -228,7 +230,7 @@ def video_info(inFile):
     
     if ffmpeg.poll() == None:
         kill(ffmpeg.pid)
-        info_cache[inFile] = (None, None, None, None, None)
+        info_cache[inFile] = (mtime, (None, None, None, None, None))
         return None, None, None, None, None
 
     output = ffmpeg.stderr.read()
@@ -242,7 +244,7 @@ def video_info(inFile):
     if x:
         codec = x.group(1)
     else:
-        info_cache[inFile] = (None, None, None, None, None)
+        info_cache[inFile] = (mtime, (None, None, None, None, None))
         debug_write(['video_info: failed at codec\n'])
         return None, None, None, None, None
 
@@ -252,7 +254,7 @@ def video_info(inFile):
         width = int(x.group(1))
         height = int(x.group(2))
     else:
-        info_cache[inFile] = (None, None, None, None, None)
+        info_cache[inFile] = (mtime, (None, None, None, None, None))
         debug_write(['video_info: failed at width/height\n'])
         return None, None, None, None, None
 
@@ -261,7 +263,7 @@ def video_info(inFile):
     if x:
         fps = x.group(1)
     else:
-        info_cache[inFile] = (None, None, None, None, None)
+        info_cache[inFile] = (mtime, (None, None, None, None, None))
         debug_write(['video_info: failed at fps\n'])
         return None, None, None, None, None
 
@@ -282,7 +284,7 @@ def video_info(inFile):
                 fps = '29.97'
 
     millisecs = ((int(d.group(1))*3600) + (int(d.group(2))*60) + int(d.group(3)))*1000 + (int(d.group(4))*100)
-    info_cache[inFile] = (codec, width, height, fps, millisecs)
+    info_cache[inFile] = (mtime, (codec, width, height, fps, millisecs))
     debug_write(['video_info: Codec=', codec, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, '\n'])
     return codec, width, height, fps, millisecs
        
