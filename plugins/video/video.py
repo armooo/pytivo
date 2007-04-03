@@ -13,7 +13,6 @@ SCRIPTDIR = os.path.dirname(__file__)
 class video(Plugin):
     
     content_type = 'x-container/tivo-videos'
-    playable_cache = LRUCache(1000)
 
     def SendFile(self, handler, container, name):
         
@@ -54,7 +53,7 @@ class video(Plugin):
 
         def duration(file):
             full_path = os.path.join(path, file)
-            return self.playable_cache[full_path]
+            return transcode.video_info(full_path)[4]
 
         def est_size(file):
             full_path = os.path.join(path, file)
@@ -71,18 +70,9 @@ class video(Plugin):
         def VideoFileFilter(file):
             full_path = os.path.join(path, file)
 
-            if full_path in self.playable_cache:
-                return self.playable_cache[full_path]
             if os.path.isdir(full_path):
-                self.playable_cache[full_path] = True
                 return True
-            millisecs = transcode.suported_format(full_path)
-            if millisecs:
-                self.playable_cache[full_path] = millisecs
-                return millisecs
-            else:
-                self.playable_cache[full_path] = False
-                return False
+            return transcode.suported_format(full_path)
 
         handler.send_response(200)
         handler.end_headers()

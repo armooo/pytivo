@@ -288,7 +288,7 @@ def video_info(inFile):
        
 def suported_format(inFile):
     if video_info(inFile)[0]:
-        return video_info(inFile)[4]
+        return True
     else:
         debug_write(['supported_format: ', inFile, ' is not supported\n'])
         return False
