@@ -41,10 +41,10 @@ def get(section, key):
     return config.get(section, key)
 
 def getValidWidths():
-    return [720, 704, 544, 480, 352]
+    return [1440, 720, 704, 544, 480, 352]
 
 def getValidHeights():
-    return [480] # Technically 240 is also supported
+    return [720, 480] # Technically 240 is also supported
 
 # Return the number in list that is nearest to x
 # if two values are equidistant, return the larger
@@ -54,9 +54,18 @@ def nearest(x, list):
 def nearestTivoWidth(width):
     return nearest(width, getValidWidths())
 
+def getTivoHeight():
+    try:
+        height = int(config.get('Server', 'height'))
+        print nearest(height, getValidHeights())
+        return nearest(height, getValidHeights())
+    except NoOptionError: #default
+        return 480
+
 def getTivoWidth():
     try:
         width = int(config.get('Server', 'width'))
+        print nearestTivoWidth(width)
         return nearestTivoWidth(width)
     except NoOptionError: #default
         return 544
