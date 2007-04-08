@@ -88,7 +88,7 @@ def select_aspect(inFile, tsn = ''):
                     settings.append('16:9')
                     if endHeight % 2:
                         endHeight -= 1
-                    if endHeight < TIVO_HEIGHT * 0.01:
+                    if endHeight < TIVO_HEIGHT * 0.99:
                         settings.append('-s')
                         settings.append(str(TIVO_WIDTH) + 'x' + str(endHeight))
 
@@ -134,7 +134,7 @@ def select_aspect(inFile, tsn = ''):
                 endHeight = int(((TIVO_WIDTH*height)/width) * multiplier4by3)
                 if endHeight % 2:
                     endHeight -= 1
-                if endHeight < TIVO_HEIGHT * 0.01:
+                if endHeight < TIVO_HEIGHT * 0.99:
                     settings.append('-s')
                     settings.append(str(TIVO_WIDTH) + 'x' + str(endHeight))
 
@@ -161,7 +161,7 @@ def select_aspect(inFile, tsn = ''):
             settings.append('4:3')
             if endWidth % 2:
                 endWidth -= 1
-            if endWidth < (TIVO_WIDTH * 0.01):
+            if endWidth < (TIVO_WIDTH * 0.99):
                 settings.append('-s')
                 settings.append(str(endWidth) + 'x' + str(TIVO_HEIGHT))
 
