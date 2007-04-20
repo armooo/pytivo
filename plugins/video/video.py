@@ -14,6 +14,9 @@ class video(Plugin):
     
     content_type = 'x-container/tivo-videos'
 
+    # Used for 8.3's broken requests
+    request_history = {}
+
     def SendFile(self, handler, container, name):
         
         #No longer a 'cheep' hack :p
@@ -35,11 +38,40 @@ class video(Plugin):
         handler.end_headers()
         transcode.output_video(container['path'] + path[len(name)+1:], handler.wfile, tsn)
         
+    def RequestHack(self, tsn, subcname):
+        print 'Requesting', subcname
+        # Not a tivo act like a normal http server
+        if not tsn:
+            return subcname
+
+        # Have not seen before save this request
+        if tsn not in self.request_history:
+            self.request_history[tsn] = (subcname, '')
+            return subcname
+
+        #Asking for the root this is always correct
+        if len(subcname.split('/')) == 1:
+            return subcname
+
+        # Always replay the last request 
+        # so when the tivo gives us the correct request give the incorect responce
+
+        self.request_history[tsn] = (subcname, self.request_history[tsn][0])
+        return self.request_history[tsn][1]
+            
+
 
     
     def QueryContainer(self, handler, query):
         
+        tsn =  handler.headers.getheader('tsn', '')
         subcname = query['Container'][0]
+
+        subcname = self.RequestHack(tsn, subcname)
+        query['Container'][0] = subcname
+        
+        print 'Serveing', subcname
+
         cname = subcname.split('/')[0]
          
         if not handler.server.containers.has_key(cname) or not self.get_local_path(handler, query):
