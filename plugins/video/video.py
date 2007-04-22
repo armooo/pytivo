@@ -38,39 +38,43 @@ class video(Plugin):
         handler.end_headers()
         transcode.output_video(container['path'] + path[len(name)+1:], handler.wfile, tsn)
         
-    def RequestHack(self, tsn, subcname):
-        print 'Requesting', subcname
-        # Not a tivo act like a normal http server
-        if not tsn:
-            return subcname
+    def RequestHack(self, handler, query):
+        import time
 
-        # Have not seen before save this request
-        if tsn not in self.request_history:
-            self.request_history[tsn] = (subcname, '')
-            return subcname
-
-        #Asking for the root this is always correct
-        if len(subcname.split('/')) == 1:
-            return subcname
-
-        # Always replay the last request 
-        # so when the tivo gives us the correct request give the incorect responce
-
-        self.request_history[tsn] = (subcname, self.request_history[tsn][0])
-        return self.request_history[tsn][1]
-            
-
-
-    
-    def QueryContainer(self, handler, query):
-        
         tsn =  handler.headers.getheader('tsn', '')
         subcname = query['Container'][0]
 
-        subcname = self.RequestHack(tsn, subcname)
-        query['Container'][0] = subcname
-        
-        print 'Serveing', subcname
+        # Not a tivo act like a normal http server
+        if not tsn:
+            return query
+
+        # Have not seen before save this request
+        if tsn not in self.request_history:
+            self.request_history[tsn] = (time.clock(), query, subcname)
+            return query
+
+        #Asking for the root this is always correct
+        if len(subcname.split('/')) == 1:
+            return query
+
+        #debug crap
+        print 'subcname:', subcname, self.request_history[tsn][2]
+        print 'Times:--', self.request_history[tsn][0] + 5, time.clock()
+
+        #if it has not been long and you are are not asking about the same folder
+        if self.request_history[tsn][0] + 5 > time.clock() and subcname != self.request_history[tsn][2]:
+            print 'replay'
+            return self.request_history[tsn][1]
+        else:
+            print 'new request'
+            self.request_history[tsn] = (time.clock(), query, subcname)
+            return query
+    
+    def QueryContainer(self, handler, query):
+
+        query = self.RequestHack(handler, query)
+
+        subcname = query['Container'][0]
 
         cname = subcname.split('/')[0]
          
