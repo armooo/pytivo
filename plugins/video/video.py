@@ -11,8 +11,10 @@ SCRIPTDIR = os.path.dirname(__file__)
 
 
 class video(Plugin):
+    count = 0
     
     content_type = 'x-container/tivo-videos'
+
 
     # Used for 8.3's broken requests
     request_history = {}
@@ -38,43 +40,75 @@ class video(Plugin):
         handler.end_headers()
         transcode.output_video(container['path'] + path[len(name)+1:], handler.wfile, tsn)
         
-    def RequestHack(self, handler, query):
-        import time
-
+    def hack(self, handler, query, subcname):
+        
         tsn =  handler.headers.getheader('tsn', '')
-        subcname = query['Container'][0]
 
-        # Not a tivo act like a normal http server
+        #not a tivo
         if not tsn:
             return query
 
-        # Have not seen before save this request
-        if tsn not in self.request_history:
-            self.request_history[tsn] = (time.clock(), query, subcname)
-            return query
+        try:
+            path, state = self.request_history[tsn]
+        except KeyError:
+            path = []
+            state = {}
+            self.request_history[tsn] = (path, state)
+            state['query'] = query
+            state['redirected'] = False
 
-        #Asking for the root this is always correct
+
+        current_folder = subcname.split('/')[-1]
+
+        #at the root
         if len(subcname.split('/')) == 1:
-            return query
+            path[:] = [current_folder]
+            state['query'] = query
+            state['redirected'] = 0
 
-        #debug crap
-        print 'subcname:', subcname, self.request_history[tsn][2]
-        print 'Times:--', self.request_history[tsn][0] + 5, time.clock()
+        #entering a new folder
+        elif 'AnchorItem' not in query:
+            path.append(current_folder)
+            state['query'] = query
 
-        #if it has not been long and you are are not asking about the same folder
-        if self.request_history[tsn][0] + 5 > time.clock() and subcname != self.request_history[tsn][2]:
-            print 'replay'
-            return self.request_history[tsn][1]
+        #went down a folder
+        elif len(path) > 1 and current_folder == path[-2]:
+            path.pop()
+
+        #this must be crap
         else:
-            print 'new request'
-            self.request_history[tsn] = (time.clock(), query, subcname)
-            return query
-    
+            print 'BROKEN'
+            if not state['redirected']:
+                import time
+                time.sleep(.25)
+                state['redirected'] = True
+                return None
+            else:
+                state['redirected'] = False
+
+        print 'Hack says', path
+        return state['query']
+            
     def QueryContainer(self, handler, query):
 
-        query = self.RequestHack(handler, query)
-
         subcname = query['Container'][0]
+
+        print '========================================================================='
+        print 'Tivo said' + subcname
+
+        query = self.hack(handler, query, subcname)
+
+        if not query:
+            handler.send_response(302)
+            handler.send_header('Location ', 'http://' + handler.headers.getheader('host') + handler.path)
+            handler.end_headers()
+            return
+
+        keys = query.keys()
+        keys.sort()
+
+        #for k in keys:
+        #    print k, ':',query[k]
 
         cname = subcname.split('/')[0]
          
