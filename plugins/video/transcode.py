@@ -14,6 +14,7 @@ FFMPEG = Config.get('Server', 'ffmpeg')
 def debug_write(data):
     if debug:
         debug_out = []
+        debug_out.append('Transcode.py - ')
         for x in data:
             debug_out.append(str(x))
         fdebug = open('debug.txt', 'a')

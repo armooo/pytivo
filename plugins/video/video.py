@@ -6,15 +6,27 @@ from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
 import Config
+import time
 
 SCRIPTDIR = os.path.dirname(__file__)
-
+debug = Config.getDebug()
+hack83 = Config.getHack83()
+def debug_write(data):
+    if debug:
+        debug_out = []
+        debug_out.append('Video.py - ')
+        for x in data:
+            debug_out.append(str(x))
+        fdebug = open('debug.txt', 'a')
+        fdebug.write(' '.join(debug_out))
+        fdebug.close()
+if hack83:
+    debug_write(['Hack83 is enabled.\n'])
 
 class video(Plugin):
     count = 0
     
     content_type = 'x-container/tivo-videos'
-
 
     # Used for 8.3's broken requests
     request_history = {}
@@ -41,74 +53,229 @@ class video(Plugin):
         transcode.output_video(container['path'] + path[len(name)+1:], handler.wfile, tsn)
         
     def hack(self, handler, query, subcname):
-        
-        tsn =  handler.headers.getheader('tsn', '')
 
+        queryAnchor = ''
+        rightAnchor = ''
+        leftAnchor = ''
+        tsn =  handler.headers.getheader('tsn', '')
+        
         #not a tivo
         if not tsn:
-            return query
+            debug_write(['Hack this was not a TiVo request.', '\n'])
+            return query, None
 
+        #this breaks up the anchor item request into seperate parts
+        if 'AnchorItem' in query:
+            if "".join(query['AnchorItem']).find('Container=') >= 0:
+                #This is a folder
+                queryAnchor = unquote_plus("".join(query['AnchorItem'])).split('Container=')[-1]
+                (leftAnchor, rightAnchor) = queryAnchor.rsplit('/', 1)
+            else:
+                #This is a file
+                queryAnchor = unquote_plus("".join(query['AnchorItem'])).split('/',1)[-1]
+                (leftAnchor, seperator, rightAnchor) = queryAnchor.rpartition('/')
+            debug_write(['Hack queryAnchor: ', queryAnchor, ' leftAnchor: ', leftAnchor, ' rightAnchor: ', rightAnchor, '\n'])
+        
         try:
-            path, state = self.request_history[tsn]
+            path, state, = self.request_history[tsn]
         except KeyError:
+            #Never seen this tsn, starting new history
+            debug_write(['New TSN.', '\n'])
             path = []
             state = {}
             self.request_history[tsn] = (path, state)
             state['query'] = query
-            state['redirected'] = False
-
+            state['page'] = ''
+            state['time'] = int(time.time()) + 1000
 
         current_folder = subcname.split('/')[-1]
 
-        #at the root
+        #Needed to get list of files
+        def VideoFileFilter(file):
+            full_path = os.path.join(filePath, file)
+
+            if os.path.isdir(full_path):
+                return True
+            return transcode.suported_format(full_path)
+
+        #Begin figuring out what the request TiVo sent us means
+        #There are __ options that can occur
+
+        #1. at the root - This request is always accurate
         if len(subcname.split('/')) == 1:
+            debug_write(['Hack we are at the root', '\n'])
             path[:] = [current_folder]
             state['query'] = query
-            state['redirected'] = 0
+            state['page'] = ''
+            return state['query'], path
 
-        #entering a new folder
+        #2. entering a new folder
+        #If there is no AnchorItem in the request then we must
+        #be entering a new folder.
         elif 'AnchorItem' not in query:
-            path.append(current_folder)
+            debug_write(['Hack we are entering a new folder', '\n'])
+            path[:] = subcname.split('/')
             state['query'] = query
-
-        #went down a folder
-        elif len(path) > 1 and current_folder == path[-2]:
-            path.pop()
-
-        #this must be crap
-        else:
-            print 'BROKEN'
-            if not state['redirected']:
-                import time
-                time.sleep(.25)
-                state['redirected'] = True
-                return None
+            state['time'] = int(time.time())
+            filePath = self.get_local_path(handler, state['query'])
+            files, total, start = self.get_files(handler, state['query'], VideoFileFilter)
+            if len(files) >= 1:
+                state['page'] = files[0]
             else:
-                state['redirected'] = False
+                state['page'] = ''
+            return state['query'], path
+        
+        #3. Request a page after pyTivo sent a 302 code
+        #we know this is the proper page
+        elif "".join(query['AnchorItem']) == 'Hack8.3':
+            debug_write(['Hack requested page from 302 code', '\n'])
+            #TiVo Requested the redirect page we sent it
+            #so this is a proper request
+            filePath = self.get_local_path(handler, state['query'])
+            files, total, start = self.get_files(handler, state['query'], VideoFileFilter)
+            if len(files) >= 1:
+                state['page'] = files[0]
+            else:
+                state['page'] = ''
+            return state['query'], path
 
-        print 'Hack says', path
-        return state['query']
+        #4. this is a request for a file
+        elif 'ItemCount' in query and int("".join(query['ItemCount'])) == 1:
+            debug_write(['Hack requested a file', '\n'])
+            #Everything in this request is right except the container
+            query['Container'] = ["/".join(path)]
+            return query, path
+
+        ##All remaining requests could be a second erroneous request
+        #for each of the following we will pause to see if a correct
+        #request is coming right behind it.
+
+        #5. scrolling in a folder
+        #This could be a request to exit a folder
+        #or scroll up or down within the folder
+        #First we have to figure out if we are scrolling
+        if 'AnchorOffset' in query:
+            #Sleep just in case the erroneous request came first
+            #this allows a proper request to be processed first
+            time.sleep(.25)
+            debug_write(['Hack Anchor offset was in query. leftAnchor needs to match ', "/".join(path), '\n'])
+            if leftAnchor == str("/".join(path)):
+                debug_write(['Hack leftAnchor matched.', '\n'])
+                query['Container'] = ["/".join(path)]
+                queryOffset = query['AnchorOffset']
+                queryAnchorItem = query['AnchorItem']
+                del query['AnchorOffset']
+                del query['AnchorItem']
+                queryItemCount = query['ItemCount']
+                query['ItemCount'] = ['1000000']
+                filePath = self.get_local_path(handler, query)
+                files, total, start = self.get_files(handler, query, VideoFileFilter)
+                query['ItemCount'] = queryItemCount
+                query['AnchorOffset'] = queryOffset
+                query['AnchorItem'] = queryAnchorItem
+                i = 0
+                top = 0
+                bottom = 0
+                debug_write(['Hack saved page is= ', state['page'], ' anchor page is= ', rightAnchor, '\n'])
+                for testFile in files:
+                    i = i + 1
+                    if str(state['page']) == str(testFile):
+                        top = i
+                        debug_write(['Hack matched top file at: ', i, '\n'])
+                    if str(rightAnchor) == str(testFile):
+                        bottom = i + 1
+                        debug_write(['Hack matched bottom file at: ', i, '\n'])
+                if bottom - top == abs(int("".join(query['AnchorOffset']))):
+                    debug_write(['Hack this is entering or leaving a folder.', '\n'])
+                    #The only remaining options are exiting a folder or
+                    #this is a erroneous second request.
+                    #Sleep just in case the erroneous request came first
+                    #this allows a proper request to be processed first
+                    time.sleep(.25)
+                    debug_write(['Hack broken request, sleeping', '\n'])
+                    #6. this an extraneous request
+                    #this came within a second of a valid request
+                    #just use that request.
+                    if (int(time.time()) - state['time']) <= 1:
+                        debug_write(['Hack extraneous request, send a 302 error', '\n'])
+                        filePath = self.get_local_path(handler, query)
+                        files, total, start = self.get_files(handler, query, VideoFileFilter)
+                        return None, path
+                    #7. this is a request to exit a folder
+                    #this request came by itself it must be to exit a folder
+                    else:
+                        debug_write(['Hack over 1 second, must be request to exit folder', '\n'])
+                        path.pop()
+                        downQuery = {}
+                        downQuery['Command'] = query['Command']
+                        downQuery['SortOrder'] = query['SortOrder']
+                        downQuery['ItemCount'] = query['ItemCount']
+                        downQuery['Filter'] = query['Filter']
+                        downQuery['Container'] = ["/".join(path)]
+                        state['query'] = downQuery
+                        return None, path
+
+                else:
+                    debug_write(['Hack this is scrolling within a folder.', '\n'])
+                    filePath = self.get_local_path(handler, query)
+                    files, total, start = self.get_files(handler, query, VideoFileFilter)
+                    state['page'] = files[0]
+                    return query, path               
+
+        #The only remaining options are exiting a folder or
+        #this is a erroneous second request.
+        else:
+            #Sleep just in case the erroneous request came first
+            #this allows a proper request to be processed first
+            time.sleep(.25)
+            debug_write(['Hack broken request, sleeping', '\n'])
+            #6. this an extraneous request
+            #this came within a second of a valid request
+            #just use that request.
+            if (int(time.time()) - state['time']) <= 1:
+                debug_write(['Hack extraneous request, send a 302 error', '\n'])
+                filePath = self.get_local_path(handler, query)
+                files, total, start = self.get_files(handler, query, VideoFileFilter)
+                return None, path
+            #7. this is a request to exit a folder
+            #this request came by itself it must be to exit a folder
+            else:
+                debug_write(['Hack over 1 second, must be request to exit folder', '\n'])
+                path.pop()
+                downQuery = {}
+                downQuery['Command'] = query['Command']
+                downQuery['SortOrder'] = query['SortOrder']
+                downQuery['ItemCount'] = query['ItemCount']
+                downQuery['Filter'] = query['Filter']
+                downQuery['Container'] = ["/".join(path)]
+                state['query'] = downQuery
+                return None, path
+
+        #just in case we missed something.
+        return state['query'], path
             
     def QueryContainer(self, handler, query):
 
         subcname = query['Container'][0]
 
-        print '========================================================================='
-        print 'Tivo said' + subcname
-
-        query = self.hack(handler, query, subcname)
-
-        if not query:
-            handler.send_response(302)
-            handler.send_header('Location ', 'http://' + handler.headers.getheader('host') + handler.path)
-            handler.end_headers()
-            return
+        ##If you are running 8.3 software you want to enable hack83 in the config file
+        if hack83:
+            print '========================================================================='
+            query, hackPath = self.hack(handler, query, subcname)
+            print 'Tivo said: ' + subcname + ' || Hack said: ' + "/".join(hackPath)
+            debug_write(['Hack Tivo said: ', subcname, ' || Hack said: ' , "/".join(hackPath), '\n'])
+            subcname = "/".join(hackPath)
+        
+            if not query:
+                debug_write(['Hack sending 302 redirect page', '\n'])
+                handler.send_response(302)
+                handler.send_header('Location ', 'http://' + handler.headers.getheader('host') + '/TiVoConnect?Command=QueryContainer&AnchorItem=Hack8.3&Container=' + "/".join(hackPath))
+                handler.end_headers()
+                return
+        #End Hack mess
 
         keys = query.keys()
         keys.sort()
-
-        #for k in keys:
-        #    print k, ':',query[k]
 
         cname = subcname.split('/')[0]
          
