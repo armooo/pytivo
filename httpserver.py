@@ -4,8 +4,20 @@ from urlparse import urlparse
 from cgi import parse_qs
 from Cheetah.Template import Template
 from plugin import GetPlugin
+import Config
 
 SCRIPTDIR = os.path.dirname(__file__)
+debug = Config.getDebug()
+hack83 = Config.getHack83()
+def debug_write(data):
+    if debug:
+        debug_out = []
+        debug_out.append('httpserver.py - ')
+        for x in data:
+            debug_out.append(str(x))
+        fdebug = open('debug.txt', 'a')
+        fdebug.write(' '.join(debug_out))
+        fdebug.close()
 
 class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     containers = {}
@@ -40,7 +52,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if not self.path.startswith('/TiVoConnect'):
             self.infopage()
             return
-        
+
         o = urlparse("http://fake.host" + self.path)
         query = parse_qs(o[4])
 
@@ -56,8 +68,10 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             
             if query.has_key('Container'):
                 #Dispatch to the container plugin
+                foundContainer = False
                 for name, container in self.server.containers.items():
                     if query['Container'][0].startswith(name):
+                        foundContainer = True
                         plugin = GetPlugin(container['type'])
                         if hasattr(plugin,command):
                             method = getattr(plugin, command)
@@ -65,6 +79,8 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                         else:
                             self.unsuported(query)
                         break
+                if not foundContainer:
+                    self.unsuported(query)
         else:
             self.unsuported(query)
 
@@ -86,12 +102,29 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
 
     def unsuported(self, query):
-        self.send_response(404)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        t = Template(file=os.path.join(SCRIPTDIR,'templates','unsuported.tmpl'))
-        t.query = query
-        self.wfile.write(t)
+        if hack83 and 'Command' in query and 'Filter' in query:
+            debug_write(['Unsupported request, checking to see if it is video.', '\n'])
+            command = query['Command'][0]
+            plugin = plugin = GetPlugin('video')
+            if "".join(query['Filter']).find('video') >= 0 and hasattr(plugin,command):
+                debug_write(['Unsupported request, yup it is video send to video plugin for it to sort out.', '\n'])
+                method = getattr(plugin, command)
+                method(self, query)
+            else:        
+                self.send_response(404)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                t = Template(file=os.path.join(SCRIPTDIR,'templates','unsuported.tmpl'))
+                t.query = query
+                self.wfile.write(t)
+        else:
+            self.send_response(404)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            t = Template(file=os.path.join(SCRIPTDIR,'templates','unsuported.tmpl'))
+            t.query = query
+            self.wfile.write(t)
+            
        
 if __name__ == '__main__':
     def start_server():

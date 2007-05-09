@@ -37,6 +37,16 @@ def getDebug():
     except NoOptionError:
         return False
 
+def getHack83():
+    try:
+        debug = config.get('Server', 'hack83')
+        if debug.lower() == 'true':
+            return True
+        else:
+            return False
+    except NoOptionError:
+        return True
+
 def get(section, key):
     return config.get(section, key)
 
@@ -49,7 +59,14 @@ def getValidHeights():
 # Return the number in list that is nearest to x
 # if two values are equidistant, return the larger
 def nearest(x, list):
-    return reduce(lambda a, b: a if abs(x-a) < abs(x-b) or (abs(x-a) == abs(x-b)and a>b) else b, list)
+    return reduce(lambda a, b: closest(x,a,b), list)
+
+def closest(x,a, b):
+    if abs(x-a) < abs(x-b) or (abs(x-a) == abs(x-b)and a>b):
+        return a
+    else:
+        return b
+
 
 def nearestTivoWidth(width):
     return nearest(width, getValidWidths())
