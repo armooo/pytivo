@@ -65,7 +65,7 @@ class video(Plugin):
             return query, None
 
         #this breaks up the anchor item request into seperate parts
-        if 'AnchorItem' in query:
+        if 'AnchorItem' in query and (query['AnchorItem']) != ['Hack8.3']:
             if "".join(query['AnchorItem']).find('Container=') >= 0:
                 #This is a folder
                 queryAnchor = unquote_plus("".join(query['AnchorItem'])).split('Container=')[-1]
@@ -73,7 +73,8 @@ class video(Plugin):
             else:
                 #This is a file
                 queryAnchor = unquote_plus("".join(query['AnchorItem'])).split('/',1)[-1]
-                (leftAnchor, seperator, rightAnchor) = queryAnchor.rpartition('/')
+                print queryAnchor
+                (leftAnchor, rightAnchor) = queryAnchor.rsplit('/', 1)
             debug_write(['Hack queryAnchor: ', queryAnchor, ' leftAnchor: ', leftAnchor, ' rightAnchor: ', rightAnchor, '\n'])
         
         try:
