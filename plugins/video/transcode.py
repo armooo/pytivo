@@ -9,6 +9,9 @@ TIVO_WIDTH = Config.getTivoWidth()
 TIVO_HEIGHT = Config.getTivoHeight()
 AUDIO_BR = Config.getAudioBR()
 VIDEO_BR = Config.getVideoBR()
+MAX_VIDEO_BR = Config.getMaxVideoBR()
+BUFF_SIZE = Config.getBuffSize()
+
 FFMPEG = Config.get('Server', 'ffmpeg')
 
 def debug_write(data):
@@ -45,7 +48,21 @@ def output_video(inFile, outFile, tsn=''):
         transcode(inFile, outFile, tsn)
 
 def transcode(inFile, outFile, tsn=''):
-    cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', VIDEO_BR] + select_aspect(inFile, tsn) +  ['-comment', 'pyTivo.py', '-ac', '2', '-ab', AUDIO_BR,'-ar', '44100', '-f', 'vob', '-' ]   
+    cmd = [ FFMPEG, 
+            '-i', inFile, 
+            '-vcodec', 'mpeg2video', 
+            '-r', '29.97', 
+            '-b', VIDEO_BR,
+            '-maxrate', MAX_VIDEO_BR,
+            '-bufsize', BUFF_SIZE
+          ] + select_aspect(inFile, tsn) + [
+            '-comment', 'pyTivo.py', 
+            '-ac', '2', 
+            '-ab', AUDIO_BR,
+            '-ar', '44100', 
+            '-f', 'vob', 
+            '-' ]
+
     debug_write(['transcode: ffmpeg command is ', ''.join(cmd), '\n'])
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:

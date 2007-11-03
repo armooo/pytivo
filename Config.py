@@ -88,3 +88,15 @@ def getVideoBR():
     except NoOptionError: #default to 4096K
         return '4096K'
 
+def getMaxVideoBR():
+    try:
+        return config.get('Server', 'max_video_br')
+    except NoOptionError: #default to 17M
+        return '17M'
+
+def getBuffSize():
+    try:
+        return config.get('Server', 'bufsize')
+    except NoOptionError: #default 1024k
+        return '1024k'
+
