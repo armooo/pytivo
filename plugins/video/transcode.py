@@ -5,8 +5,6 @@ info_cache = lrucache.LRUCache(1000)
 
 
 debug = Config.getDebug()
-TIVO_WIDTH = Config.getTivoWidth()
-TIVO_HEIGHT = Config.getTivoHeight()
 MAX_VIDEO_BR = Config.getMaxVideoBR()
 BUFF_SIZE = Config.getBuffSize()
 
@@ -72,6 +70,9 @@ def transcode(inFile, outFile, tsn=''):
         kill(ffmpeg.pid)
        
 def select_aspect(inFile, tsn = ''):
+    TIVO_WIDTH = Config.getTivoWidth(tsn)
+    TIVO_HEIGHT = Config.getTivoHeight(tsn)
+    
     type, width, height, fps, millisecs =  video_info(inFile)
 
     debug_write(['tsn:', tsn, '\n'])

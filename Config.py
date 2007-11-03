@@ -60,18 +60,28 @@ def closest(x,a, b):
 def nearestTivoWidth(width):
     return nearest(width, getValidWidths())
 
-def getTivoHeight():
+def getTivoHeight(tsn):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'height_br')
+        except NoOptionError:
+            pass
+
     try:
         height = int(config.get('Server', 'height'))
-        print nearest(height, getValidHeights())
         return nearest(height, getValidHeights())
     except NoOptionError: #default
         return 480
 
-def getTivoWidth():
+def getTivoWidth(tsn):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'width')
+        except NoOptionError:
+            pass
+
     try:
         width = int(config.get('Server', 'width'))
-        print nearestTivoWidth(width)
         return nearestTivoWidth(width)
     except NoOptionError: #default
         return 544
