@@ -7,8 +7,6 @@ info_cache = lrucache.LRUCache(1000)
 debug = Config.getDebug()
 TIVO_WIDTH = Config.getTivoWidth()
 TIVO_HEIGHT = Config.getTivoHeight()
-AUDIO_BR = Config.getAudioBR()
-VIDEO_BR = Config.getVideoBR()
 MAX_VIDEO_BR = Config.getMaxVideoBR()
 BUFF_SIZE = Config.getBuffSize()
 
@@ -48,17 +46,20 @@ def output_video(inFile, outFile, tsn=''):
         transcode(inFile, outFile, tsn)
 
 def transcode(inFile, outFile, tsn=''):
+    audio_br = Config.getAudioBR(tsn)
+    video_br = Config.getVideoBR(tsn)
+
     cmd = [ FFMPEG, 
             '-i', inFile, 
             '-vcodec', 'mpeg2video', 
             '-r', '29.97', 
-            '-b', VIDEO_BR,
+            '-b', video_br,
             '-maxrate', MAX_VIDEO_BR,
             '-bufsize', BUFF_SIZE
           ] + select_aspect(inFile, tsn) + [
             '-comment', 'pyTivo.py', 
             '-ac', '2', 
-            '-ab', AUDIO_BR,
+            '-ab', audio_br,
             '-ar', '44100', 
             '-f', 'vob', 
             '-' ]

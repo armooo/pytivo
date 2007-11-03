@@ -76,13 +76,25 @@ def getTivoWidth():
     except NoOptionError: #default
         return 544
 
-def getAudioBR():
+def getAudioBR(tsn = None):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'audio_br')
+        except NoOptionError:
+            pass
+
     try:
         return config.get('Server', 'audio_br')
     except NoOptionError: #default to 192
         return '192K'
 
-def getVideoBR():
+def getVideoBR(tsn = None):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'video_br')
+        except NoOptionError:
+            pass
+        
     try:
         return config.get('Server', 'video_br')
     except NoOptionError: #default to 4096K
