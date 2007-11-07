@@ -40,6 +40,18 @@ def getDebug():
 def get(section, key):
     return config.get(section, key)
 
+def getFFMPEGTemplate(tsn):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'ffmpeg_prams', raw = True)
+        except NoOptionError:
+            pass
+
+    try:
+        return config.get('Server', 'ffmpeg_prams', raw = True)
+    except NoOptionError: #default
+        return '-i %(in_file)s -vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ac 2 -ab %(audio_br)s -ar 44100 -f vob -'
+
 def getValidWidths():
     return [1440, 720, 704, 544, 480, 352]
 
@@ -63,7 +75,8 @@ def nearestTivoWidth(width):
 def getTivoHeight(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            return config.get('_tivo_' + tsn, 'height_br')
+            height = int(config.get('_tivo_' + tsn, 'height_br'))
+            return nearest(height, getValidHeights())
         except NoOptionError:
             pass
 

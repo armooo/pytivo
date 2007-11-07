@@ -44,25 +44,20 @@ def output_video(inFile, outFile, tsn=''):
         transcode(inFile, outFile, tsn)
 
 def transcode(inFile, outFile, tsn=''):
-    audio_br = Config.getAudioBR(tsn)
-    video_br = Config.getVideoBR(tsn)
 
-    cmd = [ FFMPEG, 
-            '-i', inFile, 
-            '-vcodec', 'mpeg2video', 
-            '-r', '29.97', 
-            '-b', video_br,
-            '-maxrate', MAX_VIDEO_BR,
-            '-bufsize', BUFF_SIZE
-          ] + select_aspect(inFile, tsn) + [
-            '-comment', 'pyTivo.py', 
-            '-ac', '2', 
-            '-ab', audio_br,
-            '-ar', '44100', 
-            '-f', 'vob', 
-            '-' ]
+    settings = {}
+    settings['audio_br'] = Config.getAudioBR(tsn)
+    settings['video_br'] = Config.getVideoBR(tsn)
+    settings['in_file'] = inFile
+    settings['max_video_br'] = MAX_VIDEO_BR
+    settings['buff_size'] = BUFF_SIZE
+    settings['aspect_ratio'] = ' '.join(select_aspect(inFile, tsn))
 
-    debug_write(['transcode: ffmpeg command is ', ''.join(cmd), '\n'])
+    cmd_string = Config.getFFMPEGTemplate(tsn) % settings
+
+    cmd = [FFMPEG] + cmd_string.split()
+
+    debug_write(['transcode: ffmpeg command is ', ' '.join(cmd), '\n'])
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
