@@ -48,14 +48,13 @@ def transcode(inFile, outFile, tsn=''):
     settings = {}
     settings['audio_br'] = Config.getAudioBR(tsn)
     settings['video_br'] = Config.getVideoBR(tsn)
-    settings['in_file'] = inFile
     settings['max_video_br'] = MAX_VIDEO_BR
     settings['buff_size'] = BUFF_SIZE
     settings['aspect_ratio'] = ' '.join(select_aspect(inFile, tsn))
 
     cmd_string = Config.getFFMPEGTemplate(tsn) % settings
 
-    cmd = [FFMPEG] + cmd_string.split()
+    cmd = [FFMPEG, '-i', inFile] + cmd_string.split()
 
     debug_write(['transcode: ffmpeg command is ', ' '.join(cmd), '\n'])
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
@@ -251,9 +250,6 @@ def video_info(inFile):
     output = ffmpeg.stderr.read()
     debug_write(['video_info: ffmpeg output=', output, '\n'])
 
-    durre = re.compile(r'.*Duration: (.{2}):(.{2}):(.{2})\.(.),')
-    d = durre.search(output)
-
     rezre = re.compile(r'.*Video: ([^,]+),.*')
     x = rezre.search(output)
     if x:
@@ -298,7 +294,13 @@ def video_info(inFile):
             if x:
                 fps = '29.97'
 
-    millisecs = ((int(d.group(1))*3600) + (int(d.group(2))*60) + int(d.group(3)))*1000 + (int(d.group(4))*100)
+    durre = re.compile(r'.*Duration: (.{2}):(.{2}):(.{2})\.(.),')
+    d = durre.search(output)
+    if d:
+        millisecs = ((int(d.group(1))*3600) + (int(d.group(2))*60) + int(d.group(3)))*1000 + (int(d.group(4))*100)
+    else:
+        millisecs = 0
+
     info_cache[inFile] = (mtime, (codec, width, height, fps, millisecs))
     debug_write(['video_info: Codec=', codec, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, '\n'])
     return codec, width, height, fps, millisecs
