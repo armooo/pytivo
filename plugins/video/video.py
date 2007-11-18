@@ -97,8 +97,6 @@ class video(Plugin):
 
             videos.append(video)
 
-        print videos
-
         handler.send_response(200)
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
