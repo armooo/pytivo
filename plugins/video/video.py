@@ -37,7 +37,30 @@ class Video(Plugin):
         transcode.output_video(container['path'] + path[len(name)+1:], handler.wfile, tsn)
         
 
+    def __isdir(self, full_path):
+        return os.path.isdir(full_path)
+
+    def __duration(self, full_path):
+        return transcode.video_info(full_path)[4]
+
+    def __est_size(self, full_path):
+        #Size is estimated by taking audio and video bit rate adding 2%
+
+        if transcode.tivo_compatable(full_path):  # Is TiVo compatible mpeg2
+            return int(os.stat(full_path).st_size)
+        else:  # Must be re-encoded
+            audioBPS = strtod(config.getAudioBR())
+            videoBPS = strtod(config.getVideoBR())
+            bitrate =  audioBPS + videoBPS
+            return int((self.__duration(full_path)/1000)*(bitrate * 1.02 / 8))
     
+    def __metadata(self, full_path):
+        description_file = full_path + '.txt'
+        if os.path.exists(description_file):
+            return open(description_file).read()
+        else:
+            return ''
+
     def QueryContainer(self, handler, query):
         
         subcname = query['Container'][0]
@@ -48,53 +71,27 @@ class Video(Plugin):
             handler.end_headers()
             return
         
-        path = self.get_local_path(handler, query)
-        def isdir(file):
-            return os.path.isdir(os.path.join(path, file))                     
-
-        def duration(file):
+        def video_file_filter(file):
+            path = self.get_local_path(handler, query)
             full_path = os.path.join(path, file)
-            return transcode.video_info(full_path)[4]
-
-        def est_size(file):
-            full_path = os.path.join(path, file)
-            #Size is estimated by taking audio and video bit rate adding 2%
-
-            if transcode.tivo_compatable(full_path):  # Is TiVo compatible mpeg2
-                return int(os.stat(full_path).st_size)
-            else:  # Must be re-encoded
-                audioBPS = strtod(config.getAudioBR())
-                videoBPS = strtod(config.getVideoBR())
-                bitrate =  audioBPS + videoBPS
-                return int((duration(file)/1000)*(bitrate * 1.02 / 8))
-        
-        def description(file):
-            full_path = os.path.join(path, file + '.txt')
-            if os.path.exists(full_path):
-                return open(full_path).read()
-            else:
-                return ''
-
-        def VideoFileFilter(file):
-            full_path = os.path.join(path, file)
-
             if os.path.isdir(full_path):
                 return True
             return transcode.suported_format(full_path)
 
-
-        files, total, start = self.get_files(handler, query, VideoFileFilter)
+        files, total, start = self.get_files(handler, query, video_file_filter)
 
         videos = []
         for file in files:
-            video = {}
+            path = self.get_local_path(handler, query)
+            full_path = os.path.join(path, file)
             
+            video = {}
             video['name'] = file
-            video['is_dir'] = isdir(file)
-            if not isdir(file):
-                video['size'] = est_size(file)
-                video['duration'] = duration(file)
-                video['description'] = description(file)
+            video['is_dir'] = self.__isdir(full_path)
+            if not  video['is_dir']:
+                video['size'] = self.__est_size(full_path)
+                video['duration'] = self.__duration(full_path)
+                video['description'] = self.__description(full_path)
 
             videos.append(video)
 
