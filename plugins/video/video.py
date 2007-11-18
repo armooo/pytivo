@@ -66,6 +66,13 @@ class video(Plugin):
                 videoBPS = strtod(Config.getVideoBR())
                 bitrate =  audioBPS + videoBPS
                 return int((duration(file)/1000)*(bitrate * 1.02 / 8))
+        
+        def description(file):
+            full_path = os.path.join(path, file + '.txt')
+            if os.path.exists(full_path):
+                return open(full_path).read()
+            else:
+                return ''
 
         def VideoFileFilter(file):
             full_path = os.path.join(path, file)
@@ -74,14 +81,31 @@ class video(Plugin):
                 return True
             return transcode.suported_format(full_path)
 
+
+        files, total, start = self.get_files(handler, query, VideoFileFilter)
+
+        videos = []
+        for file in files:
+            video = {}
+            
+            video['name'] = file
+            video['is_dir'] = isdir(file)
+            if not isdir(file):
+                video['size'] = est_size(file)
+                video['duration'] = duration(file)
+                video['description'] = description(file)
+
+            videos.append(video)
+
+        print videos
+
         handler.send_response(200)
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
         t.name = subcname
-        t.files, t.total, t.start = self.get_files(handler, query, VideoFileFilter)
-        t.duration = duration
-        t.est_size = est_size
-        t.isdir = isdir
+        t.total = total
+        t.start = start
+        t.videos = videos
         t.quote = quote
         t.escape = escape
         handler.wfile.write(t)
