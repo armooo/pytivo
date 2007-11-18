@@ -33,7 +33,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	    path = unquote_plus(self.path)
             if path.startswith('/' + name):
                 plugin = GetPlugin(container['type'])
-                plugin.SendFile(self, container, name)
+                plugin.send_file(self, container, name)
                 return
             
         ## Not a file not a TiVo command fuck them

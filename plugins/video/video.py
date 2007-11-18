@@ -14,7 +14,7 @@ class video(Plugin):
     
     content_type = 'x-container/tivo-videos'
 
-    def SendFile(self, handler, container, name):
+    def send_file(self, handler, container, name):
         
         #No longer a 'cheep' hack :p
         if handler.headers.getheader('Range') and not handler.headers.getheader('Range') == 'bytes=0-':

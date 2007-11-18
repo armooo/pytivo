@@ -23,7 +23,7 @@ class Plugin(object):
 
     content_type = ''
 
-    def SendFile(self, handler, container, name):
+    def send_file(self, handler, container, name):
         o = urlparse("http://fake.host" + handler.path)
         path = unquote_plus(o[2])
         handler.send_response(200)
