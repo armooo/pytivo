@@ -17,6 +17,7 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     def add_container(self, name, settings):
         if self.containers.has_key(name) or name == 'TivoConnect':
             raise "Container Name in use"
+        settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
         self.containers[name] = settings
 
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -72,7 +73,6 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
          t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'root_container.tmpl'))
          t.containers = self.server.containers
          t.hostname = socket.gethostname()
-         t.GetPlugin = GetPlugin
          self.send_response(200)
          self.end_headers()
          self.wfile.write(t)

@@ -9,11 +9,11 @@ import config
 
 SCRIPTDIR = os.path.dirname(__file__)
 
-CLASS_NAME = Video
+CLASS_NAME = 'Video'
 
 class Video(Plugin):
     
-    content_type = 'x-container/tivo-videos'
+    CONTENT_TYPE = 'x-container/tivo-videos'
 
     def send_file(self, handler, container, name):
         

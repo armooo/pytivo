@@ -10,7 +10,7 @@ def GetPlugin(name):
 
 class Plugin(object):
 
-    content_type = ''
+    CONTENT_TYPE = ''
 
     def __new__(cls, *args, **kwds):
         it = cls.__dict__.get('__it__')
