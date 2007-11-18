@@ -9,8 +9,9 @@ import config
 
 SCRIPTDIR = os.path.dirname(__file__)
 
+CLASS_NAME = Video
 
-class video(Plugin):
+class Video(Plugin):
     
     content_type = 'x-container/tivo-videos'
 

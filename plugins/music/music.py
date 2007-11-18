@@ -8,7 +8,9 @@ import eyeD3
 
 SCRIPTDIR = os.path.dirname(__file__)
 
-class music(Plugin):
+CLASS_NAME = 'Music'
+
+class Music(Plugin):
     
     content_type = 'x-container/tivo-music'
     playable_cache = {}

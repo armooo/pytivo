@@ -5,11 +5,13 @@ from urlparse import urlparse
 def GetPlugin(name):
     module_name = '.'.join(['plugins', name, name])
     module = __import__(module_name, globals(), locals(), name)
-    plugin = getattr(module, name)()
+    plugin = getattr(module, module.CLASS_NAME)()
     return plugin
 
 class Plugin(object):
-    
+
+    content_type = ''
+
     def __new__(cls, *args, **kwds):
         it = cls.__dict__.get('__it__')
         if it is not None:
@@ -20,8 +22,6 @@ class Plugin(object):
 
     def init(self):
         pass
-
-    content_type = ''
 
     def send_file(self, handler, container, name):
         o = urlparse("http://fake.host" + handler.path)
