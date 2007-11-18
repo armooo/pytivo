@@ -50,7 +50,7 @@ def getFFMPEGTemplate(tsn):
     try:
         return config.get('Server', 'ffmpeg_prams', raw = True)
     except NoOptionError: #default
-        return '-i %(in_file)s -vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ac 2 -ab %(audio_br)s -ar 44100 -f vob -'
+        return '-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ac 2 -ab %(audio_br)s -ar 44100 -f vob -'
 
 def getValidWidths():
     return [1440, 720, 704, 544, 480, 352]
