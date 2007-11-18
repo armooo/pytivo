@@ -56,10 +56,30 @@ class Video(Plugin):
     
     def __metadata(self, full_path):
         description_file = full_path + '.txt'
+
+        metadata = {
+            'description' : '',
+            'episode_title' : '',
+            'source_channel' : '',
+            'source_station' : '',
+            'series_id' : '',
+        }
+
         if os.path.exists(description_file):
-            return open(description_file).read()
-        else:
-            return ''
+            for line in open(description_file):
+                if line.strip().startswith('#'):
+                    continue
+                if not ':' in line:
+                    continue
+
+                key, value = line.split(':', 1)
+                key = key.strip()
+                value = value.strip()
+
+                if key in metadata and not metadata[key]:
+                    metadata[key] = value
+
+        return metadata
 
     def QueryContainer(self, handler, query):
         
@@ -91,7 +111,7 @@ class Video(Plugin):
             if not  video['is_dir']:
                 video['size'] = self.__est_size(full_path)
                 video['duration'] = self.__duration(full_path)
-                video['description'] = self.__description(full_path)
+                video.update(self.__metadata(full_path))
 
             videos.append(video)
 

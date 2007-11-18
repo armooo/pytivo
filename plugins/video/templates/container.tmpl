@@ -31,7 +31,11 @@
             <SourceFormat>video/x-ms-wmv</SourceFormat>
             <SourceSize>$video.size</SourceSize>
 		<Duration>$video.duration</Duration>
-        <Description>$video.description</Description>
+        <Description>$escape($video.description)</Description>
+        <EpisodeTitle>$escape($video.episode_title)</EpisodeTitle>
+        <SourceChannel>$escape($video.source_channel)</SourceChannel>
+        <SourceStation>$escape($video.source_station)</SourceStation>
+        <SeriesId>$video.series_id</SeriesId>
         </Details>
         <Links>
             <Content>
