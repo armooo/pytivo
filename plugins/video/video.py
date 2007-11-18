@@ -5,7 +5,7 @@ from urllib import unquote_plus, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
-import Config
+import config
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -62,8 +62,8 @@ class video(Plugin):
             if transcode.tivo_compatable(full_path):  # Is TiVo compatible mpeg2
                 return int(os.stat(full_path).st_size)
             else:  # Must be re-encoded
-                audioBPS = strtod(Config.getAudioBR())
-                videoBPS = strtod(Config.getVideoBR())
+                audioBPS = strtod(config.getAudioBR())
+                videoBPS = strtod(config.getVideoBR())
                 bitrate =  audioBPS + videoBPS
                 return int((duration(file)/1000)*(bitrate * 1.02 / 8))
         

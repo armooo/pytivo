@@ -8,6 +8,23 @@ config = ConfigParser.ConfigParser()
 p = os.path.dirname(__file__)
 config.read(os.path.join(p, 'pyTivo.conf'))
 
+def getGUID():
+    if config.has_option('Server', 'GUID'):
+        guid = config.get('Server', 'GUID')
+    else:
+        guid = '123456'
+    return guid
+ 
+def getBeaconAddreses():
+    if config.has_option('Server', 'beacon'):
+        beacon_ips = config.get('Server', 'beacon')
+    else:
+        beacon_ips = '255.255.255.255'
+    return beacon_ips
+
+def getPort():
+    return config.get('Server', 'Port')
+
 def get169Setting(tsn):
     if not tsn:
         return True
@@ -25,7 +42,7 @@ def get169Setting(tsn):
     return True
 
 def getShares():
-    return filter( lambda x: not(x.startswith('_tivo_') or x == 'Server'), config.sections())
+    return ( (section, dict(config.items(section))) for section in config.sections() if not(section.startswith('_tivo_') or section == 'Server') )
 
 def getDebug():
     try:

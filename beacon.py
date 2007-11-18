@@ -1,6 +1,6 @@
 from socket import *
 from threading import Timer
-from Config import config
+import config
 
 class Beacon:
 
@@ -18,12 +18,7 @@ class Beacon:
     def format_beacon(self):
         beacon = []
 
-        from Config import config
-
-        if config.has_option('Server', 'GUID'):
-            guid = config.get('Server', 'GUID')
-        else:
-            guid = '123456'
+        guid = config.getGUID()
 
         beacon.append('tivoconnect=1')
         beacon.append('swversion=1')
@@ -38,10 +33,7 @@ class Beacon:
         return '\n'.join(beacon)
 
     def send_beacon(self):
-        if config.has_option('Server', 'beacon'):
-            beacon_ips = config.get('Server', 'beacon')
-        else:
-            beacon_ips = '255.255.255.255'
+        beacon_ips = config.getBeaconAddreses()
         for beacon_ip in beacon_ips.split():
             self.UDPSock.sendto(self.format_beacon(), (beacon_ip, 2190))
 

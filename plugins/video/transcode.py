@@ -1,14 +1,14 @@
 import subprocess, shutil, os, re, sys, ConfigParser, time, lrucache
-import Config
+import config
 
 info_cache = lrucache.LRUCache(1000)
 
 
-debug = Config.getDebug()
-MAX_VIDEO_BR = Config.getMaxVideoBR()
-BUFF_SIZE = Config.getBuffSize()
+debug = config.getDebug()
+MAX_VIDEO_BR = config.getMaxVideoBR()
+BUFF_SIZE = config.getBuffSize()
 
-FFMPEG = Config.get('Server', 'ffmpeg')
+FFMPEG = config.get('Server', 'ffmpeg')
 
 def debug_write(data):
     if debug:
@@ -46,13 +46,13 @@ def output_video(inFile, outFile, tsn=''):
 def transcode(inFile, outFile, tsn=''):
 
     settings = {}
-    settings['audio_br'] = Config.getAudioBR(tsn)
-    settings['video_br'] = Config.getVideoBR(tsn)
+    settings['audio_br'] = config.getAudioBR(tsn)
+    settings['video_br'] = config.getVideoBR(tsn)
     settings['max_video_br'] = MAX_VIDEO_BR
     settings['buff_size'] = BUFF_SIZE
     settings['aspect_ratio'] = ' '.join(select_aspect(inFile, tsn))
 
-    cmd_string = Config.getFFMPEGTemplate(tsn) % settings
+    cmd_string = config.getFFMPEGTemplate(tsn) % settings
 
     cmd = [FFMPEG, '-i', inFile] + cmd_string.split()
 
@@ -64,14 +64,14 @@ def transcode(inFile, outFile, tsn=''):
         kill(ffmpeg.pid)
        
 def select_aspect(inFile, tsn = ''):
-    TIVO_WIDTH = Config.getTivoWidth(tsn)
-    TIVO_HEIGHT = Config.getTivoHeight(tsn)
+    TIVO_WIDTH = config.getTivoWidth(tsn)
+    TIVO_HEIGHT = config.getTivoHeight(tsn)
     
     type, width, height, fps, millisecs =  video_info(inFile)
 
     debug_write(['tsn:', tsn, '\n'])
 
-    aspect169 = Config.get169Setting(tsn)
+    aspect169 = config.get169Setting(tsn)
 
     debug_write(['aspect169:', aspect169, '\n'])
 
