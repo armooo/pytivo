@@ -42,7 +42,26 @@ def get169Setting(tsn):
     return True
 
 def getShares():
-    return ( (section, dict(config.items(section))) for section in config.sections() if not(section.startswith('_tivo_') or section == 'Server') )
+    shares = [ (section, dict(config.items(section))) for section in config.sections() if not(section.startswith('_tivo_') or section == 'Server') ]
+
+    for name, data in shares:
+        if not data.get('auto_subshares', 'False').lower() == 'true':
+            continue
+
+        base_path = data['path']
+        for item in os.listdir(base_path):
+            item_path = os.path.join(base_path, item)
+            if not os.path.isdir(item_path):
+                continue
+
+            new_name = name + '/' + item
+            new_data = dict(data)
+            new_data['path'] = item_path
+
+            shares.append( (new_name, new_data) )
+
+    return shares
+
 
 def getDebug():
     try:

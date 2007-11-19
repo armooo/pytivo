@@ -53,6 +53,10 @@ type=video
 #For linux:   path=/media
 path=/home/armooo/Videos
 
+#Make all subfolders in to top level shares
+#auto_subshares= True
+
+
 
 ##You can have more than one share
 #[MyTelevision]
