@@ -45,7 +45,7 @@ class Video(Plugin):
     def __duration(self, full_path):
         return transcode.video_info(full_path)[4]
 
-    def __est_size(self, full_path):
+    def __est_size(self, full_path, tsn = ''):
         #Size is estimated by taking audio and video bit rate adding 2%
 
         if transcode.tivo_compatable(full_path):  # Is TiVo compatible mpeg2
@@ -123,6 +123,7 @@ class Video(Plugin):
 
     def QueryContainer(self, handler, query):
         
+        tsn =  handler.headers.getheader('tsn', '')
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
          
