@@ -126,6 +126,20 @@ class Video(Plugin):
         t.escape = escape
         handler.wfile.write(t)
 
+    def TVBusQuery(self, handler, query):
+       
+        file = query['File'][0]
+        path = self.get_local_path(handler, query)
+        file_path = os.path.join(path, file)
+
+        file_info = self.__metadata(file_path)
+
+        handler.send_response(200)
+        handler.end_headers()
+        t = Template(file=os.path.join(SCRIPTDIR,'templates', 'TvBus.tmpl'))
+        t.video = file_info
+        handler.wfile.write(t)
+        
         
 # Parse a bitrate using the SI/IEEE suffix values as if by ffmpeg
 # For example, 2K==2000, 2Ki==2048, 2MB==16000000, 2MiB==16777216

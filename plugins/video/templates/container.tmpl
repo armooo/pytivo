@@ -48,6 +48,11 @@
                     <AcceptsParams>No</AcceptsParams>
                     <Url>urn:tivo:image:save-until-i-delete-recording</Url>
                 </CustomIcon>
+            <TiVoVideoDetails>
+                <ContentType>text/xml</ContentType>
+                <AcceptsParams>No</AcceptsParams>
+                <Url>/TiVoConnect?Command=TVBusQuery&amp;Container=$escape($name)&amp;File=$quote($video.name)</Url>
+            </TiVoVideoDetails>
         </Links>
     </Item>
     #end if
