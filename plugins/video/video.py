@@ -85,13 +85,22 @@ class Video(Plugin):
 
         metadata = {}
 
+        base_path, title = os.path.split(full_path)
+        metadata['title'] = '.'.join(title.split('.')[:-1])
+        metadata['seriesTitle'] = os.path.split(base_path)[1]
+
         metadata.update( self.__getMetadateFromTxt(full_path) )
         
         metadata['size'] = self.__est_size(full_path)
         metadata['duration'] = self.__duration(full_path)
         
         duration = timedelta(milliseconds = metadata['duration'])
-        metadata['iso_durarion'] = 'P' + str(duration.days) + 'DT' + str(duration.seconds) + 'S'
+
+        min = duration.seconds / 60
+        sec = duration.seconds % 60
+        hours = min / 60
+        min = min % 60
+        metadata['iso_durarion'] = 'P' + str(duration.days) + 'DT' + str(hours) + 'H' + str(min) + 'M' + str(sec) + 'S'
 
         return metadata
 
@@ -148,8 +157,6 @@ class Video(Plugin):
 
         
         file_info = VideoDetails()
-        file_info['seriesTitle'] = os.path.split(path)[-1]
-        file_info['title'] = '.'.join(file.split('.')[:-1])
         file_info.update(self.__metadata(file_path))
 
         print file_info
@@ -205,9 +212,9 @@ class VideoDetails(DictMixin):
         if key in defaults:
             return defaults[key]
         elif key.startswith('v'):
-            return ['Default']
+            return [key + '1', key + '2']
         else:
-            return 'Default'
+            return key
 
         
 # Parse a bitrate using the SI/IEEE suffix values as if by ffmpeg

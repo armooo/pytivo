@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TvBusMarshalledStruct:TvBusEnvelope xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xmlns:TvBusMarshalledStruct="http://tivo.com/developer/xml/idl/TvBusMarshalledStruct" xmlns:TvPgdRecording="http://tivo.com/developer/xml/idl/TvPgdRecording" xmlns:TvBusDuration="http://tivo.com/developer/xml/idl/TvBusDuration" xmlns:TvPgdShowing="http://tivo.com/developer/xml/idl/TvPgdShowing" xmlns:TvDbShowingBit="http://tivo.com/developer/xml/idl/TvDbShowingBit" xmlns:TvBusDateTime="http://tivo.com/developer/xml/idl/TvBusDateTime" xmlns:TvPgdProgram="http://tivo.com/developer/xml/idl/TvPgdProgram" xmlns:TvDbColorCode="http://tivo.com/developer/xml/idl/TvDbColorCode" xmlns:TvPgdSeries="http://tivo.com/developer/xml/idl/TvPgdSeries" xmlns:TvDbShowType="http://tivo.com/developer/xml/idl/TvDbShowType" xmlns:TvPgdChannel="http://tivo.com/developer/xml/idl/TvPgdChannel" xmlns:TvDbTvRating="http://tivo.com/developer/xml/idl/TvDbTvRating" xmlns:TvDbRecordQuality="http://tivo.com/developer/xml/idl/TvDbRecordQuality" xmlns:TvDbBitstreamFormat="http://tivo.com/developer/xml/idl/TvDbBitstreamFormat" xs:schemaLocation="http://tivo.com/developer/xml/idl/TvBusMarshalledStruct TvBusMarshalledStruct.xsd http://tivo.com/developer/xml/idl/TvPgdRecording TvPgdRecording.xsd http://tivo.com/developer/xml/idl/TvBusDuration TvBusDuration.xsd http://tivo.com/developer/xml/idl/TvPgdShowing TvPgdShowing.xsd http://tivo.com/developer/xml/idl/TvDbShowingBit TvDbShowingBit.xsd http://tivo.com/developer/xml/idl/TvBusDateTime TvBusDateTime.xsd http://tivo.com/developer/xml/idl/TvPgdProgram TvPgdProgram.xsd http://tivo.com/developer/xml/idl/TvDbColorCode TvDbColorCode.xsd http://tivo.com/developer/xml/idl/TvPgdSeries TvPgdSeries.xsd http://tivo.com/developer/xml/idl/TvDbShowType TvDbShowType.xsd http://tivo.com/developer/xml/idl/TvPgdChannel TvPgdChannel.xsd http://tivo.com/developer/xml/idl/TvDbTvRating TvDbTvRating.xsd http://tivo.com/developer/xml/idl/TvDbRecordQuality TvDbRecordQuality.xsd http://tivo.com/developer/xml/idl/TvDbBitstreamFormat TvDbBitstreamFormat.xsd" xs:type="TvPgdRecording:TvPgdRecording">
-  <recordedDuration>PT00M</recordedDuration>
+  <recordedDuration>$video.iso_durarion</recordedDuration>
   <vActualShowing>
     <element>
         <showingBits value="$video.showingBits"/>
@@ -27,6 +27,7 @@
                 #end for
         </vDirector>
           <episodeNumber>$video.episodeNumber</episodeNumber>
+          <episodeTitle>$video.title</episodeTitle>
           <vExecProducer>
                 #for $element in $video.vExecProducer
                 <element>$element</element>
@@ -64,7 +65,7 @@
             <seriesTitle>$video.seriesTitle</seriesTitle>
           </series>
           <showType value="$video.showType[1]">$video.showType[0]</showType>
-          <title>$video.title</title>
+          <title>$video.seriesTitle</title>
           <vWriter>
                 #for $element in $video.vWriter
                 <element>$element</element>
@@ -106,6 +107,7 @@
             #end for
     </vDirector>
       <episodeNumber>$video.episodeNumber</episodeNumber>
+      <episodeTitle>$video.title</episodeTitle>
       <vExecProducer>
             #for $element in $video.vExecProducer
             <element>$element</element>
@@ -140,10 +142,10 @@
             <element>$element</element>
             #end for
         </vSeriesGenre>
-        <seriesTitle>$video.seriesTitle</seriesTitle>
+        <seriesTitle>$video.title</seriesTitle>
       </series>
       <showType value="$video.showType[1]">$video.showType[0]</showType>
-      <title>$video.title</title>
+      <title>$video.seriesTitle</title>
       <vWriter>
             #for $element in $video.vWriter
             <element>$element</element>

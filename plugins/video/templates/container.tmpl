@@ -26,16 +26,16 @@
     #else
     <Item>
         <Details>
-            <Title>$video.title</Title>
+            <Title>$video.seriesTitle</Title>
             <ContentType>video/x-tivo-mpeg</ContentType>
             <SourceFormat>video/x-ms-wmv</SourceFormat>
             <SourceSize>$video.size</SourceSize>
-		<Duration>$video.duration</Duration>
-        <Description>$escape($video.description)</Description>
-        <EpisodeTitle>$escape($video.episodeTitle)</EpisodeTitle>
-        <SourceChannel>$escape($video.sourceChannel)</SourceChannel>
-        <SourceStation>$escape($video.sourceStation)</SourceStation>
-        <SeriesId>$video.seriesId</SeriesId>
+            <Duration>$video.duration</Duration>
+            <Description>$escape($video.description)</Description>
+            <EpisodeTitle>$escape($video.title)</EpisodeTitle>
+            <SourceChannel>$escape($video.sourceChannel)</SourceChannel>
+            <SourceStation>$escape($video.sourceStation)</SourceStation>
+            <SeriesId>$video.seriesId</SeriesId>
         </Details>
         <Links>
             <Content>
