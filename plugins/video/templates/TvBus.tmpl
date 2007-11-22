@@ -4,7 +4,7 @@
   <vActualShowing>
     <element>
         <showingBits value="$video.showingBits"/>
-        <time>2006-01-23T04:39:43Z</time>
+        <time>$video.time</time>
         <duration>$video.iso_durarion</duration>
         <program>
           <vActor>
@@ -49,7 +49,7 @@
                 #end for
           </vHost>
           <isEpisode>$video.isEpisode</isEpisode>
-          <originalAirDate>2006-01-23T04:39:43Z</originalAirDate>
+          <originalAirDate>$video.originalAirDate</originalAirDate>
           <vProducer>
                 #for $element in $video.vProducer
                 <element>$element</element>
@@ -84,7 +84,7 @@
   <recordingQuality value="75">HIGH</recordingQuality>
   <showing>
     <showingBits value="$video.showingBits"/>
-    <time>2006-01-23T04:39:43Z</time>
+    <time>$video.time</time>
     <duration>$video.iso_durarion</duration>
     <program>
       <vActor>
@@ -129,7 +129,7 @@
             #end for
       </vHost>
       <isEpisode>$video.isEpisode</isEpisode>
-      <originalAirDate>2006-01-23T04:39:43Z</originalAirDate>
+      <originalAirDate>$video.originalAirDate</originalAirDate>
       <vProducer>
             #for $element in $video.vProducer
             <element>$element</element>
@@ -159,6 +159,6 @@
     </channel>
     <tvRating value="$video.tvRating[1]">$video.tvRating[0]</tvRating>
   </showing>
-  <startTime>2008-01-23T04:39:43Z</startTime>
-  <stopTime>2008-01-23T04:39:43Z</stopTime>
+  <startTime>$video.startTime</startTime>
+  <stopTime>$video.stopTime</stopTime>
 </TvBusMarshalledStruct:TvBusEnvelope>

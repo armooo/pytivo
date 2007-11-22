@@ -318,7 +318,7 @@ def kill(pid):
         win32kill(pid)
     else:
         import os, signal
-        os.kill(pid, signal.SIGKILL)
+        os.kill(pid, signal.SIGTERM)
 
 def win32kill(pid):
         import ctypes

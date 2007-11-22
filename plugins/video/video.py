@@ -6,7 +6,7 @@ from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
 from UserDict import DictMixin
-from datetime import timedelta
+from datetime import datetime, timedelta
 import config
 
 SCRIPTDIR = os.path.dirname(__file__)
@@ -86,21 +86,28 @@ class Video(Plugin):
         metadata = {}
 
         base_path, title = os.path.split(full_path)
+        now = datetime.now()
+        originalAirDate = datetime.fromtimestamp(os.stat(full_path).st_ctime)
+        duration = self.__duration(full_path)
+        duration_delta = timedelta(milliseconds = duration)
+        
         metadata['title'] = '.'.join(title.split('.')[:-1])
         metadata['seriesTitle'] = os.path.split(base_path)[1]
+        metadata['originalAirDate'] = originalAirDate.isoformat()
+        metadata['time'] = now.isoformat()
+        metadata['startTime'] = now.isoformat()
+        metadata['stopTime'] = (now + duration_delta).isoformat()
 
         metadata.update( self.__getMetadateFromTxt(full_path) )
         
         metadata['size'] = self.__est_size(full_path)
-        metadata['duration'] = self.__duration(full_path)
-        
-        duration = timedelta(milliseconds = metadata['duration'])
+        metadata['duration'] = duration
 
-        min = duration.seconds / 60
-        sec = duration.seconds % 60
+        min = duration_delta.seconds / 60
+        sec = duration_delta.seconds % 60
         hours = min / 60
         min = min % 60
-        metadata['iso_durarion'] = 'P' + str(duration.days) + 'DT' + str(hours) + 'H' + str(min) + 'M' + str(sec) + 'S'
+        metadata['iso_durarion'] = 'P' + str(duration_delta.days) + 'DT' + str(hours) + 'H' + str(min) + 'M' + str(sec) + 'S'
 
         return metadata
 
