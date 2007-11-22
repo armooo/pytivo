@@ -219,9 +219,9 @@ class VideoDetails(DictMixin):
         if key in defaults:
             return defaults[key]
         elif key.startswith('v'):
-            return [key + '1', key + '2']
+            return []
         else:
-            return key
+            return ''
 
         
 # Parse a bitrate using the SI/IEEE suffix values as if by ffmpeg
