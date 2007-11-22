@@ -5,6 +5,8 @@ from urllib import unquote_plus, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
+from UserDict import DictMixin
+from datetime import timedelta
 import config
 
 SCRIPTDIR = os.path.dirname(__file__)
@@ -53,18 +55,11 @@ class Video(Plugin):
             videoBPS = strtod(config.getVideoBR())
             bitrate =  audioBPS + videoBPS
             return int((self.__duration(full_path)/1000)*(bitrate * 1.02 / 8))
-    
-    def __metadata(self, full_path):
+   
+    def __getMetadateFromTxt(self, full_path):
+        metadata = {}
+
         description_file = full_path + '.txt'
-
-        metadata = {
-            'description' : '',
-            'episode_title' : '',
-            'source_channel' : '',
-            'source_station' : '',
-            'series_id' : '',
-        }
-
         if os.path.exists(description_file):
             for line in open(description_file):
                 if line.strip().startswith('#'):
@@ -76,8 +71,27 @@ class Video(Plugin):
                 key = key.strip()
                 value = value.strip()
 
-                if key in metadata and not metadata[key]:
+                if key.startswith('v'):
+                    if key in metadata:
+                        metadata[key].append(value)
+                    else:
+                        metadata[key] = [value]
+                else:
                     metadata[key] = value
+
+        return metadata
+
+    def __metadata(self, full_path):
+
+        metadata = {}
+
+        metadata.update( self.__getMetadateFromTxt(full_path) )
+        
+        metadata['size'] = self.__est_size(full_path)
+        metadata['duration'] = self.__duration(full_path)
+        
+        duration = timedelta(milliseconds = metadata['duration'])
+        metadata['iso_durarion'] = 'P' + str(duration.days) + 'DT' + str(duration.seconds) + 'S'
 
         return metadata
 
@@ -105,12 +119,12 @@ class Video(Plugin):
             path = self.get_local_path(handler, query)
             full_path = os.path.join(path, file)
             
-            video = {}
+            video = VideoDetails()
             video['name'] = file
+            video['title'] = file
             video['is_dir'] = self.__isdir(full_path)
             if not  video['is_dir']:
-                video['size'] = self.__est_size(full_path)
-                video['duration'] = self.__duration(full_path)
+                video['title'] = '.'.join(file.split('.')[:-1])
                 video.update(self.__metadata(full_path))
 
             videos.append(video)
@@ -132,14 +146,69 @@ class Video(Plugin):
         path = self.get_local_path(handler, query)
         file_path = os.path.join(path, file)
 
-        file_info = self.__metadata(file_path)
+        
+        file_info = VideoDetails()
+        file_info['seriesTitle'] = os.path.split(path)[-1]
+        file_info['title'] = '.'.join(file.split('.')[:-1])
+        file_info.update(self.__metadata(file_path))
+
+        print file_info
 
         handler.send_response(200)
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'TvBus.tmpl'))
         t.video = file_info
         handler.wfile.write(t)
-        
+    
+class VideoDetails(DictMixin):
+   
+    def __init__(self, d = None):
+        if d:
+            self.d = d
+        else:
+            self.d = {}
+
+    def __getitem__(self, key):
+        if key not in self.d:
+            self.d[key] = self.default(key)
+        return self.d[key]
+
+    def __contains__(self, key):
+        return True
+
+    def __setitem__(self, key, value):
+        self.d[key] = value
+
+    def __delitem__(self):
+        del self.d[key]
+    
+    def keys(self):
+        return self.d.keys()
+    
+    def __iter__(self):
+        return self.d.__iter__()
+
+    def iteritems(self):
+        return self.d.iteritems()
+
+    def default(self, key):
+        defaults = {
+            'showingBits' : '0',
+            'episodeNumber' : '0',
+            'displayMajorNumber' : '0',
+            'displayMinorNumber' : '0',
+            'isEpisode' : 'true',
+            'colorCode' : ('COLOR', '4'),
+            'showType' : ('SERIES', '5'),
+            'tvRating' : ('NR', '7'),
+        }
+        if key in defaults:
+            return defaults[key]
+        elif key.startswith('v'):
+            return ['Default']
+        else:
+            return 'Default'
+
         
 # Parse a bitrate using the SI/IEEE suffix values as if by ffmpeg
 # For example, 2K==2000, 2Ki==2048, 2MB==16000000, 2MiB==16777216

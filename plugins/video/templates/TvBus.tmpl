@@ -3,76 +3,159 @@
   <recordedDuration>PT00M</recordedDuration>
   <vActualShowing>
     <element>
-      <showingBits value="1027"/>
-      <time>2006-01-23T04:39:43Z</time>
-      <duration>PT00M</duration>
-      <program>
-        <vActor></vActor>
-        <vAdvisory/>
-        <vChoreographer/>
-        <colorCode value="4">COLOR</colorCode>
-        <vDirector></vDirector>
-        <episodeNumber>5</episodeNumber>
-        <vExecProducer></vExecProducer>
-        <vProgramGenre></vProgramGenre>
-        <vGuestStar/>
-        <vHost/>
-        <isEpisode>false</isEpisode>
-        <originalAirDate>2006-01-23T04:39:43Z</originalAirDate>
-        <vProducer></vProducer>
-        <series>
-          <isEpisodic>false</isEpisodic>
-          <vSeriesGenre></vSeriesGenre>
-          <seriesTitle/>
-        </series>
-        <showType value="5">SERIES</showType>
-        <title></title>
-        <vWriter></vWriter>
-      </program>
-      <channel>
-        <displayMajorNumber>0</displayMajorNumber>
-        <displayMinorNumber>0</displayMinorNumber>
-        <callsign/>
-      </channel>
-      <tvRating value="4">PG</tvRating>
+        <showingBits value="$video.showingBits"/>
+        <time>2006-01-23T04:39:43Z</time>
+        <duration>$video.iso_durarion</duration>
+        <program>
+          <vActor>
+                #for $element in $video.vActor
+                <element>$element</element>
+                #end for
+          </vActor>
+          <vAdvisory>
+          </vAdvisory>
+          <vChoreographer>
+                #for $element in $video.vChoreographer
+                <element>$element</element>
+                #end for
+          </vChoreographer>
+          <colorCode value="$video.colorCode[1]">$video.colorCode[0]</colorCode>
+          <description>$video.description</description>
+          <vDirector>
+                #for $element in $video.vDirector
+                <element>$element</element>
+                #end for
+        </vDirector>
+          <episodeNumber>$video.episodeNumber</episodeNumber>
+          <vExecProducer>
+                #for $element in $video.vExecProducer
+                <element>$element</element>
+                #end for
+          </vExecProducer>
+          <vProgramGenre>
+                #for $element in $video.vProgramGenre
+                <element>$element</element>
+                #end for
+          </vProgramGenre>
+          <vGuestStar>
+                #for $element in $video.vGuestStar
+                <element>$element</element>
+                #end for
+          </vGuestStar>
+          <vHost>
+                #for $element in $video.vHost
+                <element>$element</element>
+                #end for
+          </vHost>
+          <isEpisode>$video.isEpisode</isEpisode>
+          <originalAirDate>2006-01-23T04:39:43Z</originalAirDate>
+          <vProducer>
+                #for $element in $video.vProducer
+                <element>$element</element>
+                #end for
+          </vProducer>
+          <series>
+            <isEpisodic>$video.isEpisode</isEpisodic>
+            <vSeriesGenre>
+                #for $element in $video.vSeriesGenre
+                <element>$element</element>
+                #end for
+            </vSeriesGenre>
+            <seriesTitle>$video.seriesTitle</seriesTitle>
+          </series>
+          <showType value="$video.showType[1]">$video.showType[0]</showType>
+          <title>$video.title</title>
+          <vWriter>
+                #for $element in $video.vWriter
+                <element>$element</element>
+                #end for
+          </vWriter>
+        </program>
+        <channel>
+          <displayMajorNumber>$video.displayMajorNumber</displayMajorNumber>
+          <displayMinorNumber>$video.displayMinorNumber</displayMinorNumber>
+          <callsign>$video.callsign</callsign>
+        </channel>
+        <tvRating value="$video.tvRating[1]">$video.tvRating[0]</tvRating>
     </element>
   </vActualShowing>
   <vBookmark/>
   <recordingQuality value="75">HIGH</recordingQuality>
   <showing>
-    <showingBits value="6134"/>
+    <showingBits value="$video.showingBits"/>
     <time>2006-01-23T04:39:43Z</time>
-    <duration>PT00M</duration>
+    <duration>$video.iso_durarion</duration>
     <program>
-      <vActor></vActor>
-      <vAdvisory/>
-      <vChoreographer/>
-      <colorCode value="3">COLORIZED</colorCode>
-      <description/>
-      <vDirector></vDirector>
-      <episodeNumber>0</episodeNumber>
-      <vExecProducer></vExecProducer>
-      <vProgramGenre></vProgramGenre>
-      <vGuestStar></vGuestStar>
-      <vHost></vHost>
-      <isEpisode>false</isEpisode>
+      <vActor>
+            #for $element in $video.vActor
+            <element>$element</element>
+            #end for
+      </vActor>
+      <vAdvisory>
+      </vAdvisory>
+      <vChoreographer>
+            #for $element in $video.vChoreographer
+            <element>$element</element>
+            #end for
+      </vChoreographer>
+      <colorCode value="$video.colorCode[1]">$video.colorCode[0]</colorCode>
+      <description>$video.description</description>
+      <vDirector>
+            #for $element in $video.vDirector
+            <element>$element</element>
+            #end for
+    </vDirector>
+      <episodeNumber>$video.episodeNumber</episodeNumber>
+      <vExecProducer>
+            #for $element in $video.vExecProducer
+            <element>$element</element>
+            #end for
+      </vExecProducer>
+      <vProgramGenre>
+            #for $element in $video.vProgramGenre
+            <element>$element</element>
+            #end for
+      </vProgramGenre>
+      <vGuestStar>
+            #for $element in $video.vGuestStar
+            <element>$element</element>
+            #end for
+      </vGuestStar>
+      <vHost>
+            #for $element in $video.vHost
+            <element>$element</element>
+            #end for
+      </vHost>
+      <isEpisode>$video.isEpisode</isEpisode>
       <originalAirDate>2006-01-23T04:39:43Z</originalAirDate>
-      <vProducer/>
+      <vProducer>
+            #for $element in $video.vProducer
+            <element>$element</element>
+            #end for
+      </vProducer>
       <series>
-        <isEpisodic>false</isEpisodic>
-        <vSeriesGenre></vSeriesGenre>
-        <seriesTitle/>
+        <isEpisodic>$video.isEpisode</isEpisodic>
+        <vSeriesGenre>
+            #for $element in $video.vSeriesGenre
+            <element>$element</element>
+            #end for
+        </vSeriesGenre>
+        <seriesTitle>$video.seriesTitle</seriesTitle>
       </series>
-      <showType value="5">SERIES</showType>
-      <title>parkrun1920_12mbps</title>
-      <vWriter></vWriter>
+      <showType value="$video.showType[1]">$video.showType[0]</showType>
+      <title>$video.title</title>
+      <vWriter>
+            #for $element in $video.vWriter
+            <element>$element</element>
+            #end for
+      </vWriter>
     </program>
     <channel>
-      <displayMajorNumber>0</displayMajorNumber>
-      <displayMinorNumber>0</displayMinorNumber>
-      <callsign/>
+      <displayMajorNumber>$video.displayMajorNumber</displayMajorNumber>
+      <displayMinorNumber>$video.displayMinorNumber</displayMinorNumber>
+      <callsign>$video.callsign</callsign>
     </channel>
-    <tvRating value="4">PG</tvRating>
+    <tvRating value="$video.tvRating[1]">$video.tvRating[0]</tvRating>
   </showing>
   <startTime>2008-01-23T04:39:43Z</startTime>
   <stopTime>2008-01-23T04:39:43Z</stopTime>

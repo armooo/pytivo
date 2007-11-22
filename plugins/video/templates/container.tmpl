@@ -12,7 +12,7 @@
     #if $video.is_dir
     <Item>
         <Details>
-            <Title>$escape($video.name)</Title>
+            <Title>$escape($video.title)</Title>
             <ContentType>x-container/folder</ContentType>
             <SourceFormat>x-tivo-container/tivo-dvr</SourceFormat>
         </Details>
@@ -26,16 +26,16 @@
     #else
     <Item>
         <Details>
-            <Title>#echo $escape('.'.join(video['name'].split('.')[:-1])) #</Title>
+            <Title>$video.title</Title>
             <ContentType>video/x-tivo-mpeg</ContentType>
             <SourceFormat>video/x-ms-wmv</SourceFormat>
             <SourceSize>$video.size</SourceSize>
 		<Duration>$video.duration</Duration>
         <Description>$escape($video.description)</Description>
-        <EpisodeTitle>$escape($video.episode_title)</EpisodeTitle>
-        <SourceChannel>$escape($video.source_channel)</SourceChannel>
-        <SourceStation>$escape($video.source_station)</SourceStation>
-        <SeriesId>$video.series_id</SeriesId>
+        <EpisodeTitle>$escape($video.episodeTitle)</EpisodeTitle>
+        <SourceChannel>$escape($video.sourceChannel)</SourceChannel>
+        <SourceStation>$escape($video.sourceStation)</SourceStation>
+        <SeriesId>$video.seriesId</SeriesId>
         </Details>
         <Links>
             <Content>
