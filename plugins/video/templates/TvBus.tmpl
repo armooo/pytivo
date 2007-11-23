@@ -9,73 +9,73 @@
         <program>
           <vActor>
                 #for $element in $video.vActor
-                <element>$element</element>
+                <element>$escape($element)</element>
                 #end for
           </vActor>
           <vAdvisory>
           </vAdvisory>
           <vChoreographer>
                 #for $element in $video.vChoreographer
-                <element>$element</element>
+                <element>$escape($element)</element>
                 #end for
           </vChoreographer>
           <colorCode value="$video.colorCode[1]">$video.colorCode[0]</colorCode>
-          <description>$video.description</description>
+          <description>$escape($video.description)</description>
           <vDirector>
                 #for $element in $video.vDirector
-                <element>$element</element>
+                <element>$escape($element)</element>
                 #end for
         </vDirector>
-          <episodeNumber>$video.episodeNumber</episodeNumber>
-          <episodeTitle>$video.title</episodeTitle>
+          <episodeNumber>$escape($video.episodeNumber)</episodeNumber>
+          <episodeTitle>$escape($video.title)</episodeTitle>
           <vExecProducer>
                 #for $element in $video.vExecProducer
-                <element>$element</element>
+                <element>$escape($element)</element>
                 #end for
           </vExecProducer>
           <vProgramGenre>
                 #for $element in $video.vProgramGenre
-                <element>$element</element>
+                <element>$escape($element)</element>
                 #end for
           </vProgramGenre>
           <vGuestStar>
                 #for $element in $video.vGuestStar
-                <element>$element</element>
+                <element>$escape($element)</element>
                 #end for
           </vGuestStar>
           <vHost>
                 #for $element in $video.vHost
-                <element>$element</element>
+                <element>$escape($element)</element>
                 #end for
           </vHost>
           <isEpisode>$video.isEpisode</isEpisode>
           <originalAirDate>$video.originalAirDate</originalAirDate>
           <vProducer>
                 #for $element in $video.vProducer
-                <element>$element</element>
+                <element>$escape($element)</element>
                 #end for
           </vProducer>
           <series>
             <isEpisodic>$video.isEpisode</isEpisodic>
             <vSeriesGenre>
                 #for $element in $video.vSeriesGenre
-                <element>$element</element>
+                <element>$escape($element)</element>
                 #end for
             </vSeriesGenre>
-            <seriesTitle>$video.seriesTitle</seriesTitle>
+            <seriesTitle>$escape($video.seriesTitle)</seriesTitle>
           </series>
           <showType value="$video.showType[1]">$video.showType[0]</showType>
-          <title>$video.seriesTitle</title>
+          <title>$escape($video.seriesTitle)</title>
           <vWriter>
                 #for $element in $video.vWriter
-                <element>$element</element>
+                <element>$escape($element)</element>
                 #end for
           </vWriter>
         </program>
         <channel>
           <displayMajorNumber>$video.displayMajorNumber</displayMajorNumber>
           <displayMinorNumber>$video.displayMinorNumber</displayMinorNumber>
-          <callsign>$video.callsign</callsign>
+          <callsign>$escape($video.callsign)</callsign>
         </channel>
         <tvRating value="$video.tvRating[1]">$video.tvRating[0]</tvRating>
     </element>
@@ -89,73 +89,73 @@
     <program>
       <vActor>
             #for $element in $video.vActor
-            <element>$element</element>
+            <element>$escape($element)</element>
             #end for
       </vActor>
       <vAdvisory>
       </vAdvisory>
       <vChoreographer>
             #for $element in $video.vChoreographer
-            <element>$element</element>
+            <element>$escape($element)</element>
             #end for
       </vChoreographer>
       <colorCode value="$video.colorCode[1]">$video.colorCode[0]</colorCode>
-      <description>$video.description</description>
+      <description>$escape($video.description)</description>
       <vDirector>
             #for $element in $video.vDirector
-            <element>$element</element>
+            <element>$escape($element)</element>
             #end for
     </vDirector>
-      <episodeNumber>$video.episodeNumber</episodeNumber>
-      <episodeTitle>$video.title</episodeTitle>
+      <episodeNumber>$escape($video.episodeNumber)</episodeNumber>
+      <episodeTitle>$escape($video.title)</episodeTitle>
       <vExecProducer>
             #for $element in $video.vExecProducer
-            <element>$element</element>
+            <element>$escape($element)</element>
             #end for
       </vExecProducer>
       <vProgramGenre>
             #for $element in $video.vProgramGenre
-            <element>$element</element>
+            <element>$escape($element)</element>
             #end for
       </vProgramGenre>
       <vGuestStar>
             #for $element in $video.vGuestStar
-            <element>$element</element>
+            <element>$escape($element)</element>
             #end for
       </vGuestStar>
       <vHost>
             #for $element in $video.vHost
-            <element>$element</element>
+            <element>$escape($element)</element>
             #end for
       </vHost>
       <isEpisode>$video.isEpisode</isEpisode>
       <originalAirDate>$video.originalAirDate</originalAirDate>
       <vProducer>
             #for $element in $video.vProducer
-            <element>$element</element>
+            <element>$escape($element)</element>
             #end for
       </vProducer>
       <series>
         <isEpisodic>$video.isEpisode</isEpisodic>
         <vSeriesGenre>
             #for $element in $video.vSeriesGenre
-            <element>$element</element>
+            <element>$escape($element)</element>
             #end for
         </vSeriesGenre>
-        <seriesTitle>$video.title</seriesTitle>
+        <seriesTitle>$escape($video.seriesTitle)</seriesTitle>
       </series>
       <showType value="$video.showType[1]">$video.showType[0]</showType>
-      <title>$video.seriesTitle</title>
+      <title>$escape($video.seriesTitle)</title>
       <vWriter>
             #for $element in $video.vWriter
-            <element>$element</element>
+            <element>$escape($element)</element>
             #end for
       </vWriter>
     </program>
     <channel>
       <displayMajorNumber>$video.displayMajorNumber</displayMajorNumber>
       <displayMinorNumber>$video.displayMinorNumber</displayMinorNumber>
-      <callsign>$video.callsign</callsign>
+      <callsign>$escape($video.callsign)</callsign>
     </channel>
     <tvRating value="$video.tvRating[1]">$video.tvRating[0]</tvRating>
   </showing>

@@ -172,6 +172,7 @@ class Video(Plugin):
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'TvBus.tmpl'))
         t.video = file_info
+        t.escape = escape
         handler.wfile.write(t)
     
 class VideoDetails(DictMixin):
