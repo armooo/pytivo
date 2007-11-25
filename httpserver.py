@@ -4,11 +4,11 @@ from urlparse import urlparse
 from cgi import parse_qs
 from Cheetah.Template import Template
 from plugin import GetPlugin
-import Config
+import config
 
 SCRIPTDIR = os.path.dirname(__file__)
-debug = Config.getDebug()
-hack83 = Config.getHack83()
+debug = config.getDebug()
+hack83 = config.getHack83()
 def debug_write(data):
     if debug:
         debug_out = []
@@ -29,6 +29,7 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     def add_container(self, name, settings):
         if self.containers.has_key(name) or name == 'TivoConnect':
             raise "Container Name in use"
+        settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
         self.containers[name] = settings
 
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -45,7 +46,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	    path = unquote_plus(self.path)
             if path.startswith('/' + name):
                 plugin = GetPlugin(container['type'])
-                plugin.SendFile(self, container, name)
+                plugin.send_file(self, container, name)
                 return
             
         ## Not a file not a TiVo command fuck them
@@ -63,7 +64,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             #If we are looking at the root container
             if command == "QueryContainer" and ( not query.has_key('Container') or query['Container'][0] == '/'):
-                self.RootContiner()
+                self.root_continer()
                 return 
             
             if query.has_key('Container'):
@@ -84,11 +85,10 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             self.unsuported(query)
 
-    def RootContiner(self):
+    def root_continer(self):
          t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'root_container.tmpl'))
          t.containers = self.server.containers
          t.hostname = socket.gethostname()
-         t.GetPlugin = GetPlugin
          self.send_response(200)
          self.end_headers()
          self.wfile.write(t)

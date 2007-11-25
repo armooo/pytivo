@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TvBusMarshalledStruct:TvBusEnvelope xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xmlns:TvBusMarshalledStruct="http://tivo.com/developer/xml/idl/TvBusMarshalledStruct" xmlns:TvPgdRecording="http://tivo.com/developer/xml/idl/TvPgdRecording" xmlns:TvBusDuration="http://tivo.com/developer/xml/idl/TvBusDuration" xmlns:TvPgdShowing="http://tivo.com/developer/xml/idl/TvPgdShowing" xmlns:TvDbShowingBit="http://tivo.com/developer/xml/idl/TvDbShowingBit" xmlns:TvBusDateTime="http://tivo.com/developer/xml/idl/TvBusDateTime" xmlns:TvPgdProgram="http://tivo.com/developer/xml/idl/TvPgdProgram" xmlns:TvDbColorCode="http://tivo.com/developer/xml/idl/TvDbColorCode" xmlns:TvPgdSeries="http://tivo.com/developer/xml/idl/TvPgdSeries" xmlns:TvDbShowType="http://tivo.com/developer/xml/idl/TvDbShowType" xmlns:TvPgdChannel="http://tivo.com/developer/xml/idl/TvPgdChannel" xmlns:TvDbTvRating="http://tivo.com/developer/xml/idl/TvDbTvRating" xmlns:TvDbRecordQuality="http://tivo.com/developer/xml/idl/TvDbRecordQuality" xmlns:TvDbBitstreamFormat="http://tivo.com/developer/xml/idl/TvDbBitstreamFormat" xs:schemaLocation="http://tivo.com/developer/xml/idl/TvBusMarshalledStruct TvBusMarshalledStruct.xsd http://tivo.com/developer/xml/idl/TvPgdRecording TvPgdRecording.xsd http://tivo.com/developer/xml/idl/TvBusDuration TvBusDuration.xsd http://tivo.com/developer/xml/idl/TvPgdShowing TvPgdShowing.xsd http://tivo.com/developer/xml/idl/TvDbShowingBit TvDbShowingBit.xsd http://tivo.com/developer/xml/idl/TvBusDateTime TvBusDateTime.xsd http://tivo.com/developer/xml/idl/TvPgdProgram TvPgdProgram.xsd http://tivo.com/developer/xml/idl/TvDbColorCode TvDbColorCode.xsd http://tivo.com/developer/xml/idl/TvPgdSeries TvPgdSeries.xsd http://tivo.com/developer/xml/idl/TvDbShowType TvDbShowType.xsd http://tivo.com/developer/xml/idl/TvPgdChannel TvPgdChannel.xsd http://tivo.com/developer/xml/idl/TvDbTvRating TvDbTvRating.xsd http://tivo.com/developer/xml/idl/TvDbRecordQuality TvDbRecordQuality.xsd http://tivo.com/developer/xml/idl/TvDbBitstreamFormat TvDbBitstreamFormat.xsd" xs:type="TvPgdRecording:TvPgdRecording">
+  <recordedDuration>$video.iso_durarion</recordedDuration>
+  <vActualShowing>
+    <element>
+        <showingBits value="$video.showingBits"/>
+        <time>$video.time</time>
+        <duration>$video.iso_durarion</duration>
+        <program>
+          <vActor>
+                #for $element in $video.vActor
+                <element>$escape($element)</element>
+                #end for
+          </vActor>
+          <vAdvisory>
+          </vAdvisory>
+          <vChoreographer>
+                #for $element in $video.vChoreographer
+                <element>$escape($element)</element>
+                #end for
+          </vChoreographer>
+          <colorCode value="$video.colorCode[1]">$video.colorCode[0]</colorCode>
+          <description>$escape($video.description)</description>
+          <vDirector>
+                #for $element in $video.vDirector
+                <element>$escape($element)</element>
+                #end for
+        </vDirector>
+          <episodeNumber>$escape($video.episodeNumber)</episodeNumber>
+          <episodeTitle>$escape($video.title)</episodeTitle>
+          <vExecProducer>
+                #for $element in $video.vExecProducer
+                <element>$escape($element)</element>
+                #end for
+          </vExecProducer>
+          <vProgramGenre>
+                #for $element in $video.vProgramGenre
+                <element>$escape($element)</element>
+                #end for
+          </vProgramGenre>
+          <vGuestStar>
+                #for $element in $video.vGuestStar
+                <element>$escape($element)</element>
+                #end for
+          </vGuestStar>
+          <vHost>
+                #for $element in $video.vHost
+                <element>$escape($element)</element>
+                #end for
+          </vHost>
+          <isEpisode>$video.isEpisode</isEpisode>
+          <originalAirDate>$video.originalAirDate</originalAirDate>
+          <vProducer>
+                #for $element in $video.vProducer
+                <element>$escape($element)</element>
+                #end for
+          </vProducer>
+          <series>
+            <isEpisodic>$video.isEpisode</isEpisodic>
+            <vSeriesGenre>
+                #for $element in $video.vSeriesGenre
+                <element>$escape($element)</element>
+                #end for
+            </vSeriesGenre>
+            <seriesTitle>$escape($video.seriesTitle)</seriesTitle>
+          </series>
+          <showType value="$video.showType[1]">$video.showType[0]</showType>
+          <title>$escape($video.seriesTitle)</title>
+          <vWriter>
+                #for $element in $video.vWriter
+                <element>$escape($element)</element>
+                #end for
+          </vWriter>
+        </program>
+        <channel>
+          <displayMajorNumber>$video.displayMajorNumber</displayMajorNumber>
+          <displayMinorNumber>$video.displayMinorNumber</displayMinorNumber>
+          <callsign>$escape($video.callsign)</callsign>
+        </channel>
+        <tvRating value="$video.tvRating[1]">$video.tvRating[0]</tvRating>
+    </element>
+  </vActualShowing>
+  <vBookmark/>
+  <recordingQuality value="75">HIGH</recordingQuality>
+  <showing>
+    <showingBits value="$video.showingBits"/>
+    <time>$video.time</time>
+    <duration>$video.iso_durarion</duration>
+    <program>
+      <vActor>
+            #for $element in $video.vActor
+            <element>$escape($element)</element>
+            #end for
+      </vActor>
+      <vAdvisory>
+      </vAdvisory>
+      <vChoreographer>
+            #for $element in $video.vChoreographer
+            <element>$escape($element)</element>
+            #end for
+      </vChoreographer>
+      <colorCode value="$video.colorCode[1]">$video.colorCode[0]</colorCode>
+      <description>$escape($video.description)</description>
+      <vDirector>
+            #for $element in $video.vDirector
+            <element>$escape($element)</element>
+            #end for
+    </vDirector>
+      <episodeNumber>$escape($video.episodeNumber)</episodeNumber>
+      <episodeTitle>$escape($video.title)</episodeTitle>
+      <vExecProducer>
+            #for $element in $video.vExecProducer
+            <element>$escape($element)</element>
+            #end for
+      </vExecProducer>
+      <vProgramGenre>
+            #for $element in $video.vProgramGenre
+            <element>$escape($element)</element>
+            #end for
+      </vProgramGenre>
+      <vGuestStar>
+            #for $element in $video.vGuestStar
+            <element>$escape($element)</element>
+            #end for
+      </vGuestStar>
+      <vHost>
+            #for $element in $video.vHost
+            <element>$escape($element)</element>
+            #end for
+      </vHost>
+      <isEpisode>$video.isEpisode</isEpisode>
+      <originalAirDate>$video.originalAirDate</originalAirDate>
+      <vProducer>
+            #for $element in $video.vProducer
+            <element>$escape($element)</element>
+            #end for
+      </vProducer>
+      <series>
+        <isEpisodic>$video.isEpisode</isEpisodic>
+        <vSeriesGenre>
+            #for $element in $video.vSeriesGenre
+            <element>$escape($element)</element>
+            #end for
+        </vSeriesGenre>
+        <seriesTitle>$escape($video.seriesTitle)</seriesTitle>
+      </series>
+      <showType value="$video.showType[1]">$video.showType[0]</showType>
+      <title>$escape($video.seriesTitle)</title>
+      <vWriter>
+            #for $element in $video.vWriter
+            <element>$escape($element)</element>
+            #end for
+      </vWriter>
+    </program>
+    <channel>
+      <displayMajorNumber>$video.displayMajorNumber</displayMajorNumber>
+      <displayMinorNumber>$video.displayMinorNumber</displayMinorNumber>
+      <callsign>$escape($video.callsign)</callsign>
+    </channel>
+    <tvRating value="$video.tvRating[1]">$video.tvRating[0]</tvRating>
+  </showing>
+  <startTime>$video.startTime</startTime>
+  <stopTime>$video.stopTime</stopTime>
+</TvBusMarshalledStruct:TvBusEnvelope>

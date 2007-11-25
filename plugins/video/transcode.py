@@ -1,20 +1,18 @@
 import subprocess, shutil, os, re, sys, ConfigParser, time, lrucache
-import Config
+import config
 
 info_cache = lrucache.LRUCache(1000)
 
 
-debug = Config.getDebug()
-TIVO_WIDTH = Config.getTivoWidth()
-TIVO_HEIGHT = Config.getTivoHeight()
-AUDIO_BR = Config.getAudioBR()
-VIDEO_BR = Config.getVideoBR()
-FFMPEG = Config.get('Server', 'ffmpeg')
+debug = config.getDebug()
+MAX_VIDEO_BR = config.getMaxVideoBR()
+BUFF_SIZE = config.getBuffSize()
+
+FFMPEG = config.get('Server', 'ffmpeg')
 
 def debug_write(data):
     if debug:
         debug_out = []
-        debug_out.append('Transcode.py - ')
         for x in data:
             debug_out.append(str(x))
         fdebug = open('debug.txt', 'a')
@@ -46,8 +44,19 @@ def output_video(inFile, outFile, tsn=''):
         transcode(inFile, outFile, tsn)
 
 def transcode(inFile, outFile, tsn=''):
-    cmd = [FFMPEG, '-i', inFile, '-vcodec', 'mpeg2video', '-r', '29.97', '-b', VIDEO_BR] + select_aspect(inFile, tsn) +  ['-comment', 'pyTivo.py', '-ac', '2', '-ab', AUDIO_BR,'-ar', '44100', '-f', 'vob', '-' ]   
-    debug_write(['transcode: ffmpeg command is ', ''.join(cmd), '\n'])
+
+    settings = {}
+    settings['audio_br'] = config.getAudioBR(tsn)
+    settings['video_br'] = config.getVideoBR(tsn)
+    settings['max_video_br'] = MAX_VIDEO_BR
+    settings['buff_size'] = BUFF_SIZE
+    settings['aspect_ratio'] = ' '.join(select_aspect(inFile, tsn))
+
+    cmd_string = config.getFFMPEGTemplate(tsn) % settings
+
+    cmd = [FFMPEG, '-i', inFile] + cmd_string.split()
+
+    debug_write(['transcode: ffmpeg command is ', ' '.join(cmd), '\n'])
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
@@ -55,11 +64,14 @@ def transcode(inFile, outFile, tsn=''):
         kill(ffmpeg.pid)
        
 def select_aspect(inFile, tsn = ''):
+    TIVO_WIDTH = config.getTivoWidth(tsn)
+    TIVO_HEIGHT = config.getTivoHeight(tsn)
+    
     type, width, height, fps, millisecs =  video_info(inFile)
 
     debug_write(['tsn:', tsn, '\n'])
 
-    aspect169 = Config.get169Setting(tsn)
+    aspect169 = config.get169Setting(tsn)
 
     debug_write(['aspect169:', aspect169, '\n'])
 
@@ -238,9 +250,6 @@ def video_info(inFile):
     output = ffmpeg.stderr.read()
     debug_write(['video_info: ffmpeg output=', output, '\n'])
 
-    durre = re.compile(r'.*Duration: (.{2}):(.{2}):(.{2})\.(.),')
-    d = durre.search(output)
-
     rezre = re.compile(r'.*Video: ([^,]+),.*')
     x = rezre.search(output)
     if x:
@@ -285,7 +294,13 @@ def video_info(inFile):
             if x:
                 fps = '29.97'
 
-    millisecs = ((int(d.group(1))*3600) + (int(d.group(2))*60) + int(d.group(3)))*1000 + (int(d.group(4))*100)
+    durre = re.compile(r'.*Duration: (.{2}):(.{2}):(.{2})\.(.),')
+    d = durre.search(output)
+    if d:
+        millisecs = ((int(d.group(1))*3600) + (int(d.group(2))*60) + int(d.group(3)))*1000 + (int(d.group(4))*100)
+    else:
+        millisecs = 0
+
     info_cache[inFile] = (mtime, (codec, width, height, fps, millisecs))
     debug_write(['video_info: Codec=', codec, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, '\n'])
     return codec, width, height, fps, millisecs
@@ -303,8 +318,7 @@ def kill(pid):
         win32kill(pid)
     else:
         import os, signal
-        os.kill(pid, signal.SIGKILL)
-
+        os.kill(pid, signal.SIGTERM)
 def win32kill(pid):
         import ctypes
         handle = ctypes.windll.kernel32.OpenProcess(1, False, pid)

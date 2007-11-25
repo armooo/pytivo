@@ -3,16 +3,13 @@
 
 import beacon, httpserver, os, sys
 
-from Config import config
-import Config
+import config
 
-port = config.get('Server', 'Port')
+port = config.getPort()
 
 httpd = httpserver.TivoHTTPServer(('', int(port)), httpserver.TivoHTTPHandler)
 
-for section in Config.getShares():
-    settings = {}
-    settings.update(config.items(section))
+for section, settings in config.getShares():
     httpd.add_container(section, settings)
 
 b = beacon.Beacon()
