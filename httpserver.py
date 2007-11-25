@@ -4,6 +4,7 @@ from urlparse import urlparse
 from cgi import parse_qs
 from Cheetah.Template import Template
 from plugin import GetPlugin
+from xml.sax.saxutils import escape
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -73,6 +74,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
          t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'root_container.tmpl'))
          t.containers = self.server.containers
          t.hostname = socket.gethostname()
+         t.escape = escape
          self.send_response(200)
          self.end_headers()
          self.wfile.write(t)
