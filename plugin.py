@@ -1,4 +1,4 @@
-import os, shutil, re
+import os, shutil, re, random
 from urllib import unquote, unquote_plus
 from urlparse import urlparse
 
@@ -31,6 +31,13 @@ class Plugin(object):
         f = file(container['path'] + path[len(name)+1:], 'rb')
         shutil.copyfileobj(f, handler.wfile)
 
+    def get_local_base_path(self, handler, query):
+
+        subcname = query['Container'][0]
+        container = handler.server.containers[subcname.split('/')[0]]
+
+        return container['path']
+
     def get_local_path(self, handler, query):
 
         subcname = query['Container'][0]
@@ -45,11 +52,20 @@ class Plugin(object):
 
     def get_files(self, handler, query, filterFunction=None):
         subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
         path = self.get_local_path(handler, query)
         
-        files = os.listdir(path)
+        files = [ os.path.join(path, file) for file in os.listdir(path)]
+        if query.get('Recurse',['No'])[0]  == 'Yes':
+            for file in files:
+                if os.path.isdir(file):
+                    for new_file in os.listdir(file):
+                        files.append( os.path.join(file, new_file) )
+
+        file_type = query['Filter'][0]
         if filterFunction:
-            files = filter(filterFunction, files)
+            files = [file for file in files if filterFunction(file, file_type)]
+
         totalFiles = len(files)
 
         def dir_sort(x, y):
@@ -87,7 +103,14 @@ class Plugin(object):
             else:
                 return cmp(xStr, yStr)
 
-        files.sort(dir_sort)
+        if query.get('SortOrder',['Normal'])[0] == 'Random':
+            seed = query.get('RandomSeed', ['1'])[0]
+            random.seed(seed)
+            random.shuffle(files)
+        else:
+            files.sort(dir_sort)
+        
+        local_base_path = self.get_local_base_path(handler, query)
 
         index = 0
         count = 10
@@ -96,11 +119,14 @@ class Plugin(object):
             
         if query.has_key('AnchorItem'):
             anchor = unquote(query['AnchorItem'][0])
-            for i in range(len(files)):
-                if os.path.isdir(os.path.join(path,files[i])):
-                    file_url = '/TiVoConnect?Command=QueryContainer&Container=' + subcname + '/' + files[i]
+            for file, i in zip(files, range(len(files))):
+                file_name = file.replace(local_base_path, '')
+
+                if os.path.isdir(os.path.join(file)):
+                    file_url = '/TiVoConnect?Command=QueryContainer&Container=' + cname + file_name
                 else:                                
-                    file_url = '/' + subcname + '/' + files[i]
+                    file_url = '/' + cname + file_name
+
                 if file_url == anchor:
                     if count > 0:
                         index = i + 1
@@ -109,21 +135,18 @@ class Plugin(object):
                     else:
                         index = i
                     break
+
             if query.has_key('AnchorOffset'):
                 index = index +  int(query['AnchorOffset'][0])
-                
+
         #foward count
         if index < index + count:
             files = files[index:index + count ]
             return files, totalFiles, index
         #backwards count
         else:
-            print 'index, count', index, count
-            print index + count
             #off the start of the list
             if index + count < 0:
-                print 0 - (index + count)
                 index += 0 - (index + count)
-            print index + count
             files = files[index + count:index]
             return files, totalFiles, index + count
