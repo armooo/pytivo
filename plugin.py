@@ -1,4 +1,4 @@
-import os, shutil, re, random
+import os, shutil, re, random, threading
 from urllib import unquote, unquote_plus
 from urlparse import urlparse
 
@@ -9,6 +9,8 @@ def GetPlugin(name):
     return plugin
 
 class Plugin(object):
+
+    random_lock = threading.Lock()
 
     CONTENT_TYPE = ''
 
@@ -105,8 +107,10 @@ class Plugin(object):
 
         if query.get('SortOrder',['Normal'])[0] == 'Random':
             seed = query.get('RandomSeed', ['1'])[0]
+            self.random_lock.acquire()
             random.seed(seed)
             random.shuffle(files)
+            self.random_lock.release()
         else:
             files.sort(dir_sort)
         
