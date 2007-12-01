@@ -36,7 +36,8 @@ class Beacon:
         for beacon_ip in beacon_ips.split():
             try:
                 self.UDPSock.sendto(self.format_beacon(), (beacon_ip, 2190))
-            except error:
+            except error, e:
+                print e
                 pass
 
     def start(self):
