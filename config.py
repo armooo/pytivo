@@ -124,7 +124,7 @@ def nearestTivoWidth(width):
 def getTivoHeight(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            height = int(config.get('_tivo_' + tsn, 'height_br'))
+            height = int(config.get('_tivo_' + tsn, 'height'))
             return nearest(height, getValidHeights())
         except NoOptionError:
             pass
