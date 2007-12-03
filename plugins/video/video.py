@@ -121,9 +121,8 @@ class Video(Plugin):
             handler.end_headers()
             return
         
-        def video_file_filter(file):
-            path = self.get_local_path(handler, query)
-            full_path = os.path.join(path, file)
+        def video_file_filter(file, type = None):
+            full_path = file
             if os.path.isdir(full_path):
                 return True
             return transcode.suported_format(full_path)
@@ -132,16 +131,13 @@ class Video(Plugin):
 
         videos = []
         for file in files:
-            path = self.get_local_path(handler, query)
-            full_path = os.path.join(path, file)
-            
             video = VideoDetails()
-            video['name'] = file
-            video['title'] = file
-            video['is_dir'] = self.__isdir(full_path)
+            video['name'] = os.path.split(file)[1]
+            video['path'] = file
+            video['title'] = os.path.split(file)[1]
+            video['is_dir'] = self.__isdir(file)
             if not  video['is_dir']:
-                video['title'] = '.'.join(file.split('.')[:-1])
-                video.update(self.__metadata(full_path))
+                video.update(self.__metadata(file))
 
             videos.append(video)
 
@@ -161,7 +157,6 @@ class Video(Plugin):
         file = query['File'][0]
         path = self.get_local_path(handler, query)
         file_path = os.path.join(path, file)
-
         
         file_info = VideoDetails()
         file_info.update(self.__metadata(file_path))
