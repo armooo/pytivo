@@ -73,6 +73,16 @@ def getDebug():
     except NoOptionError:
         return False
 
+def getOptres():
+    try:
+        optres = config.get('Server', 'optres')
+        if optres.lower() == 'true':
+            return True
+        else:
+            return False
+    except NoOptionError:
+        return False
+
 def get(section, key):
     return config.get(section, key)
 
@@ -105,6 +115,9 @@ def closest(x,a, b):
     else:
         return b
 
+def nearestTivoHeight(height):
+    return nearest(height, getValidHeights())
+
 def nearestTivoWidth(width):
     return nearest(width, getValidWidths())
 
@@ -118,7 +131,7 @@ def getTivoHeight(tsn):
 
     try:
         height = int(config.get('Server', 'height'))
-        return nearest(height, getValidHeights())
+        return nearestTivoHeight(height)
     except NoOptionError: #default
         return 480
 
@@ -163,7 +176,7 @@ def getMaxVideoBR():
     try:
         return config.get('Server', 'max_video_br')
     except NoOptionError: #default to 17M
-        return '17M'
+        return '17408k'
 
 def getBuffSize():
     try:
