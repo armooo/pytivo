@@ -25,8 +25,7 @@ class Beacon:
         beacon.append('method=broadcast')
         beacon.append('identity=%s' % guid)
 
-        import socket
-        beacon.append('machine=%s' % socket.gethostname())
+        beacon.append('machine=%s' % gethostname())
         beacon.append('platform=pc')
         beacon.append('services=' + self.format_services())
 
@@ -35,7 +34,11 @@ class Beacon:
     def send_beacon(self):
         beacon_ips = config.getBeaconAddreses()
         for beacon_ip in beacon_ips.split():
-            self.UDPSock.sendto(self.format_beacon(), (beacon_ip, 2190))
+            try:
+                self.UDPSock.sendto(self.format_beacon(), (beacon_ip, 2190))
+            except error, e:
+                print e
+                pass
 
     def start(self):
         self.send_beacon()
