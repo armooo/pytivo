@@ -75,11 +75,23 @@ def select_aspect(inFile, tsn = ''):
 
     debug_write(['aspect169:', aspect169, '\n'])
 
+    optres = Config.getOptres()
+
+    debug_write(['optres:', optres, '\n'])
+
+    if optres:
+        optHeight = Config.nearestTivoHeight(height)
+        optWidth = Config.nearestTivoWidth(width)
+        if optHeight < TIVO_HEIGHT:
+            TIVO_HEIGHT = optHeight
+        if optWidth < TIVO_WIDTH:
+            TIVO_WIDTH = optWidth
+
     d = gcd(height,width)
     ratio = (width*100)/height
     rheight, rwidth = height/d, width/d
 
-    debug_write(['select_aspect: File=', inFile, ' Type=', type, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, ' ratio=', ratio, ' rheight=', rheight, ' rwidth=', rwidth, '\n'])
+    debug_write(['select_aspect: File=', inFile, ' Type=', type, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, ' ratio=', ratio, ' rheight=', rheight, ' rwidth=', rwidth, ' TIVO_HEIGHT=', TIVO_HEIGHT, 'TIVO_WIDTH=', TIVO_WIDTH, '\n'])
 
     multiplier16by9 = (16.0 * TIVO_HEIGHT) / (9.0 * TIVO_WIDTH)
     multiplier4by3  =  (4.0 * TIVO_HEIGHT) / (3.0 * TIVO_WIDTH)

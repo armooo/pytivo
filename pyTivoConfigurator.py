@@ -7,7 +7,7 @@ class pyTivoConfigurator(Frame):
         
         def buildContainerList(self):
             frame = Frame(self)
-            frame.pack(fill=Y, expand=1)
+            frame.pack(fill=BOTH, expand=1)
             scrollbar = Scrollbar(frame, orient=VERTICAL)
             self.container_list = Listbox(frame, yscrollcommand=scrollbar.set)
             scrollbar.config(command=self.container_list.yview)
@@ -24,8 +24,8 @@ class pyTivoConfigurator(Frame):
             self.updatePath()
 
         def buildButtons(self):
-            frame = Frame()
-            frame.pack(fill=Y, expand=1)
+            frame = Frame(self)
+            frame.pack(fill=X)
 
             save_button = Button(frame, text="Save", command=self.save)
             save_button.pack(side=RIGHT)
@@ -55,7 +55,7 @@ class pyTivoConfigurator(Frame):
 
         def buildPath(self):
             frame = Frame(self)
-            frame.pack(fill=Y, expand=1)
+            frame.pack(fill=X)
             l = Label(frame, text="Path")
             l.pack(side=LEFT)
 
@@ -63,7 +63,7 @@ class pyTivoConfigurator(Frame):
             button.pack(side=RIGHT)
 
             self.path = Entry(frame)
-            self.path.pack(side=RIGHT, fill=Y, expand=1)
+            self.path.pack(side=RIGHT, fill=X, expand=1)
 
 
         def setPath(self):
@@ -98,7 +98,7 @@ class pyTivoConfigurator(Frame):
         def __init__(self, master=None):
             Frame.__init__(self, master)
             self.master.title('pyTivoConfigurator')
-            self.pack()
+            self.pack(fill=BOTH, expand=1)
 
             import os
             p = os.path.dirname(__file__)
