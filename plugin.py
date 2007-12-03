@@ -64,7 +64,7 @@ class Plugin(object):
                     for new_file in os.listdir(file):
                         files.append( os.path.join(file, new_file) )
 
-        file_type = query['Filter'][0]
+        file_type = query.get('Filter', [''])[0]
         if filterFunction:
             files = [file for file in files if filterFunction(file, file_type)]
 
