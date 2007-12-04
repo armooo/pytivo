@@ -271,7 +271,7 @@ def video_info(inFile):
         debug_write(['video_info: failed at codec\n'])
         return None, None, None, None, None
 
-    rezre = re.compile(r'.*Video: .+, (\d+)x(\d+),.*')
+    rezre = re.compile(r'.*Video: .+, (\d+)x(\d+)[, ].*')
     x = rezre.search(output)
     if x:
         width = int(x.group(1))
@@ -281,7 +281,7 @@ def video_info(inFile):
         debug_write(['video_info: failed at width/height\n'])
         return None, None, None, None, None
 
-    rezre = re.compile(r'.*Video: .+, (.+) fps.*')
+    rezre = re.compile(r'.*Video: .+, (.+) (?:fps|tb).*')
     x = rezre.search(output)
     if x:
         fps = x.group(1)
