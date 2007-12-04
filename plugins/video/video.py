@@ -56,12 +56,22 @@ class Video(Plugin):
             bitrate =  audioBPS + videoBPS
             return int((self.__duration(full_path)/1000)*(bitrate * 1.02 / 8))
    
-    def __getMetadateFromTxt(self, full_path):
+    def __getMetadataFromTxt(self, full_path):
         metadata = {}
 
+        default_file = os.path.join(os.path.split(full_path)[0], 'default.txt')
         description_file = full_path + '.txt'
-        if os.path.exists(description_file):
-            for line in open(description_file):
+
+        metadata.update(self.__getMetadataFromFile(default_file))
+        metadata.update(self.__getMetadataFromFile(description_file))
+
+        return metadata
+
+    def __getMetadataFromFile(self, file):
+        metadata = {}
+
+        if os.path.exists(file):
+            for line in open(file):
                 if line.strip().startswith('#'):
                     continue
                 if not ':' in line:
@@ -98,7 +108,7 @@ class Video(Plugin):
         metadata['startTime'] = now.isoformat()
         metadata['stopTime'] = (now + duration_delta).isoformat()
 
-        metadata.update( self.__getMetadateFromTxt(full_path) )
+        metadata.update( self.__getMetadataFromTxt(full_path) )
         
         metadata['size'] = self.__est_size(full_path)
         metadata['duration'] = duration
