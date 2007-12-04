@@ -75,7 +75,7 @@ def select_aspect(inFile, tsn = ''):
 
     debug_write(['aspect169:', aspect169, '\n'])
 
-    optres = Config.getOptres()
+    optres = config.getOptres()
 
     debug_write(['optres:', optres, '\n'])
 
