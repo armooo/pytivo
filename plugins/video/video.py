@@ -161,8 +161,6 @@ class Video(Plugin):
         file_info = VideoDetails()
         file_info.update(self.__metadata(file_path))
 
-        print file_info
-
         handler.send_response(200)
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'TvBus.tmpl'))
