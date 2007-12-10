@@ -130,6 +130,7 @@ class Plugin(object):
                     file_url = '/TiVoConnect?Command=QueryContainer&Container=' + cname + file_name
                 else:                                
                     file_url = '/' + cname + file_name
+                file_url = file_url.replace('\\', '/')
 
                 if file_url == anchor:
                     if count > 0:
