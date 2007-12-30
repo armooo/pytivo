@@ -32,7 +32,7 @@ class Beacon:
         return '\n'.join(beacon)
 
     def send_beacon(self):
-        beacon_ips = config.getBeaconAddreses()
+        beacon_ips = config.getBeaconAddresses()
         for beacon_ip in beacon_ips.split():
             try:
                 self.UDPSock.sendto(self.format_beacon(), (beacon_ip, 2190))

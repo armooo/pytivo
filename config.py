@@ -15,7 +15,7 @@ def getGUID():
         guid = '123456'
     return guid
  
-def getBeaconAddreses():
+def getBeaconAddresses():
     if config.has_option('Server', 'beacon'):
         beacon_ips = config.get('Server', 'beacon')
     else:
