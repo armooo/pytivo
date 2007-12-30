@@ -136,7 +136,7 @@ class Video(Plugin):
             full_path = file
             if os.path.isdir(full_path):
                 return True
-            return transcode.suported_format(full_path)
+            return transcode.supported_format(full_path)
 
         files, total, start = self.get_files(handler, query, video_file_filter)
 

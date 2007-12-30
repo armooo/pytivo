@@ -208,7 +208,7 @@ def select_aspect(inFile, tsn = ''):
             return settings
 
 def tivo_compatable(inFile, tsn = ''):
-    suportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
+    supportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
     type, width, height, fps, millisecs =  video_info(inFile)
     #print type, width, height, fps, millisecs
 
@@ -230,7 +230,7 @@ def tivo_compatable(inFile, tsn = ''):
         debug_write(['tivo_compatible: ', inFile, ' is not correct fps it is ', fps, '\n'])
         return False
 
-    for mode in suportedModes:
+    for mode in supportedModes:
         if (mode[0], mode[1]) == (width, height):
             #print 'Is TiVo!'
             debug_write(['tivo_compatible: ', inFile, ' has correct width of ', width, ' and height of ', height, '\n'])
@@ -321,7 +321,7 @@ def video_info(inFile):
     debug_write(['video_info: Codec=', codec, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, '\n'])
     return codec, width, height, fps, millisecs
        
-def suported_format(inFile):
+def supported_format(inFile):
     if video_info(inFile)[0]:
         return True
     else:
