@@ -53,7 +53,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             #If we are looking at the root container
             if command == "QueryContainer" and ( not query.has_key('Container') or query['Container'][0] == '/'):
-                self.root_continer()
+                self.root_container()
                 return 
             
             if query.has_key('Container'):
@@ -70,7 +70,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             self.unsuported(query)
 
-    def root_continer(self):
+    def root_container(self):
          t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'root_container.tmpl'))
          t.containers = self.server.containers
          t.hostname = socket.gethostname()
