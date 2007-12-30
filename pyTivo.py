@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-
 import beacon, httpserver, os, sys
-
 import config
 
 port = config.getPort()
@@ -15,9 +13,10 @@ for section, settings in config.getShares():
 b = beacon.Beacon()
 b.add_service('TiVoMediaServer:' + str(port) + '/http')
 b.start()
+if 'listen' in config.getBeaconAddresses():
+    b.listen()
 
 try:
     httpd.serve_forever()
 except KeyboardInterrupt:
     b.stop()
-
