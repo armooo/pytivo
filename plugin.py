@@ -1,6 +1,12 @@
-import os, shutil, re, random, threading
-from urllib import unquote, unquote_plus
+import os, shutil, re, random, threading, urllib
 from urlparse import urlparse
+
+if os.path.sep == '/':
+    quote = urllib.quote
+    unquote = urllib.unquote_plus
+else:
+    quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
+    unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
 
 def GetPlugin(name):
     module_name = '.'.join(['plugins', name, name])
@@ -27,7 +33,7 @@ class Plugin(object):
 
     def send_file(self, handler, container, name):
         o = urlparse("http://fake.host" + handler.path)
-        path = unquote_plus(o[2])
+        path = unquote(o[2])
         handler.send_response(200)
         handler.end_headers()
         f = file(container['path'] + path[len(name)+1:], 'rb')
