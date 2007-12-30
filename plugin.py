@@ -141,8 +141,6 @@ class Plugin(object):
                 if file_url == anchor:
                     if count > 0:
                         index = i + 1
-                    elif count < 0:
-                        index = i - 1
                     else:
                         index = i
                     break
