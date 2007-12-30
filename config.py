@@ -125,7 +125,7 @@ def getTivoHeight(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
             height = int(config.get('_tivo_' + tsn, 'height'))
-            return nearest(height, getValidHeights())
+            return nearestTivoHeight(height)
         except NoOptionError:
             pass
 
@@ -138,7 +138,8 @@ def getTivoHeight(tsn):
 def getTivoWidth(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            return config.get('_tivo_' + tsn, 'width')
+            width = int(config.get('_tivo_' + tsn, 'width'))
+            return nearestTivoWidth(width)
         except NoOptionError:
             pass
 
@@ -183,4 +184,3 @@ def getBuffSize():
         return config.get('Server', 'bufsize')
     except NoOptionError: #default 1024k
         return '1024k'
-
