@@ -1,15 +1,14 @@
 [Server]
 port=9032
 
-
 #Full path to ffmpeg including filename
 #For windows: ffmpeg=c:\Program Files\pyTivo\plugins\video\ffmpeg_mp2.exe
 #For linux:   ffmpeg=/usr/bin/ffmpeg
 #ffmpeg=c:\Program Files\pyTivo\plugins\video\ffmpeg_mp2.exe
 ffmpeg=/usr/bin/ffmpeg
 
-#This will make a large debug.txt file in you base directory.  It only debugs
-#transcode.py right now.
+#This will make a large debug.txt file in your base directory.  It only 
+#debugs transcode.py right now.
 #debug=false
 
 # Audio bit-rate, default 192K
@@ -19,7 +18,7 @@ ffmpeg=/usr/bin/ffmpeg
 #video_br=12Mi
 
 #Beacon broadcast address(es)
-#Typically use 255.255.255.255 but on some multihomed machines you may
+#Typically use 255.255.255.255, but on some multihomed machines you may
 #need to specify the subnet broadcast address(es) of your Tivo boxes
 #beacon=255.255.255.255
 
@@ -45,7 +44,7 @@ ffmpeg=/usr/bin/ffmpeg
 #video_br=12Mi
 
 [MyMovies]
-#Type can be either 'video' or 'music'
+#Type can be 'video', 'music', or 'photo'
 type=video
 
 #Path is the full path to your files (No trailing slash needed)
@@ -55,8 +54,6 @@ path=/home/armooo/Videos
 
 #Make all subfolders in to top level shares
 #auto_subshares= True
-
-
 
 ##You can have more than one share
 #[MyTelevision]
