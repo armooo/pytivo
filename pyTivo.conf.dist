@@ -31,7 +31,7 @@ ffmpeg=/usr/bin/ffmpeg
 
 ##Per tivo options
 # section named _tivo_TSN with the tsn in all caps
-[_tivo_00000DEADBEEF]
+#[_tivo_00000DEADBEEF]
 
 #If you want to use 16:9 or 4:3 on this tivo
 #aspect169=true
