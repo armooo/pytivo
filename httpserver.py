@@ -65,10 +65,10 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                             method = getattr(plugin, command)
                             method(self, query)
                         else:
-                            self.unsuported(query)
+                            self.unsupported(query)
                         break
         else:
-            self.unsuported(query)
+            self.unsupported(query)
 
     def root_container(self):
          t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'root_container.tmpl'))
@@ -87,11 +87,11 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write(t)
         self.end_headers()
 
-    def unsuported(self, query):
+    def unsupported(self, query):
         self.send_response(404)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
-        t = Template(file=os.path.join(SCRIPTDIR,'templates','unsuported.tmpl'))
+        t = Template(file=os.path.join(SCRIPTDIR,'templates','unsupported.tmpl'))
         t.query = query
         self.wfile.write(t)
        
