@@ -80,14 +80,10 @@ class Plugin(object):
             xdir = os.path.isdir(os.path.join(path, x))
             ydir = os.path.isdir(os.path.join(path, y))
 
-            if xdir and ydir:
+            if xdir == ydir:
                 return name_sort(x, y)
-            elif xdir:
-                return -1
-            elif ydir:
-                return 1
             else:
-                return name_sort(x, y)
+                return ydir - xdir
 
         def name_sort(x, y):
             numbername = re.compile(r'(\d*)(.*)')
