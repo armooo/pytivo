@@ -304,59 +304,6 @@ class Photo(Plugin):
         handler.end_headers()
         handler.wfile.write(page)
 
-    def item_count(self, handler, query, cname, files):
-        """Return only the desired portion of the list, as specified by 
-           ItemCount, AnchorItem and AnchorOffset
-        """
-        totalFiles = len(files)
-        index = 0
-
-        if query.has_key('ItemCount'):
-            count = int(query['ItemCount'][0])
-
-            if query.has_key('AnchorItem'):
-                bs = '/TiVoConnect?Command=QueryContainer&Container='
-                local_base_path = self.get_local_base_path(handler, query)
-
-                anchor = query['AnchorItem'][0]
-                if anchor.startswith(bs):
-                    anchor = anchor.replace(bs, '/')
-                anchor = unquote(anchor)
-                anchor = anchor.replace(os.path.sep + cname, local_base_path)
-                anchor = os.path.normpath(anchor)
-
-                filenames = [x.name for x in files]
-                try:
-                    index = filenames.index(anchor)
-                except ValueError:
-                    pass  # anchor not found, just use index = 0
-
-                if count > 0:
-                    index += 1
-
-                if query.has_key('AnchorOffset'):
-                    index += int(query['AnchorOffset'][0])
-
-                #foward count
-                if count > 0:
-                    files = files[index:index + count]
-                #backwards count
-                elif count < 0:
-                    if index + count < 0:
-                        count = -index
-                    files = files[index + count:index]
-                    index += count
-
-            else:  # No AnchorItem
-
-                if count >= 0:
-                    files = files[:count]
-                elif count < 0:
-                    index = count % len(files)
-                    files = files[count:]
-
-        return files, totalFiles, index
-
     def get_files(self, handler, query, filterFunction):
 
         class FileData:
