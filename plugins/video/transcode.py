@@ -221,6 +221,10 @@ def tivo_compatable(inFile, tsn = ''):
         debug_write(['tivo_compatible: ', inFile, ' is not mpeg2video it is ', type, '\n'])
         return False
 
+    if (inFile[-3:]).lower() == '.ts':
+        debug_write(['tivo_compatible: ', inFile, ' transport stream not supported ', '\n'])
+        return False
+
     if tsn[:3] in ('648', '652'):
         debug_write(['tivo_compatible: ', inFile, ' you have a S3 skiping the rest of the tests', '\n'])
         return True
