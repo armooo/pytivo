@@ -80,8 +80,8 @@ def select_aspect(inFile, tsn = ''):
     debug_write(['optres:', optres, '\n'])
 
     if optres:
-        optHeight = Config.nearestTivoHeight(height)
-        optWidth = Config.nearestTivoWidth(width)
+        optHeight = config.nearestTivoHeight(height)
+        optWidth = config.nearestTivoWidth(width)
         if optHeight < TIVO_HEIGHT:
             TIVO_HEIGHT = optHeight
         if optWidth < TIVO_WIDTH:
@@ -219,6 +219,10 @@ def tivo_compatable(inFile, tsn = ''):
     if not type == 'mpeg2video':
         #print 'Not Tivo Codec'
         debug_write(['tivo_compatible: ', inFile, ' is not mpeg2video it is ', type, '\n'])
+        return False
+
+    if (inFile[-3:]).lower() == '.ts':
+        debug_write(['tivo_compatible: ', inFile, ' transport stream not supported ', '\n'])
         return False
 
     if tsn[:3] in ('648', '652'):
