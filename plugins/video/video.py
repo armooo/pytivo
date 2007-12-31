@@ -51,8 +51,8 @@ class Video(Plugin):
         if transcode.tivo_compatable(full_path):  # Is TiVo compatible mpeg2
             return int(os.stat(full_path).st_size)
         else:  # Must be re-encoded
-            audioBPS = strtod(config.getAudioBR())
-            videoBPS = strtod(config.getVideoBR())
+            audioBPS = strtod(config.getAudioBR(tsn))
+            videoBPS = strtod(config.getVideoBR(tsn))
             bitrate =  audioBPS + videoBPS
             return int((self.__duration(full_path)/1000)*(bitrate * 1.02 / 8))
    
