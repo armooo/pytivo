@@ -80,8 +80,8 @@ def select_aspect(inFile, tsn = ''):
     debug_write(['optres:', optres, '\n'])
 
     if optres:
-        optHeight = Config.nearestTivoHeight(height)
-        optWidth = Config.nearestTivoWidth(width)
+        optHeight = config.nearestTivoHeight(height)
+        optWidth = config.nearestTivoWidth(width)
         if optHeight < TIVO_HEIGHT:
             TIVO_HEIGHT = optHeight
         if optWidth < TIVO_WIDTH:
