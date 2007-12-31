@@ -113,7 +113,7 @@ class Photo(Plugin):
 
         try:
             attrs = self.media_data_cache[infile]
-        except CacheKeyError:
+        except:
             attrs = None
 
         # Set rotation
