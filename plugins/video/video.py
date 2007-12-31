@@ -102,7 +102,7 @@ class Video(Plugin):
         duration_delta = timedelta(milliseconds = duration)
         
         metadata['title'] = '.'.join(title.split('.')[:-1])
-        metadata['seriesTitle'] = os.path.split(base_path)[1]
+        metadata['seriesTitle'] = metadata['title'] # default to the filename
         metadata['originalAirDate'] = originalAirDate.isoformat()
         metadata['time'] = now.isoformat()
         metadata['startTime'] = now.isoformat()
