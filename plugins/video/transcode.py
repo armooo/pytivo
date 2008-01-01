@@ -5,7 +5,6 @@ info_cache = lrucache.LRUCache(1000)
 
 
 debug = config.getDebug()
-MAX_VIDEO_BR = config.getMaxVideoBR()
 BUFF_SIZE = config.getBuffSize()
 
 FFMPEG = config.get('Server', 'ffmpeg')
@@ -47,8 +46,9 @@ def transcode(inFile, outFile, tsn=''):
 
     settings = {}
     settings['audio_br'] = config.getAudioBR(tsn)
+    settings['audio_codec'] = config.getAudioCodec(tsn)
     settings['video_br'] = config.getVideoBR(tsn)
-    settings['max_video_br'] = MAX_VIDEO_BR
+    settings['max_video_br'] = config.getMaxVideoBR()
     settings['buff_size'] = BUFF_SIZE
     settings['aspect_ratio'] = ' '.join(select_aspect(inFile, tsn))
 
@@ -210,7 +210,8 @@ def select_aspect(inFile, tsn = ''):
 def tivo_compatable(inFile, tsn = ''):
     supportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
     type, width, height, fps, millisecs =  video_info(inFile)
-    #print type, width, height, fps, millisecs
+    vkbps, akbps =  mpg_video_info(inFile)
+    #print type, width, height, fps, millisecs, vkbps, akbps
 
     if (inFile[-5:]).lower() == '.tivo':
         debug_write(['tivo_compatible: ', inFile, ' ends with .tivo\n'])
@@ -225,7 +226,15 @@ def tivo_compatable(inFile, tsn = ''):
         debug_write(['tivo_compatible: ', inFile, ' transport stream not supported ', '\n'])
         return False
 
-    if tsn[:3] in ('648', '652'):
+    if not akbps or int(akbps) > config.getMaxAudioBR(tsn):
+        debug_write(['tivo_compatible: ', inFile, ' max audio bitrate exceeded it is ', akbps, '\n'])
+        return False
+
+    if not vkbps or int(vkbps) > config.strtod(config.getMaxVideoBR())/1000:
+        debug_write(['tivo_compatible: ', inFile, ' max video bitrate exceeded it is ', vkbps, '\n'])
+        return False
+
+    if tsn[:3] in config.getHDtivos() or config.getHDtivosonly():
         debug_write(['tivo_compatible: ', inFile, ' you have a S3 skiping the rest of the tests', '\n'])
         return True
 
@@ -324,6 +333,43 @@ def video_info(inFile):
     info_cache[inFile] = (mtime, (codec, width, height, fps, millisecs))
     debug_write(['video_info: Codec=', codec, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, '\n'])
     return codec, width, height, fps, millisecs
+
+def mpg_video_info(inFile):
+    #gets audio and video bitrates of source for tivo compatibility tests.
+    cmd = [FFMPEG, '-i', inFile ] 
+    ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+
+    # wait 4 sec if ffmpeg is not back give up
+    for i in range(80):
+        time.sleep(.05)
+        if not ffmpeg.poll() == None:
+            break
+    
+    if ffmpeg.poll() == None:
+        kill(ffmpeg.pid)
+        return None, None
+
+    output = ffmpeg.stderr.read()
+    #debug_write(['mpg_video_info: ffmpeg output=', output, '\n'])
+
+    rezre = re.compile(r'.*bitrate: (.+) (?:kb/s).*')
+    x = rezre.search(output)
+    if x:
+        vkbps = x.group(1)
+    else:
+        debug_write(['mpg_video_info: failed at vkbps', '\n'])
+        return None, None
+
+    rezre = re.compile(r'.*Audio: .+, (.+) (?:kb/s).*')
+    x = rezre.search(output)
+    if x:
+        akbps = x.group(1)
+    else:
+        debug_write(['mpg_video_info: failed at akbps', '\n'])
+        return None, None
+
+    debug_write(['mpg_video_info: ', ' vkbps=', vkbps, ' akbps=', akbps, '\n'])
+    return vkbps, akbps
        
 def supported_format(inFile):
     if video_info(inFile)[0]:
