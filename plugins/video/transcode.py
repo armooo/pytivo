@@ -34,7 +34,7 @@ if mswindows:
     patchSubprocess()
         
 def output_video(inFile, outFile, tsn=''):
-    if tivo_compatable(inFile):
+    if tivo_compatable(inFile, tsn):
         debug_write(['output_video: ', inFile, ' is tivo compatible\n'])
         f = file(inFile, 'rb')
         shutil.copyfileobj(f, outFile)
@@ -207,8 +207,8 @@ def select_aspect(inFile, tsn = ''):
             
             return settings
 
-def tivo_compatable(inFile):
-    suportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
+def tivo_compatable(inFile, tsn = ''):
+    supportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
     type, width, height, fps, millisecs =  video_info(inFile)
     #print type, width, height, fps, millisecs
 
@@ -221,12 +221,16 @@ def tivo_compatable(inFile):
         debug_write(['tivo_compatible: ', inFile, ' is not mpeg2video it is ', type, '\n'])
         return False
 
+    if tsn[:3] in ('648', '652'):
+        debug_write(['tivo_compatible: ', inFile, ' you have a S3 skiping the rest of the tests', '\n'])
+        return True
+
     if not fps == '29.97':
         #print 'Not Tivo fps'
         debug_write(['tivo_compatible: ', inFile, ' is not correct fps it is ', fps, '\n'])
         return False
 
-    for mode in suportedModes:
+    for mode in supportedModes:
         if (mode[0], mode[1]) == (width, height):
             #print 'Is TiVo!'
             debug_write(['tivo_compatible: ', inFile, ' has correct width of ', width, ' and height of ', height, '\n'])
@@ -317,7 +321,7 @@ def video_info(inFile):
     debug_write(['video_info: Codec=', codec, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, '\n'])
     return codec, width, height, fps, millisecs
        
-def suported_format(inFile):
+def supported_format(inFile):
     if video_info(inFile)[0]:
         return True
     else:

@@ -1,6 +1,12 @@
-import os, shutil, re, random, threading
-from urllib import unquote, unquote_plus
+import os, shutil, re, random, threading, urllib
 from urlparse import urlparse
+
+if os.path.sep == '/':
+    quote = urllib.quote
+    unquote = urllib.unquote_plus
+else:
+    quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
+    unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
 
 def GetPlugin(name):
     module_name = '.'.join(['plugins', name, name])
@@ -27,7 +33,7 @@ class Plugin(object):
 
     def send_file(self, handler, container, name):
         o = urlparse("http://fake.host" + handler.path)
-        path = unquote_plus(o[2])
+        path = unquote(o[2])
         handler.send_response(200)
         handler.end_headers()
         f = file(container['path'] + path[len(name)+1:], 'rb')
@@ -52,6 +58,58 @@ class Plugin(object):
             path = os.path.join(path, folder)
         return path
 
+    def item_count(self, handler, query, cname, files):
+        """Return only the desired portion of the list, as specified by 
+           ItemCount, AnchorItem and AnchorOffset
+        """
+        totalFiles = len(files)
+        index = 0
+
+        if query.has_key('ItemCount'):
+            count = int(query['ItemCount'][0])
+
+            if query.has_key('AnchorItem'):
+                bs = '/TiVoConnect?Command=QueryContainer&Container='
+                local_base_path = self.get_local_base_path(handler, query)
+
+                anchor = query['AnchorItem'][0]
+                if anchor.startswith(bs):
+                    anchor = anchor.replace(bs, '/')
+                anchor = unquote(anchor)
+                anchor = anchor.replace(os.path.sep + cname, local_base_path)
+                anchor = os.path.normpath(anchor)
+
+                try:
+                    index = files.index(anchor)
+                except ValueError:
+                    print 'Anchor not found:', anchor  # just use index = 0
+
+                if count > 0:
+                    index += 1
+
+                if query.has_key('AnchorOffset'):
+                    index += int(query['AnchorOffset'][0])
+
+                #foward count
+                if count > 0:
+                    files = files[index:index + count]
+                #backwards count
+                elif count < 0:
+                    if index + count < 0:
+                        count = -index
+                    files = files[index + count:index]
+                    index += count
+
+            else:  # No AnchorItem
+
+                if count >= 0:
+                    files = files[:count]
+                else:
+                    index = count % len(files)
+                    files = files[count:]
+
+        return files, totalFiles, index
+
     def get_files(self, handler, query, filterFunction=None):
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
@@ -74,14 +132,10 @@ class Plugin(object):
             xdir = os.path.isdir(os.path.join(path, x))
             ydir = os.path.isdir(os.path.join(path, y))
 
-            if xdir and ydir:
+            if xdir == ydir:
                 return name_sort(x, y)
-            elif xdir:
-                return -1
-            elif ydir:
-                return 1
             else:
-                return name_sort(x, y)
+                return ydir - xdir
 
         def name_sort(x, y):
             numbername = re.compile(r'(\d*)(.*)')
@@ -113,44 +167,6 @@ class Plugin(object):
             self.random_lock.release()
         else:
             files.sort(dir_sort)
-        
-        local_base_path = self.get_local_base_path(handler, query)
 
-        index = 0
-        count = 10
-        if query.has_key('ItemCount'):
-            count = int(query['ItemCount'] [0])
-            
-        if query.has_key('AnchorItem'):
-            anchor = unquote(query['AnchorItem'][0])
-            for file, i in zip(files, range(len(files))):
-                file_name = file.replace(local_base_path, '')
-
-                if os.path.isdir(os.path.join(file)):
-                    file_url = '/TiVoConnect?Command=QueryContainer&Container=' + cname + file_name
-                else:                                
-                    file_url = '/' + cname + file_name
-
-                if file_url == anchor:
-                    if count > 0:
-                        index = i + 1
-                    elif count < 0:
-                        index = i - 1
-                    else:
-                        index = i
-                    break
-
-            if query.has_key('AnchorOffset'):
-                index = index +  int(query['AnchorOffset'][0])
-
-        #foward count
-        if index < index + count:
-            files = files[index:index + count ]
-            return files, totalFiles, index
-        #backwards count
-        else:
-            #off the start of the list
-            if index + count < 0:
-                index += 0 - (index + count)
-            files = files[index + count:index]
-            return files, totalFiles, index + count
+        # Trim the list
+        return self.item_count(handler, query, cname, files)

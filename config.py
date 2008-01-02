@@ -15,7 +15,7 @@ def getGUID():
         guid = '123456'
     return guid
  
-def getBeaconAddreses():
+def getBeaconAddresses():
     if config.has_option('Server', 'beacon'):
         beacon_ips = config.get('Server', 'beacon')
     else:
@@ -109,10 +109,10 @@ def getFFMPEGTemplate(tsn):
         return '-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ac 2 -ab %(audio_br)s -ar 44100 -f vob -'
 
 def getValidWidths():
-    return [1440, 720, 704, 544, 480, 352]
+    return [1920, 1440, 1280, 720, 704, 544, 480, 352]
 
 def getValidHeights():
-    return [720, 480] # Technically 240 is also supported
+    return [1080, 720, 480] # Technically 240 is also supported
 
 # Return the number in list that is nearest to x
 # if two values are equidistant, return the larger
@@ -135,7 +135,7 @@ def getTivoHeight(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
             height = int(config.get('_tivo_' + tsn, 'height'))
-            return nearest(height, getValidHeights())
+            return nearestTivoHeight(height)
         except NoOptionError:
             pass
 
@@ -148,7 +148,8 @@ def getTivoHeight(tsn):
 def getTivoWidth(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            return config.get('_tivo_' + tsn, 'width')
+            width = int(config.get('_tivo_' + tsn, 'width'))
+            return nearestTivoWidth(width)
         except NoOptionError:
             pass
 
@@ -193,4 +194,3 @@ def getBuffSize():
         return config.get('Server', 'bufsize')
     except NoOptionError: #default 1024k
         return '1024k'
-

@@ -65,7 +65,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             #If we are looking at the root container
             if command == "QueryContainer" and ( not query.has_key('Container') or query['Container'][0] == '/'):
-                self.root_continer()
+                self.root_container()
                 return 
             
             if query.has_key('Container'):
@@ -79,14 +79,14 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                             method = getattr(plugin, command)
                             method(self, query)
                         else:
-                            self.unsuported(query)
+                            self.unsupported(query)
                         break
                 if not foundContainer:
                     self.unsuported(query)
         else:
-            self.unsuported(query)
+            self.unsupported(query)
 
-    def root_continer(self):
+    def root_container(self):
          t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'root_container.tmpl'))
          t.containers = self.server.containers
          t.hostname = socket.gethostname()
@@ -103,7 +103,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write(t)
         self.end_headers()
 
-    def unsuported(self, query):
+    def unsupported(self, query):
         if hack83 and 'Command' in query and 'Filter' in query:
             debug_write(['Unsupported request, checking to see if it is video.', '\n'])
             command = query['Command'][0]
@@ -114,19 +114,18 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 method(self, query)
             else:        
                 self.send_response(404)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-                t = Template(file=os.path.join(SCRIPTDIR,'templates','unsuported.tmpl'))
-                t.query = query
-                self.wfile.write(t)
+		self.send_header('Content-type', 'text/html')
+		self.end_headers()
+		t = Template(file=os.path.join(SCRIPTDIR,'templates','unsupported.tmpl'))
+		t.query = query
+		self.wfile.write(t)
         else:
-            self.send_response(404)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            t = Template(file=os.path.join(SCRIPTDIR,'templates','unsuported.tmpl'))
-            t.query = query
-            self.wfile.write(t)
-            
+		self.send_response(404)
+		self.send_header('Content-type', 'text/html')
+		self.end_headers()
+		t = Template(file=os.path.join(SCRIPTDIR,'templates','unsupported.tmpl'))
+		t.query = query
+		self.wfile.write(t)
        
 if __name__ == '__main__':
     def start_server():

@@ -213,7 +213,7 @@ class Video(Plugin):
     def __duration(self, full_path):
         return transcode.video_info(full_path)[4]
 
-    def __est_size(self, full_path):
+    def __est_size(self, full_path, tsn = ''):
         #Size is estimated by taking audio and video bit rate adding 2%
 
         if transcode.tivo_compatable(full_path):  # Is TiVo compatible mpeg2
@@ -270,7 +270,7 @@ class Video(Plugin):
         duration_delta = timedelta(milliseconds = duration)
         
         metadata['title'] = '.'.join(title.split('.')[:-1])
-        metadata['seriesTitle'] = os.path.split(base_path)[1]
+        metadata['seriesTitle'] = metadata['title'] # default to the filename
         metadata['originalAirDate'] = originalAirDate.isoformat()
         metadata['time'] = now.isoformat()
         metadata['startTime'] = now.isoformat()
@@ -291,6 +291,7 @@ class Video(Plugin):
 
     def QueryContainer(self, handler, query):
         
+        tsn =  handler.headers.getheader('tsn', '')
         subcname = query['Container'][0]
         
         ##If you are running 8.3 software you want to enable hack83 in the config file
@@ -320,7 +321,7 @@ class Video(Plugin):
             full_path = file
             if os.path.isdir(full_path):
                 return True
-            return transcode.suported_format(full_path)
+            return transcode.supported_format(full_path)
 
         files, total, start = self.get_files(handler, query, video_file_filter)
 

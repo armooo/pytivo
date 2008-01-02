@@ -1,15 +1,14 @@
 [Server]
 port=9032
 
-
 #Full path to ffmpeg including filename
 #For windows: ffmpeg=c:\Program Files\pyTivo\plugins\video\ffmpeg_mp2.exe
 #For linux:   ffmpeg=/usr/bin/ffmpeg
 #ffmpeg=c:\Program Files\pyTivo\plugins\video\ffmpeg_mp2.exe
 ffmpeg=/usr/bin/ffmpeg
 
-#This will make a large debug.txt file in you base directory.  It only debugs
-#transcode.py right now.
+#This will make a large debug.txt file in your base directory.  It only 
+#debugs transcode.py right now.
 #debug=false
 
 # Audio bit-rate, default 192K
@@ -19,7 +18,7 @@ ffmpeg=/usr/bin/ffmpeg
 #video_br=12Mi
 
 #Beacon broadcast address(es)
-#Typically use 255.255.255.255 but on some multihomed machines you may
+#Typically use 255.255.255.255, but on some multihomed machines you may
 #need to specify the subnet broadcast address(es) of your Tivo boxes
 #beacon=255.255.255.255
 
@@ -27,11 +26,11 @@ ffmpeg=/usr/bin/ffmpeg
 #Valid: 720, 704, 544, 480, 352
 #width=1440
 #height=720
-ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ac 2 -ab %(audio_br)s -ar 44100 -f vob -
+#ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ac 2 -ab %(audio_br)s -ar 44100 -f vob -
 
 ##Per tivo options
 # section named _tivo_TSN with the tsn in all caps
-[_tivo_00000DEADBEEF]
+#[_tivo_00000DEADBEEF]
 
 #If you want to use 16:9 or 4:3 on this tivo
 #aspect169=true
@@ -39,13 +38,13 @@ ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br
 #height=720
 #audio_br=320K
 #video_br=12Mi
-#ffmpeg_prams=-i %(in_file)s -vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ac 2 -ab %(audio_br)s -ar 44100 -f vob -
+#ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ac 2 -ab %(audio_br)s -ar 44100 -f vob -
 
 #audio_br=320K
 #video_br=12Mi
 
 [MyMovies]
-#Type can be either 'video' or 'music'
+#Type can be 'video', 'music', or 'photo'
 type=video
 
 #Path is the full path to your files (No trailing slash needed)
@@ -55,8 +54,6 @@ path=/home/armooo/Videos
 
 #Make all subfolders in to top level shares
 #auto_subshares= True
-
-
 
 ##You can have more than one share
 #[MyTelevision]
