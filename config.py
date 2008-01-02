@@ -81,7 +81,7 @@ def getHack83():
         else:
             return False
     except NoOptionError:
-        return True
+        return False
 
 def getOptres():
     try:
