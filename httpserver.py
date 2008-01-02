@@ -70,10 +70,8 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             
             if query.has_key('Container'):
                 #Dispatch to the container plugin
-                foundContainer = False
                 for name, container in self.server.containers.items():
                     if query['Container'][0].startswith(name):
-                        foundContainer = True
                         plugin = GetPlugin(container['type'])
                         if hasattr(plugin,command):
                             method = getattr(plugin, command)
@@ -81,8 +79,6 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                         else:
                             self.unsupported(query)
                         break
-                if not foundContainer:
-                    self.unsuported(query)
         else:
             self.unsupported(query)
 
