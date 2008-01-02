@@ -91,10 +91,10 @@ class Plugin(object):
                     index += int(query['AnchorOffset'][0])
 
                 #foward count
-                if count > 0:
+                if count >= 0:
                     files = files[index:index + count]
                 #backwards count
-                elif count < 0:
+                else:
                     if index + count < 0:
                         count = -index
                     files = files[index + count:index]
