@@ -14,44 +14,30 @@
         <Details>
             <Title>$escape($file.name)</Title>
             <ContentType>x-container/folder</ContentType>
+            <SourceFormat>x-container/folder</SourceFormat>
         </Details>
         <Links>
             <Content>
-                <ContentType>x-tivo-container/folder</ContentType>
                 <Url>/TiVoConnect?Command=QueryContainer&amp;Container=$quote($name)/$quote($file.name)</Url>
-            </Content>
-        </Links>
-    </Item>
-    #elif $file['is_playlist']
-    <Item>
-        <Details>
-            <Title>#echo '.'.join(file['name'].split('.')[:-1]) #</Title>
-            <ContentType>x-tivo-container/playlist</ContentType>
-        </Details>
-        <Links>
-            <Content>
-                <ContentType>x-tivo-container/playlist</ContentType>
-                <Url>/TiVoConnect?Command=QueryContainer&amp;Container=$quote($name)/$quote($file.name)</Url>
+                <ContentType>x-container/folder</ContentType>
             </Content>
         </Links>
     </Item>
     #else
     <Item>
         <Details>
-            #if not 'Title' in $file
             <Title>#echo '.'.join(file['name'].split('.')[:-1]) #</Title>
+            <ContentType>image/jpeg</ContentType>
+            #if 'odate' in $file
+            <CaptureDate>$file['odate']</CaptureDate>
             #end if
-            <ContentType>audio/mpeg</ContentType>
-            #for $key in ('Title', 'Duration', 'ArtistName', 'SongTitle', 'AlbumTitle', 'AlbumYear', 'MusicGenre')
-            #if $key in $file and $file[$key]
-            <$key>$file[$key]</$key>
-            #end if
-            #end for            
+            <CreationDate>$file['cdate']</CreationDate>
+            <LastChangeDate>$file['mdate']</LastChangeDate>
         </Details>
         <Links>
             <Content>
-                <ContentType>audio/mpeg</ContentType>
-                <AcceptsParams>No</AcceptsParams>
+                <ContentType>image/jpeg</ContentType>
+                <AcceptsParams>Yes</AcceptsParams>
                 <Url>/$quote($container)$quote($file.part_path)</Url>
             </Content>
         </Links>

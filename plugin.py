@@ -60,7 +60,8 @@ class Plugin(object):
 
     def item_count(self, handler, query, cname, files):
         """Return only the desired portion of the list, as specified by 
-           ItemCount, AnchorItem and AnchorOffset
+           ItemCount, AnchorItem and AnchorOffset. 'files' is either a 
+           list of strings, OR a list of objects with a 'name' attribute.
         """
         totalFiles = len(files)
         index = 0
@@ -79,8 +80,12 @@ class Plugin(object):
                 anchor = anchor.replace(os.path.sep + cname, local_base_path)
                 anchor = os.path.normpath(anchor)
 
+                if type(files[0]) == str:
+                    filenames = files
+                else:
+                    filenames = [x.name for x in files]
                 try:
-                    index = files.index(anchor)
+                    index = filenames.index(anchor)
                 except ValueError:
                     print 'Anchor not found:', anchor  # just use index = 0
 
@@ -111,20 +116,26 @@ class Plugin(object):
         return files, totalFiles, index
 
     def get_files(self, handler, query, filterFunction=None):
+
+        def build_recursive_list(path, recurse=True):
+            files = []
+            for file in os.listdir(path):
+                file = os.path.join(path, file)
+                if recurse and os.path.isdir(file):
+                    files.extend(build_recursive_list(file))
+                else:
+                   if not filterFunction or filterFunction(file, file_type):
+                       files.append(file)
+            return files
+
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
         path = self.get_local_path(handler, query)
-        
-        files = [ os.path.join(path, file) for file in os.listdir(path)]
-        if query.get('Recurse',['No'])[0]  == 'Yes':
-            for file in files:
-                if os.path.isdir(file):
-                    for new_file in os.listdir(file):
-                        files.append( os.path.join(file, new_file) )
 
         file_type = query.get('Filter', [''])[0]
-        if filterFunction:
-            files = [file for file in files if filterFunction(file, file_type)]
+
+        recurse = query.get('Recurse',['No'])[0] == 'Yes'
+        files = build_recursive_list(path, recurse)
 
         totalFiles = len(files)
 
