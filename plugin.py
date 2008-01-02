@@ -1,4 +1,4 @@
-import os, shutil, re, random, threading, urllib
+import os, shutil, random, threading, urllib
 from urlparse import urlparse
 
 if os.path.sep == '/':
@@ -149,26 +149,7 @@ class Plugin(object):
                 return ydir - xdir
 
         def name_sort(x, y):
-            numbername = re.compile(r'(\d*)(.*)')
-            m = numbername.match(x)
-            xNumber = m.group(1)
-            xStr = m.group(2)
-            m = numbername.match(y)
-            yNumber = m.group(1)
-            yStr = m.group(2)
-            
-            if xNumber and yNumber:
-                xNumber, yNumber = int(xNumber), int(yNumber)
-                if xNumber == yNumber:
-                    return cmp(xStr, yStr)
-                else:
-                    return cmp(xNumber, yNumber)
-            elif xNumber:
-                return -1
-            elif yNumber:
-                return 1
-            else:
-                return cmp(xStr, yStr)
+            return cmp(x, y)
 
         if query.get('SortOrder',['Normal'])[0] == 'Random':
             seed = query.get('RandomSeed', ['1'])[0]
