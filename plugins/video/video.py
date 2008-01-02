@@ -123,6 +123,7 @@ class Video(Plugin):
             debug_write(['Hack requested a file', '\n'])
             #Everything in this request is right except the container
             query['Container'] = ["/".join(path)]
+            state['page'] = ''
             return query, path
 
         ##All remaining requests could be a second erroneous request
