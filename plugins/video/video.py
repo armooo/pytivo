@@ -78,12 +78,11 @@ class Video(Plugin):
         current_folder = subcname.split('/')[-1]
 
         #Needed to get list of files
-        def VideoFileFilter(file):
-            full_path = os.path.join(filePath, file)
-
-            if os.path.isdir(full_path):
-                return True
-            return transcode.suported_format(full_path)
+        def video_file_filter(file, type = None):
+	    full_path = file
+	    if os.path.isdir(full_path):
+	        return True
+            return transcode.supported_format(full_path)
 
         #Begin figuring out what the request TiVo sent us means
         #There are 7 options that can occur
@@ -105,7 +104,7 @@ class Video(Plugin):
             state['query'] = query
             state['time'] = int(time.time())
             filePath = self.get_local_path(handler, state['query'])
-            files, total, start = self.get_files(handler, state['query'], VideoFileFilter)
+            files, total, start = self.get_files(handler, state['query'], video_file_filter)
             if len(files) >= 1:
                 state['page'] = files[0]
             else:
@@ -145,14 +144,14 @@ class Video(Plugin):
                 debug_write(['Hack leftAnchor matched.', '\n'])
                 query['Container'] = ["/".join(path)]
                 filePath = self.get_local_path(handler, query)
-                files, total, start = self.get_files(handler, query, VideoFileFilter)
+                files, total, start = self.get_files(handler, query, video_file_filter)
                 debug_write(['Hack saved page is= ', state['page'], ' top returned file is= ', files[0], '\n'])
                 #If the first file returned equals the top of the page
                 #then we haven't scrolled pages
                 if files[0] != str(state['page']):
                     debug_write(['Hack this is scrolling within a folder.', '\n'])
                     filePath = self.get_local_path(handler, query)
-                    files, total, start = self.get_files(handler, query, VideoFileFilter)
+                    files, total, start = self.get_files(handler, query, video_file_filter)
                     state['page'] = files[0]
                     return query, path               
 
@@ -165,7 +164,7 @@ class Video(Plugin):
         if (int(time.time()) - state['time']) <= 1:
             debug_write(['Hack erroneous request, send a 302 error', '\n'])
             filePath = self.get_local_path(handler, query)
-            files, total, start = self.get_files(handler, query, VideoFileFilter)
+            files, total, start = self.get_files(handler, query, video_file_filter)
             return None, path
         #7. this is a request to exit a folder
         #this request came by itself it must be to exit a folder
