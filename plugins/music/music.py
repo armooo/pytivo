@@ -147,7 +147,7 @@ class Music(Plugin):
             handler.send_response(404)
             handler.end_headers()
             return
-        
+
         if os.path.splitext(subcname)[1].lower() in PLAYLISTS:
             t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'm3u.tmpl'),
                          filter=EncodeUnicode)
@@ -223,13 +223,19 @@ class Music(Plugin):
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
 
-        list_name = self.get_local_path(handler, query)
-        local_path = os.path.sep.join(list_name.split(os.path.sep)[:-1])
+        try:
+            url = subcname.index('http://')
+            list_name = subcname[url:]
+            list_file = urllib.urlopen(list_name)
+        except:
+            list_name = self.get_local_path(handler, query)
+            list_file = open(list_name)
+            local_path = os.path.sep.join(list_name.split(os.path.sep)[:-1])
         ext = os.path.splitext(list_name)[1].lower()
 
         if ext in ('.wpl', '.asx', '.wax', '.wvx', '.b4s'):
             playlist = []
-            for line in file(list_name):
+            for line in list_file:
                 if ext == '.wpl':
                     s = wplfile(line)
                 elif ext == '.b4s':
@@ -241,7 +247,7 @@ class Music(Plugin):
 
         elif ext == '.pls':
             names, titles, lengths = {}, {}, {}
-            for line in file(list_name):
+            for line in list_file:
                 s = plsfile(line)
                 if s:
                     names[s.group(1)] = s.group(2)
@@ -265,7 +271,7 @@ class Music(Plugin):
         else: # ext == '.m3u' or '.ram'
             duration, title = 0, ''
             playlist = []
-            for x in file(list_name):
+            for x in list_file:
                 x = x.strip()
                 if x:
                     if x.startswith('#EXTINF:'):
@@ -281,6 +287,8 @@ class Music(Plugin):
                         f.duration = duration
                         playlist.append(f)
                         duration, title = 0, ''
+
+        list_file.close()
 
         # Expand relative paths
         for i in xrange(len(playlist)):
