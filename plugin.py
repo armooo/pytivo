@@ -78,7 +78,8 @@ class Plugin(object):
                     anchor = anchor.replace(bs, '/')
                 anchor = unquote(anchor)
                 anchor = anchor.replace(os.path.sep + cname, local_base_path)
-                anchor = os.path.normpath(anchor)
+                if not '://' in anchor:
+                    anchor = os.path.normpath(anchor)
 
                 if type(files[0]) == str:
                     filenames = files
