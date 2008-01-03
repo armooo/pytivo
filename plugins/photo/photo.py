@@ -1,5 +1,8 @@
 # Photo module for pyTivo by William McBrine <wmcbrine@users.sf.net>
 # based partly on music.py and plugin.py
+#
+# After version 0.15, see git for the history
+#
 # Version 0.15, Dec. 29 -- allow Unicode; better error messages
 # Version 0.14, Dec. 26 -- fix Random sort; handle ItemCount == 0
 # Version 0.13, Dec. 19 -- more thread-safe; use draft mode always
@@ -328,27 +331,17 @@ class Photo(Plugin):
                 self.lock.release()
 
         def build_recursive_list(path, recurse=True):
-            if recurse and path in self.recurse_cache:
-                return self.recurse_cache[path]
-            elif not recurse and path in self.dir_cache:
-                return self.dir_cache[path]
-
             files = []
             for f in os.listdir(path):
                 f = os.path.join(path, f)
                 isdir = os.path.isdir(f)
                 if recurse and isdir:
-                    files.extend(build_recursive_list(f).files)
+                    files.extend(build_recursive_list(f))
                 else:
                    if isdir or filterFunction(f):
                        files.append(FileData(f, isdir))
 
-            filelist = SortList(files)
-            if recurse:
-                self.recurse_cache[path] = filelist
-            else:
-                self.dir_cache[path] = filelist
-            return filelist
+            return files
 
         def name_sort(x, y):
             return cmp(x.name, y.name)
@@ -371,7 +364,19 @@ class Photo(Plugin):
 
         # Build the list
         recurse = query.get('Recurse', ['No'])[0] == 'Yes'
-        filelist = build_recursive_list(path, recurse)
+
+        if recurse and path in self.recurse_cache:
+            filelist = self.recurse_cache[path]
+        elif not recurse and path in self.dir_cache:
+            filelist = self.dir_cache[path]
+        else:
+            filelist = SortList(build_recursive_list(path, recurse))
+
+            if recurse:
+                self.recurse_cache[path] = filelist
+            else:
+                self.dir_cache[path] = filelist
+
         filelist.acquire()
 
         # Sort it
