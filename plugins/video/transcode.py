@@ -234,7 +234,7 @@ def tivo_compatable(inFile, tsn = ''):
         debug_write(['tivo_compatible: ', inFile, ' max video bitrate exceeded it is ', vkbps, '\n'])
         return False
 
-    if tsn[:3] in config.getHDtivos() or config.getHDtivosonly():
+    if tsn[:3] in config.getHDtivos():
         debug_write(['tivo_compatible: ', inFile, ' you have a S3 skiping the rest of the tests', '\n'])
         return True
 

@@ -101,16 +101,6 @@ def getFFMPEGTemplate(tsn):
 def getHDtivos():  # tsn's of High Definition Tivo's
     return ['648', '652']
 
-def getHDtivosonly():  #provides easy option to default all settings to HD rather than SD.
-    try:
-        hdtivos = config.get('Server', 'hdtivosonly')
-        if hdtivos.lower() == 'true':
-            return True
-        else:
-            return False
-    except NoOptionError:
-        return False
-
 def getValidWidths():
     return [1920, 1440, 1280, 720, 704, 544, 480, 352]
 
@@ -174,15 +164,13 @@ def getAudioBR(tsn = None):
 
     try:
         audiobr = int(max(int(strtod(config.get('Server', 'audio_br'))/1000), 64)/64)*64
-        return str(min(audiobr, getMaxAudioBR())) + 'k'
+        return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
     except NoOptionError: #default to 192
         return '192k'
 
 def getAudioCodec(tsn = None):
     #check for HD tivo and return compatible audio parameters
-    if tsn and config.has_section('_tivo_' + tsn) and tsn[:3] in getHDtivos():
-        return '-acodec ac3 -ar 48000'
-    elif getHDtivosonly():
+    if tsn and tsn[:3] in getHDtivos():
         return '-acodec ac3 -ar 48000'
     else:
         return '-acodec mp2 -ac 2 -ar 44100'
@@ -222,12 +210,11 @@ def getMaxAudioBR(tsn = None):
     try:
         return int(int(strtod(config.get('Server', 'max_audio_br'))/1000)/64)*64
     except NoOptionError: 
-        if tsn and config.has_section('_tivo_' + tsn) and tsn[:3] in getHDtivos():
-            return int(448) #default to 448, max supported by HD TiVo's
-        elif getHDtivosonly():
+        if tsn and tsn[:3] in getHDtivos():
             return int(448) #default to 448, max supported by HD TiVo's
         else:
             return int(384) #default to 384, max supported by mp2 audio (S2 TiVo)
+
 
 # Parse a bitrate using the SI/IEEE suffix values as if by ffmpeg
 # For example, 2K==2000, 2Ki==2048, 2MB==16000000, 2MiB==16777216
