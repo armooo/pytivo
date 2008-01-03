@@ -11,11 +11,6 @@ ffmpeg=/usr/bin/ffmpeg
 #debugs transcode.py right now.
 #debug=false
 
-#  Enable this option if you will ONLY be using pyTivo with high def. Tivos.
-#    Otherwise, it is recommended to enter HD tivo tsn's in per Tivo 
-#    sections below to enable options specific to High Def Tivo's.
-#hdtivosonly=true
-
 #  Max video bitrate, default 17408k
 #    sets ffmpeg -maxrate setting to minimize bitrate peak playback issues.
 #    mpegs with video bitrate above this setting will also be transcoded.
