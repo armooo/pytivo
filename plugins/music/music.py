@@ -127,9 +127,13 @@ class Music(Plugin):
                 item['Duration'] = audioFile.getPlayTime() * 1000
 
                 tag = audioFile.getTag()
-                item['ArtistName'] = tag.getArtist()
+                artist = tag.getArtist()
+                title = tag.getTitle()
+                if artist == 'Various Artists' and '/' in title:
+                    artist, title = title.split('/')
+                item['ArtistName'] = artist.strip()
+                item['SongTitle'] = title.strip()
                 item['AlbumTitle'] = tag.getAlbum()
-                item['SongTitle'] = tag.getTitle()
                 item['AlbumYear'] = tag.getYear()
                 item['MusicGenre'] = tag.getGenre().getName()
             except Exception, msg:
