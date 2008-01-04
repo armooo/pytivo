@@ -28,6 +28,12 @@ else:
     quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
     unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
 
+# Preload the templates
+tfname = os.path.join(SCRIPTDIR, 'templates', 'container.tmpl')
+tpname = os.path.join(SCRIPTDIR, 'templates', 'm3u.tmpl')
+folder_template = file(tfname, 'rb').read()
+playlist_template = file(tpname, 'rb').read()
+
 class FileData:
     def __init__(self, name, isdir):
         self.name = name
@@ -155,12 +161,10 @@ class Music(Plugin):
             return
 
         if os.path.splitext(subcname)[1].lower() in PLAYLISTS:
-            t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'm3u.tmpl'),
-                         filter=EncodeUnicode)
+            t = Template(playlist_template, filter=EncodeUnicode)
             t.files, t.total, t.start = self.get_playlist(handler, query)
         else:
-            t = Template(file=os.path.join(SCRIPTDIR,'templates', 
-                         'container.tmpl'), filter=EncodeUnicode)
+            t = Template(folder_template, filter=EncodeUnicode)
             t.files, t.total, t.start = self.get_files(handler, query,
                                                        AudioFileFilter)
         t.files = map(media_data, t.files)
