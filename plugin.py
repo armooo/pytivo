@@ -65,7 +65,7 @@ class Plugin(object):
         totalFiles = len(files)
         index = 0
 
-        if query.has_key('ItemCount'):
+        if totalFiles and query.has_key('ItemCount'):
             count = int(query['ItemCount'][0])
 
             if query.has_key('AnchorItem'):
