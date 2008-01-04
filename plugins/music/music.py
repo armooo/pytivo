@@ -60,6 +60,8 @@ class Music(Plugin):
     PLAYLIST = 'play'
 
     media_data_cache = LRUCache(300)
+    recurse_cache = LRUCache(5)
+    dir_cache = LRUCache(10)
 
     def send_file(self, handler, container, name):
         o = urlparse("http://fake.host" + handler.path)
@@ -265,6 +267,12 @@ class Music(Plugin):
 
     def get_files(self, handler, query, filterFunction=None):
 
+        class SortList:
+            def __init__(self, files):
+                self.files = files
+                self.unsorted = True
+                self.sortby = None
+ 
         def build_recursive_list(path, recurse=True):
             files = []
             for f in os.listdir(path):
@@ -299,20 +307,59 @@ class Music(Plugin):
         file_type = query.get('Filter', [''])[0]
 
         recurse = query.get('Recurse',['No'])[0] == 'Yes'
-        filelist = build_recursive_list(path, recurse)
 
-        # Sort
-        if query.get('SortOrder',['Normal'])[0] == 'Random':
-            seed = query.get('RandomSeed', ['1'])[0]
-            self.random_lock.acquire()
-            random.seed(seed)
-            random.shuffle(filelist)
-            self.random_lock.release()
+        if recurse and path in self.recurse_cache:
+            filelist = self.recurse_cache[path]
+        elif not recurse and path in self.dir_cache:
+            filelist = self.dir_cache[path]
         else:
-            filelist.sort(dir_sort)
+            filelist = SortList(build_recursive_list(path, recurse))
+
+            if recurse:
+                self.recurse_cache[path] = filelist
+            else:
+                self.dir_cache[path] = filelist
+
+        # Sort it
+        seed = ''
+        start = ''
+        sortby = query.get('SortOrder', ['Normal'])[0] 
+        if 'Random' in sortby:
+            if 'RandomSeed' in query:
+                seed = query['RandomSeed'][0]
+                sortby += seed
+            if 'RandomStart' in query:
+                start = query['RandomStart'][0]
+                sortby += start
+
+        if filelist.unsorted or filelist.sortby != sortby:
+            if 'Random' in sortby:
+                self.random_lock.acquire()
+                if seed:
+                    random.seed(seed)
+                random.shuffle(filelist.files)
+                self.random_lock.release()
+                if start:
+                    local_base_path = self.get_local_base_path(handler, query)
+                    start = unquote(start)
+                    start = start.replace(os.path.sep + cname, local_base_path)
+                    filenames = [x.name for x in filelist.files]
+                    try:
+                        index = filenames.index(start)
+                        i = filelist.files.pop(index)
+                        filelist.files.insert(0, i)
+                    except ValueError:
+                        print 'Start not found:', start
+            else:
+                filelist.files.sort(dir_sort)
+
+            filelist.sortby = sortby
+            filelist.unsorted = False
+
+        files = filelist.files[:]
 
         # Trim the list
-        return self.item_count(handler, query, cname, filelist)
+        return self.item_count(handler, query, cname, files)
 
     def get_playlist(self, handler, query):
         subcname = query['Container'][0]
