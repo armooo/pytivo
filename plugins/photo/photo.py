@@ -381,10 +381,15 @@ class Photo(Plugin):
 
         # Sort it
         seed = ''
+        start = ''
         sortby = query.get('SortOrder', ['Normal'])[0] 
-        if 'Random' in sortby and 'RandomSeed' in query:
-            seed = query['RandomSeed'][0]
-            sortby += seed
+        if 'Random' in sortby:
+            if 'RandomSeed' in query:
+                seed = query['RandomSeed'][0]
+                sortby += seed
+            if 'RandomStart' in query:
+                start = query['RandomStart'][0]
+                sortby += start
 
         if filelist.unsorted or filelist.sortby != sortby:
             if 'Random' in sortby:
@@ -393,6 +398,17 @@ class Photo(Plugin):
                     random.seed(seed)
                 random.shuffle(filelist.files)
                 self.random_lock.release()
+                if start:
+                    local_base_path = self.get_local_base_path(handler, query)
+                    start = unquote(start)
+                    start = start.replace(os.path.sep + cname, local_base_path)
+                    filenames = [x.name for x in filelist.files]
+                    try:
+                        index = filenames.index(start)
+                        i = filelist.files.pop(index)
+                        filelist.files.insert(0, i)
+                    except ValueError:
+                        print 'Start not found:', start
             else:
                 if 'CaptureDate' in sortby:
                     sortfunc = cdate_sort
