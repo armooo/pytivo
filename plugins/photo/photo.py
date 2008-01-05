@@ -322,6 +322,7 @@ class Photo(Plugin):
                 self.files = files
                 self.unsorted = True
                 self.sortby = None
+                self.last_start = 0
                 self.lock = threading.RLock()
 
             def acquire(self, blocking=1):
@@ -426,7 +427,6 @@ class Photo(Plugin):
             filelist.unsorted = False
 
         files = filelist.files[:]
-        filelist.release()
 
         # Filter it -- this section needs work
         if 'Filter' in query:
@@ -437,4 +437,8 @@ class Photo(Plugin):
             elif usedir and not useimg:
                 files = [x for x in files if x.isdir]
 
-        return self.item_count(handler, query, cname, files)
+        files, total, start = self.item_count(handler, query, cname, files,
+                                              filelist.last_start)
+        filelist.last_start = start
+        filelist.release()
+        return files, total, start

@@ -276,6 +276,7 @@ class Music(Plugin):
                 self.files = files
                 self.unsorted = True
                 self.sortby = None
+                self.last_start = 0
  
         def build_recursive_list(path, recurse=True):
             files = []
@@ -363,7 +364,10 @@ class Music(Plugin):
         files = filelist.files[:]
 
         # Trim the list
-        return self.item_count(handler, query, cname, files)
+        files, total, start = self.item_count(handler, query, cname, files,
+                                              filelist.last_start)
+        filelist.last_start = start
+        return files, total, start
 
     def get_playlist(self, handler, query):
         subcname = query['Container'][0]

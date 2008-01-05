@@ -58,7 +58,7 @@ class Plugin(object):
             path = os.path.join(path, folder)
         return path
 
-    def item_count(self, handler, query, cname, files):
+    def item_count(self, handler, query, cname, files, last_start=0):
         """Return only the desired portion of the list, as specified by 
            ItemCount, AnchorItem and AnchorOffset. 'files' is either a 
            list of strings, OR a list of objects with a 'name' attribute.
@@ -86,9 +86,15 @@ class Plugin(object):
                 else:
                     filenames = [x.name for x in files]
                 try:
-                    index = filenames.index(anchor)
+                    index = filenames.index(anchor, last_start)
                 except ValueError:
-                    print 'Anchor not found:', anchor  # just use index = 0
+                    if last_start:
+                        try:
+                            index = filenames.index(anchor, 0, last_start)
+                        except ValueError:
+                            print 'Anchor not found:', anchor
+                    else:
+                        print 'Anchor not found:', anchor  # just use index = 0
 
                 if count > 0:
                     index += 1
