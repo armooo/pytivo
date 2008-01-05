@@ -356,7 +356,10 @@ class Music(Plugin):
                     except ValueError:
                         print 'Start not found:', start
             else:
-                filelist.files.sort(dir_sort)
+                if 'Type' in sortby:
+                    filelist.files.sort(dir_sort)
+                else:
+                    filelist.files.sort(name_sort)
 
             filelist.sortby = sortby
             filelist.unsorted = False
