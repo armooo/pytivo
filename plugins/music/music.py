@@ -28,6 +28,12 @@ else:
     quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
     unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
 
+# Preload the templates
+tfname = os.path.join(SCRIPTDIR, 'templates', 'container.tmpl')
+tpname = os.path.join(SCRIPTDIR, 'templates', 'm3u.tmpl')
+folder_template = file(tfname, 'rb').read()
+playlist_template = file(tpname, 'rb').read()
+
 class FileData:
     def __init__(self, name, isdir):
         self.name = name
@@ -60,6 +66,8 @@ class Music(Plugin):
     PLAYLIST = 'play'
 
     media_data_cache = LRUCache(300)
+    recurse_cache = LRUCache(5)
+    dir_cache = LRUCache(10)
 
     def send_file(self, handler, container, name):
         o = urlparse("http://fake.host" + handler.path)
@@ -127,9 +135,13 @@ class Music(Plugin):
                 item['Duration'] = audioFile.getPlayTime() * 1000
 
                 tag = audioFile.getTag()
-                item['ArtistName'] = tag.getArtist()
+                artist = tag.getArtist()
+                title = tag.getTitle()
+                if artist == 'Various Artists' and '/' in title:
+                    artist, title = title.split('/')
+                item['ArtistName'] = artist.strip()
+                item['SongTitle'] = title.strip()
                 item['AlbumTitle'] = tag.getAlbum()
-                item['SongTitle'] = tag.getTitle()
                 item['AlbumYear'] = tag.getYear()
                 item['MusicGenre'] = tag.getGenre().getName()
             except Exception, msg:
@@ -147,14 +159,12 @@ class Music(Plugin):
             handler.send_response(404)
             handler.end_headers()
             return
-        
+
         if os.path.splitext(subcname)[1].lower() in PLAYLISTS:
-            t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'm3u.tmpl'),
-                         filter=EncodeUnicode)
+            t = Template(playlist_template, filter=EncodeUnicode)
             t.files, t.total, t.start = self.get_playlist(handler, query)
         else:
-            t = Template(file=os.path.join(SCRIPTDIR,'templates', 
-                         'container.tmpl'), filter=EncodeUnicode)
+            t = Template(folder_template, filter=EncodeUnicode)
             t.files, t.total, t.start = self.get_files(handler, query,
                                                        AudioFileFilter)
         t.files = map(media_data, t.files)
@@ -171,65 +181,20 @@ class Music(Plugin):
         handler.end_headers()
         handler.wfile.write(page)
 
-    def get_files(self, handler, query, filterFunction=None):
+    def parse_playlist(self, list_name, recurse):
+        try:
+            url = list_name.index('http://')
+            list_name = list_name[url:]
+            list_file = urllib.urlopen(list_name)
+        except:
+            list_file = open(list_name)
+            local_path = os.path.sep.join(list_name.split(os.path.sep)[:-1])
 
-        def build_recursive_list(path, recurse=True):
-            files = []
-            for f in os.listdir(path):
-                f = os.path.join(path, f)
-                isdir = os.path.isdir(f)
-                if recurse and isdir:
-                    files.extend(build_recursive_list(f))
-                else:
-                   if isdir or filterFunction(f, file_type):
-                       files.append(FileData(f, isdir))
-            return files
-
-        def dir_sort(x, y):
-            if x.isdir == y.isdir:
-                if x.isplay == y.isplay:
-                    return name_sort(x, y)
-                else:
-                    return y.isplay - x.isplay
-            else:
-                return y.isdir - x.isdir
-
-        def name_sort(x, y):
-            return cmp(x.name, y.name)
-
-        subcname = query['Container'][0]
-        cname = subcname.split('/')[0]
-        path = self.get_local_path(handler, query)
-
-        file_type = query.get('Filter', [''])[0]
-
-        recurse = query.get('Recurse',['No'])[0] == 'Yes'
-        filelist = build_recursive_list(path, recurse)
-
-        # Sort
-        if query.get('SortOrder',['Normal'])[0] == 'Random':
-            seed = query.get('RandomSeed', ['1'])[0]
-            self.random_lock.acquire()
-            random.seed(seed)
-            random.shuffle(filelist)
-            self.random_lock.release()
-        else:
-            filelist.sort(dir_sort)
-
-        # Trim the list
-        return self.item_count(handler, query, cname, filelist)
-
-    def get_playlist(self, handler, query):
-        subcname = query['Container'][0]
-        cname = subcname.split('/')[0]
-
-        list_name = self.get_local_path(handler, query)
-        local_path = os.path.sep.join(list_name.split(os.path.sep)[:-1])
         ext = os.path.splitext(list_name)[1].lower()
 
         if ext in ('.wpl', '.asx', '.wax', '.wvx', '.b4s'):
             playlist = []
-            for line in file(list_name):
+            for line in list_file:
                 if ext == '.wpl':
                     s = wplfile(line)
                 elif ext == '.b4s':
@@ -241,7 +206,7 @@ class Music(Plugin):
 
         elif ext == '.pls':
             names, titles, lengths = {}, {}, {}
-            for line in file(list_name):
+            for line in list_file:
                 s = plsfile(line)
                 if s:
                     names[s.group(1)] = s.group(2)
@@ -265,7 +230,7 @@ class Music(Plugin):
         else: # ext == '.m3u' or '.ram'
             duration, title = 0, ''
             playlist = []
-            for x in file(list_name):
+            for x in list_file:
                 x = x.strip()
                 if x:
                     if x.startswith('#EXTINF:'):
@@ -282,6 +247,8 @@ class Music(Plugin):
                         playlist.append(f)
                         duration, title = 0, ''
 
+        list_file.close()
+
         # Expand relative paths
         for i in xrange(len(playlist)):
             if not '://' in playlist[i].name:
@@ -289,6 +256,134 @@ class Music(Plugin):
                 if not os.path.isabs(name):
                     name = os.path.join(local_path, name)
                 playlist[i].name = os.path.normpath(name)
+
+        if recurse:
+            newlist = []
+            for i in playlist:
+                if i.isplay:
+                    newlist.extend(self.parse_playlist(i.name, recurse))
+                else:
+                    newlist.append(i)
+
+            playlist = newlist
+
+        return playlist
+
+    def get_files(self, handler, query, filterFunction=None):
+
+        class SortList:
+            def __init__(self, files):
+                self.files = files
+                self.unsorted = True
+                self.sortby = None
+                self.last_start = 0
+ 
+        def build_recursive_list(path, recurse=True):
+            files = []
+            for f in os.listdir(path):
+                f = os.path.join(path, f)
+                isdir = os.path.isdir(f)
+                if recurse and isdir:
+                    files.extend(build_recursive_list(f))
+                else:
+                   fd = FileData(f, isdir)
+                   if recurse and fd.isplay:
+                       files.extend(self.parse_playlist(f, recurse))
+                   elif isdir or filterFunction(f, file_type):
+                       files.append(fd)
+            return files
+
+        def dir_sort(x, y):
+            if x.isdir == y.isdir:
+                if x.isplay == y.isplay:
+                    return name_sort(x, y)
+                else:
+                    return y.isplay - x.isplay
+            else:
+                return y.isdir - x.isdir
+
+        def name_sort(x, y):
+            return cmp(x.name, y.name)
+
+        subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
+        path = self.get_local_path(handler, query)
+
+        file_type = query.get('Filter', [''])[0]
+
+        recurse = query.get('Recurse',['No'])[0] == 'Yes'
+
+        if recurse and path in self.recurse_cache:
+            filelist = self.recurse_cache[path]
+        elif not recurse and path in self.dir_cache:
+            filelist = self.dir_cache[path]
+        else:
+            filelist = SortList(build_recursive_list(path, recurse))
+
+            if recurse:
+                self.recurse_cache[path] = filelist
+            else:
+                self.dir_cache[path] = filelist
+
+        # Sort it
+        seed = ''
+        start = ''
+        sortby = query.get('SortOrder', ['Normal'])[0] 
+        if 'Random' in sortby:
+            if 'RandomSeed' in query:
+                seed = query['RandomSeed'][0]
+                sortby += seed
+            if 'RandomStart' in query:
+                start = query['RandomStart'][0]
+                sortby += start
+
+        if filelist.unsorted or filelist.sortby != sortby:
+            if 'Random' in sortby:
+                self.random_lock.acquire()
+                if seed:
+                    random.seed(seed)
+                random.shuffle(filelist.files)
+                self.random_lock.release()
+                if start:
+                    local_base_path = self.get_local_base_path(handler, query)
+                    start = unquote(start)
+                    start = start.replace(os.path.sep + cname, local_base_path)
+                    filenames = [x.name for x in filelist.files]
+                    try:
+                        index = filenames.index(start)
+                        i = filelist.files.pop(index)
+                        filelist.files.insert(0, i)
+                    except ValueError:
+                        print 'Start not found:', start
+            else:
+                if 'Type' in sortby:
+                    filelist.files.sort(dir_sort)
+                else:
+                    filelist.files.sort(name_sort)
+
+            filelist.sortby = sortby
+            filelist.unsorted = False
+
+        files = filelist.files[:]
+
+        # Trim the list
+        files, total, start = self.item_count(handler, query, cname, files,
+                                              filelist.last_start)
+        filelist.last_start = start
+        return files, total, start
+
+    def get_playlist(self, handler, query):
+        subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
+
+        try:
+            url = subcname.index('http://')
+            list_name = subcname[url:]
+        except:
+            list_name = self.get_local_path(handler, query)
+
+        recurse = query.get('Recurse',['No'])[0] == 'Yes'
+        playlist = self.parse_playlist(list_name, recurse)
 
         # Trim the list
         return self.item_count(handler, query, cname, playlist)

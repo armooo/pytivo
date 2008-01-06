@@ -1,4 +1,4 @@
-import os, shutil, re, random, threading, urllib
+import os, shutil, random, threading, urllib
 from urlparse import urlparse
 
 if os.path.sep == '/':
@@ -58,7 +58,7 @@ class Plugin(object):
             path = os.path.join(path, folder)
         return path
 
-    def item_count(self, handler, query, cname, files):
+    def item_count(self, handler, query, cname, files, last_start=0):
         """Return only the desired portion of the list, as specified by 
            ItemCount, AnchorItem and AnchorOffset. 'files' is either a 
            list of strings, OR a list of objects with a 'name' attribute.
@@ -66,7 +66,7 @@ class Plugin(object):
         totalFiles = len(files)
         index = 0
 
-        if query.has_key('ItemCount'):
+        if totalFiles and query.has_key('ItemCount'):
             count = int(query['ItemCount'][0])
 
             if query.has_key('AnchorItem'):
@@ -78,16 +78,23 @@ class Plugin(object):
                     anchor = anchor.replace(bs, '/')
                 anchor = unquote(anchor)
                 anchor = anchor.replace(os.path.sep + cname, local_base_path)
-                anchor = os.path.normpath(anchor)
+                if not '://' in anchor:
+                    anchor = os.path.normpath(anchor)
 
                 if type(files[0]) == str:
                     filenames = files
                 else:
                     filenames = [x.name for x in files]
                 try:
-                    index = filenames.index(anchor)
+                    index = filenames.index(anchor, last_start)
                 except ValueError:
-                    print 'Anchor not found:', anchor  # just use index = 0
+                    if last_start:
+                        try:
+                            index = filenames.index(anchor, 0, last_start)
+                        except ValueError:
+                            print 'Anchor not found:', anchor
+                    else:
+                        print 'Anchor not found:', anchor  # just use index = 0
 
                 if count > 0:
                     index += 1
@@ -96,10 +103,10 @@ class Plugin(object):
                     index += int(query['AnchorOffset'][0])
 
                 #foward count
-                if count > 0:
+                if count >= 0:
                     files = files[index:index + count]
                 #backwards count
-                elif count < 0:
+                else:
                     if index + count < 0:
                         count = -index
                     files = files[index + count:index]
@@ -149,26 +156,7 @@ class Plugin(object):
                 return ydir - xdir
 
         def name_sort(x, y):
-            numbername = re.compile(r'(\d*)(.*)')
-            m = numbername.match(x)
-            xNumber = m.group(1)
-            xStr = m.group(2)
-            m = numbername.match(y)
-            yNumber = m.group(1)
-            yStr = m.group(2)
-            
-            if xNumber and yNumber:
-                xNumber, yNumber = int(xNumber), int(yNumber)
-                if xNumber == yNumber:
-                    return cmp(xStr, yStr)
-                else:
-                    return cmp(xNumber, yNumber)
-            elif xNumber:
-                return -1
-            elif yNumber:
-                return 1
-            else:
-                return cmp(xStr, yStr)
+            return cmp(x, y)
 
         if query.get('SortOrder',['Normal'])[0] == 'Random':
             seed = query.get('RandomSeed', ['1'])[0]

@@ -1,5 +1,8 @@
 # Photo module for pyTivo by William McBrine <wmcbrine@users.sf.net>
 # based partly on music.py and plugin.py
+#
+# After version 0.15, see git for the history
+#
 # Version 0.15, Dec. 29 -- allow Unicode; better error messages
 # Version 0.14, Dec. 26 -- fix Random sort; handle ItemCount == 0
 # Version 0.13, Dec. 19 -- more thread-safe; use draft mode always
@@ -319,6 +322,7 @@ class Photo(Plugin):
                 self.files = files
                 self.unsorted = True
                 self.sortby = None
+                self.last_start = 0
                 self.lock = threading.RLock()
 
             def acquire(self, blocking=1):
@@ -328,27 +332,17 @@ class Photo(Plugin):
                 self.lock.release()
 
         def build_recursive_list(path, recurse=True):
-            if recurse and path in self.recurse_cache:
-                return self.recurse_cache[path]
-            elif not recurse and path in self.dir_cache:
-                return self.dir_cache[path]
-
             files = []
             for f in os.listdir(path):
                 f = os.path.join(path, f)
                 isdir = os.path.isdir(f)
                 if recurse and isdir:
-                    files.extend(build_recursive_list(f).files)
+                    files.extend(build_recursive_list(f))
                 else:
                    if isdir or filterFunction(f):
                        files.append(FileData(f, isdir))
 
-            filelist = SortList(files)
-            if recurse:
-                self.recurse_cache[path] = filelist
-            else:
-                self.dir_cache[path] = filelist
-            return filelist
+            return files
 
         def name_sort(x, y):
             return cmp(x.name, y.name)
@@ -371,15 +365,32 @@ class Photo(Plugin):
 
         # Build the list
         recurse = query.get('Recurse', ['No'])[0] == 'Yes'
-        filelist = build_recursive_list(path, recurse)
+
+        if recurse and path in self.recurse_cache:
+            filelist = self.recurse_cache[path]
+        elif not recurse and path in self.dir_cache:
+            filelist = self.dir_cache[path]
+        else:
+            filelist = SortList(build_recursive_list(path, recurse))
+
+            if recurse:
+                self.recurse_cache[path] = filelist
+            else:
+                self.dir_cache[path] = filelist
+
         filelist.acquire()
 
         # Sort it
         seed = ''
+        start = ''
         sortby = query.get('SortOrder', ['Normal'])[0] 
-        if 'Random' in sortby and 'RandomSeed' in query:
-            seed = query['RandomSeed'][0]
-            sortby += seed
+        if 'Random' in sortby:
+            if 'RandomSeed' in query:
+                seed = query['RandomSeed'][0]
+                sortby += seed
+            if 'RandomStart' in query:
+                start = query['RandomStart'][0]
+                sortby += start
 
         if filelist.unsorted or filelist.sortby != sortby:
             if 'Random' in sortby:
@@ -388,6 +399,17 @@ class Photo(Plugin):
                     random.seed(seed)
                 random.shuffle(filelist.files)
                 self.random_lock.release()
+                if start:
+                    local_base_path = self.get_local_base_path(handler, query)
+                    start = unquote(start)
+                    start = start.replace(os.path.sep + cname, local_base_path)
+                    filenames = [x.name for x in filelist.files]
+                    try:
+                        index = filenames.index(start)
+                        i = filelist.files.pop(index)
+                        filelist.files.insert(0, i)
+                    except ValueError:
+                        print 'Start not found:', start
             else:
                 if 'CaptureDate' in sortby:
                     sortfunc = cdate_sort
@@ -405,7 +427,6 @@ class Photo(Plugin):
             filelist.unsorted = False
 
         files = filelist.files[:]
-        filelist.release()
 
         # Filter it -- this section needs work
         if 'Filter' in query:
@@ -416,4 +437,8 @@ class Photo(Plugin):
             elif usedir and not useimg:
                 files = [x for x in files if x.isdir]
 
-        return self.item_count(handler, query, cname, files)
+        files, total, start = self.item_count(handler, query, cname, files,
+                                              filelist.last_start)
+        filelist.last_start = start
+        filelist.release()
+        return files, total, start
