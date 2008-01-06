@@ -77,7 +77,7 @@ class Plugin(object):
                 if anchor.startswith(bs):
                     anchor = anchor.replace(bs, '/')
                 anchor = unquote(anchor)
-                anchor = anchor.replace(os.path.sep + cname, local_base_path)
+                anchor = anchor.replace(os.path.sep + cname, local_base_path, 1)
                 if not '://' in anchor:
                     anchor = os.path.normpath(anchor)
 
