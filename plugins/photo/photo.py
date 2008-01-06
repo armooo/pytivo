@@ -280,7 +280,7 @@ class Photo(Plugin):
 
             item = {}
             item['path'] = f.name
-            item['part_path'] = f.name.replace(local_base_path, '')
+            item['part_path'] = f.name.replace(local_base_path, '', 1)
             item['name'] = os.path.split(f.name)[1]
             item['is_dir'] = f.isdir
             item['rotation'] = 0
@@ -402,7 +402,8 @@ class Photo(Plugin):
                 if start:
                     local_base_path = self.get_local_base_path(handler, query)
                     start = unquote(start)
-                    start = start.replace(os.path.sep + cname, local_base_path)
+                    start = start.replace(os.path.sep + cname,
+                                          local_base_path, 1)
                     filenames = [x.name for x in filelist.files]
                     try:
                         index = filenames.index(start)
