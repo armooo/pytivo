@@ -74,9 +74,9 @@ class Plugin(object):
 
                 anchor = query['AnchorItem'][0]
                 if anchor.startswith(bs):
-                    anchor = anchor.replace(bs, '/')
+                    anchor = anchor.replace(bs, '/', 1)
                 anchor = unquote(anchor)
-                anchor = anchor.replace(os.path.sep + cname, local_base_path)
+                anchor = anchor.replace(os.path.sep + cname, local_base_path, 1)
                 anchor = os.path.normpath(anchor)
 
                 try:
