@@ -143,7 +143,7 @@ class Photo(Plugin):
 
         # Load
         try:
-            pic = Image.open(infile)
+            pic = Image.open(unicode(infile, 'utf-8'))
         except Exception, msg:
             print 'Could not open', infile, '--', msg
             handler.send_error(404)
@@ -333,9 +333,11 @@ class Photo(Plugin):
 
         def build_recursive_list(path, recurse=True):
             files = []
+            path = unicode(path, 'utf-8')
             for f in os.listdir(path):
                 f = os.path.join(path, f)
                 isdir = os.path.isdir(f)
+                f = f.encode('utf-8')
                 if recurse and isdir:
                     files.extend(build_recursive_list(f))
                 else:

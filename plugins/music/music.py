@@ -73,6 +73,7 @@ class Music(Plugin):
         o = urlparse("http://fake.host" + handler.path)
         path = unquote(o[2])
         fname = container['path'] + path[len(name) + 1:]
+        fname = unicode(fname, 'utf-8')
         fsize = os.path.getsize(fname)
         handler.send_response(200)
         handler.send_header('Content-Type', 'audio/mpeg')
@@ -187,7 +188,7 @@ class Music(Plugin):
             list_name = list_name[url:]
             list_file = urllib.urlopen(list_name)
         except:
-            list_file = open(list_name)
+            list_file = open(unicode(list_name, 'utf-8'))
             local_path = os.path.sep.join(list_name.split(os.path.sep)[:-1])
 
         ext = os.path.splitext(list_name)[1].lower()
@@ -280,9 +281,11 @@ class Music(Plugin):
  
         def build_recursive_list(path, recurse=True):
             files = []
+            path = unicode(path, 'utf-8')
             for f in os.listdir(path):
                 f = os.path.join(path, f)
                 isdir = os.path.isdir(f)
+                f = f.encode('utf-8')
                 if recurse and isdir:
                     files.extend(build_recursive_list(f))
                 else:
