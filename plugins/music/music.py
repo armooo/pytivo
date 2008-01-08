@@ -11,7 +11,8 @@ SCRIPTDIR = os.path.dirname(__file__)
 
 CLASS_NAME = 'Music'
 
-PLAYLISTS = ('.m3u', '.ram', '.pls', '.b4s', '.wpl', '.asx', '.wax', '.wvx')
+PLAYLISTS = ('.m3u', '.m3u8', '.ram', '.pls', '.b4s', '.wpl', '.asx',
+             '.wax', '.wvx')
 
 # Search strings for different playlist types
 asxfile = re.compile('ref +href *= *"(.+)"', re.IGNORECASE).search
@@ -183,6 +184,9 @@ class Music(Plugin):
         handler.wfile.write(page)
 
     def parse_playlist(self, list_name, recurse):
+
+        ext = os.path.splitext(list_name)[1].lower()
+
         try:
             url = list_name.index('http://')
             list_name = list_name[url:]
@@ -191,11 +195,15 @@ class Music(Plugin):
             list_file = open(unicode(list_name, 'utf-8'))
             local_path = os.path.sep.join(list_name.split(os.path.sep)[:-1])
 
-        ext = os.path.splitext(list_name)[1].lower()
+        if ext in ('.m3u', '.pls'):
+            charset = 'iso-8859-1'
+        else:
+            charset = 'utf-8'
 
         if ext in ('.wpl', '.asx', '.wax', '.wvx', '.b4s'):
             playlist = []
             for line in list_file:
+                line = unicode(line, charset).encode('utf-8')
                 if ext == '.wpl':
                     s = wplfile(line)
                 elif ext == '.b4s':
@@ -208,6 +216,7 @@ class Music(Plugin):
         elif ext == '.pls':
             names, titles, lengths = {}, {}, {}
             for line in list_file:
+                line = unicode(line, charset).encode('utf-8')
                 s = plsfile(line)
                 if s:
                     names[s.group(1)] = s.group(2)
@@ -228,21 +237,24 @@ class Music(Plugin):
                     f.duration = lengths[key]
                 playlist.append(f)
 
-        else: # ext == '.m3u' or '.ram'
+        else: # ext == '.m3u' or '.m3u8' or '.ram'
             duration, title = 0, ''
             playlist = []
-            for x in list_file:
-                x = x.strip()
-                if x:
-                    if x.startswith('#EXTINF:'):
+            for line in list_file:
+                print line, len(line), charset
+                line = unicode(line, charset).encode('utf-8')
+                print line, len(line)
+                line = line.strip()
+                if line:
+                    if line.startswith('#EXTINF:'):
                         try:
-                            duration, title = x[8:].split(',')
+                            duration, title = line[8:].split(',')
                             duration = int(duration)
                         except ValueError:
                             duration = 0
 
-                    elif not x.startswith('#'):
-                        f = FileData(x, False)
+                    elif not line.startswith('#'):
+                        f = FileData(line, False)
                         f.title = title.strip()
                         f.duration = duration
                         playlist.append(f)
