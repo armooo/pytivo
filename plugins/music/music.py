@@ -133,7 +133,7 @@ class Music(Plugin):
                 return item
 
             try:
-                audioFile = eyeD3.Mp3AudioFile(f.name)
+                audioFile = eyeD3.Mp3AudioFile(unicode(f.name, 'utf-8'))
                 item['Duration'] = audioFile.getPlayTime() * 1000
 
                 tag = audioFile.getTag()
