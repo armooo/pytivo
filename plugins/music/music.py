@@ -241,10 +241,7 @@ class Music(Plugin):
             duration, title = 0, ''
             playlist = []
             for line in list_file:
-                print line, len(line), charset
-                line = unicode(line, charset).encode('utf-8')
-                print line, len(line)
-                line = line.strip()
+                line = unicode(line.strip(), charset).encode('utf-8')
                 if line:
                     if line.startswith('#EXTINF:'):
                         try:
