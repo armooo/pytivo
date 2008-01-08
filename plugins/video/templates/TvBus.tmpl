@@ -65,6 +65,9 @@
             <seriesTitle>$escape($video.seriesTitle)</seriesTitle>
           </series>
           <showType value="$video.showType[1]">$video.showType[0]</showType>
+          #if $video.starRating
+          <starRating value="$video.starRating[1]">$video.starRating[0]</starRating>
+          #end if
           <title>$escape($video.seriesTitle)</title>
           <vWriter>
                 #for $element in $video.vWriter
@@ -145,6 +148,9 @@
         <seriesTitle>$escape($video.seriesTitle)</seriesTitle>
       </series>
       <showType value="$video.showType[1]">$video.showType[0]</showType>
+      #if $video.starRating
+      <starRating value="$video.starRating[1]">$video.starRating[0]</starRating>
+      #end if
       <title>$escape($video.seriesTitle)</title>
       <vWriter>
             #for $element in $video.vWriter
