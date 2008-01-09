@@ -25,7 +25,7 @@
                 #for $element in $video.vDirector
                 <element>$escape($element)</element>
                 #end for
-        </vDirector>
+          </vDirector>
           <episodeNumber>$escape($video.episodeNumber)</episodeNumber>
           <episodeTitle>$escape($video.title)</episodeTitle>
           <vExecProducer>
@@ -49,7 +49,14 @@
                 #end for
           </vHost>
           <isEpisode>$video.isEpisode</isEpisode>
+          #if $video.movieYear
+          <movieYear>$video.movieYear</movieYear>
+          #else if $video.originalAirDate
           <originalAirDate>$video.originalAirDate</originalAirDate>
+          #end if
+          #if $video.mpaaRating
+          <mpaaRating value="$video.mpaaRating[1]">$video.mpaaRating[0]</mpaaRating>
+          #end if
           <vProducer>
                 #for $element in $video.vProducer
                 <element>$escape($element)</element>
@@ -108,7 +115,7 @@
             #for $element in $video.vDirector
             <element>$escape($element)</element>
             #end for
-    </vDirector>
+      </vDirector>
       <episodeNumber>$escape($video.episodeNumber)</episodeNumber>
       <episodeTitle>$escape($video.title)</episodeTitle>
       <vExecProducer>
@@ -132,7 +139,14 @@
             #end for
       </vHost>
       <isEpisode>$video.isEpisode</isEpisode>
+      #if $video.movieYear
+      <movieYear>$video.movieYear</movieYear>
+      #else if $video.originalAirDate
       <originalAirDate>$video.originalAirDate</originalAirDate>
+      #end if
+      #if $video.mpaaRating
+      <mpaaRating value="$video.mpaaRating[1]">$video.mpaaRating[0]</mpaaRating>
+      #end if
       <vProducer>
             #for $element in $video.vProducer
             <element>$escape($element)</element>
