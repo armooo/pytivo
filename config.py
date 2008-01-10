@@ -106,7 +106,10 @@ def getFFMPEGTemplate(tsn):
     try:
         return config.get('Server', 'ffmpeg_prams', raw = True)
     except NoOptionError: #default
-        return '-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ac 2 -ab %(audio_br)s -ar 44100 -f vob -'
+        return '-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -'
+
+def getHDtivos():  # tsn's of High Definition Tivo's
+    return ['648', '652']
 
 def getValidWidths():
     return [1920, 1440, 1280, 720, 704, 544, 480, 352]
@@ -160,16 +163,27 @@ def getTivoWidth(tsn):
         return 544
 
 def getAudioBR(tsn = None):
+    #convert to non-zero multiple of 64 to ensure ffmpeg compatibility
+    #compare audio_br to max_audio_br and return lowest
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            return config.get('_tivo_' + tsn, 'audio_br')
+            audiobr = int(max(int(strtod(config.get('_tivo_' + tsn, 'audio_br'))/1000), 64)/64)*64
+            return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
         except NoOptionError:
             pass
 
     try:
-        return config.get('Server', 'audio_br')
+        audiobr = int(max(int(strtod(config.get('Server', 'audio_br'))/1000), 64)/64)*64
+        return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
     except NoOptionError: #default to 192
-        return '192K'
+        return '192k'
+
+def getAudioCodec(tsn = None):
+    #check for HD tivo and return compatible audio parameters
+    if tsn and tsn[:3] in getHDtivos():
+        return '-acodec ac3 -vol 128 -ar 48000'
+    else:
+        return '-acodec mp2 -ac 2 -ar 44100'
 
 def getVideoBR(tsn = None):
     if tsn and config.has_section('_tivo_' + tsn):
@@ -185,8 +199,8 @@ def getVideoBR(tsn = None):
 
 def getMaxVideoBR():
     try:
-        return config.get('Server', 'max_video_br')
-    except NoOptionError: #default to 17M
+        return str(int(strtod(config.get('Server', 'max_video_br'))/1000)) + 'k'
+    except NoOptionError: #default to 17Mi
         return '17408k'
 
 def getBuffSize():
@@ -194,3 +208,44 @@ def getBuffSize():
         return config.get('Server', 'bufsize')
     except NoOptionError: #default 1024k
         return '1024k'
+
+def getMaxAudioBR(tsn = None):
+    #convert to non-zero multiple of 64 for ffmpeg compatibility
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return int(int(strtod(config.get('_tivo_' + tsn, 'max_audio_br'))/1000)/64)*64
+        except NoOptionError:
+            pass
+
+    try:
+        return int(int(strtod(config.get('Server', 'max_audio_br'))/1000)/64)*64
+    except NoOptionError: 
+        if tsn and tsn[:3] in getHDtivos():
+            return int(448) #default to 448, max supported by HD TiVo's
+        else:
+            return int(384) #default to 384, max supported by mp2 audio (S2 TiVo)
+
+
+# Parse a bitrate using the SI/IEEE suffix values as if by ffmpeg
+# For example, 2K==2000, 2Ki==2048, 2MB==16000000, 2MiB==16777216
+# Algorithm: http://svn.mplayerhq.hu/ffmpeg/trunk/libavcodec/eval.c
+def strtod(value):
+    prefixes = {"y":-24,"z":-21,"a":-18,"f":-15,"p":-12,"n":-9,"u":-6,"m":-3,"c":-2,"d":-1,"h":2,"k":3,"K":3,"M":6,"G":9,"T":12,"P":15,"E":18,"Z":21,"Y":24}
+    p = re.compile(r'^(\d+)(?:([yzafpnumcdhkKMGTPEZY])(i)?)?([Bb])?$')
+    m = p.match(value)
+    if m is None:
+        raise SyntaxError('Invalid bit value syntax')
+    (coef, prefix, power, byte) = m.groups()
+    if prefix is None:
+        value = float(coef)
+    else:
+        exponent = float(prefixes[prefix])
+        if power == "i":
+            # Use powers of 2
+            value = float(coef) * pow(2.0, exponent/0.3)
+        else:
+            # Use powers of 10
+            value = float(coef) * pow(10.0, exponent)
+    if byte == "B": # B==Byte, b=bit
+        value *= 8;
+    return value
