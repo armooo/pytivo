@@ -339,7 +339,6 @@ def kill(pid):
     else:
         import os, signal
         os.kill(pid, signal.SIGTERM)
-
 def win32kill(pid):
         import ctypes
         handle = ctypes.windll.kernel32.OpenProcess(1, False, pid)

@@ -73,6 +73,16 @@ def getDebug():
     except NoOptionError:
         return False
 
+def getHack83():
+    try:
+        debug = config.get('Server', 'hack83')
+        if debug.lower() == 'true':
+            return True
+        else:
+            return False
+    except NoOptionError:
+        return False
+
 def getOptres():
     try:
         optres = config.get('Server', 'optres')
