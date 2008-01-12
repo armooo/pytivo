@@ -181,7 +181,7 @@ def getAudioBR(tsn = None):
 def getAudioCodec(tsn = None):
     #check for HD tivo and return compatible audio parameters
     if tsn and tsn[:3] in getHDtivos():
-        return '-acodec ac3 -vol 128 -ar 48000'
+        return '-acodec ac3 -ar 48000'
     else:
         return '-acodec mp2 -ac 2 -ar 44100'
 
