@@ -143,7 +143,7 @@ class Photo(Plugin):
 
         # Load
         try:
-            pic = Image.open(infile)
+            pic = Image.open(unicode(infile, 'utf-8'))
         except Exception, msg:
             print 'Could not open', infile, '--', msg
             handler.send_error(404)
@@ -280,7 +280,7 @@ class Photo(Plugin):
 
             item = {}
             item['path'] = f.name
-            item['part_path'] = f.name.replace(local_base_path, '')
+            item['part_path'] = f.name.replace(local_base_path, '', 1)
             item['name'] = os.path.split(f.name)[1]
             item['is_dir'] = f.isdir
             item['rotation'] = 0
@@ -333,9 +333,11 @@ class Photo(Plugin):
 
         def build_recursive_list(path, recurse=True):
             files = []
+            path = unicode(path, 'utf-8')
             for f in os.listdir(path):
                 f = os.path.join(path, f)
                 isdir = os.path.isdir(f)
+                f = f.encode('utf-8')
                 if recurse and isdir:
                     files.extend(build_recursive_list(f))
                 else:
@@ -402,7 +404,8 @@ class Photo(Plugin):
                 if start:
                     local_base_path = self.get_local_base_path(handler, query)
                     start = unquote(start)
-                    start = start.replace(os.path.sep + cname, local_base_path)
+                    start = start.replace(os.path.sep + cname,
+                                          local_base_path, 1)
                     filenames = [x.name for x in filelist.files]
                     try:
                         index = filenames.index(start)

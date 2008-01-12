@@ -1,5 +1,5 @@
 from Tkinter import *
-import ConfigParser
+import os, ConfigParser
 
 class pyTivoConfigurator(Frame):
 
@@ -70,7 +70,7 @@ class pyTivoConfigurator(Frame):
             if not self.section:
                 return
             import tkFileDialog
-            dir = tkFileDialog.askdirectory()
+            dir = os.path.normpath(tkFileDialog.askdirectory())
             
             self.config.set(self.section, 'path', dir)
             self.updatePath()

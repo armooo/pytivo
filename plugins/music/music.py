@@ -11,7 +11,8 @@ SCRIPTDIR = os.path.dirname(__file__)
 
 CLASS_NAME = 'Music'
 
-PLAYLISTS = ('.m3u', '.ram', '.pls', '.b4s', '.wpl', '.asx', '.wax', '.wvx')
+PLAYLISTS = ('.m3u', '.m3u8', '.ram', '.pls', '.b4s', '.wpl', '.asx',
+             '.wax', '.wvx')
 
 # Search strings for different playlist types
 asxfile = re.compile('ref +href *= *"(.+)"', re.IGNORECASE).search
@@ -73,6 +74,7 @@ class Music(Plugin):
         o = urlparse("http://fake.host" + handler.path)
         path = unquote(o[2])
         fname = container['path'] + path[len(name) + 1:]
+        fname = unicode(fname, 'utf-8')
         fsize = os.path.getsize(fname)
         handler.send_response(200)
         handler.send_header('Content-Type', 'audio/mpeg')
@@ -115,7 +117,7 @@ class Music(Plugin):
 
             item = {}
             item['path'] = f.name
-            item['part_path'] = f.name.replace(local_base_path, '')
+            item['part_path'] = f.name.replace(local_base_path, '', 1)
             item['name'] = os.path.split(f.name)[1]
             item['is_dir'] = f.isdir
             item['is_playlist'] = f.isplay
@@ -131,7 +133,7 @@ class Music(Plugin):
                 return item
 
             try:
-                audioFile = eyeD3.Mp3AudioFile(f.name)
+                audioFile = eyeD3.Mp3AudioFile(unicode(f.name, 'utf-8'))
                 item['Duration'] = audioFile.getPlayTime() * 1000
 
                 tag = audioFile.getTag()
@@ -182,19 +184,26 @@ class Music(Plugin):
         handler.wfile.write(page)
 
     def parse_playlist(self, list_name, recurse):
+
+        ext = os.path.splitext(list_name)[1].lower()
+
         try:
             url = list_name.index('http://')
             list_name = list_name[url:]
             list_file = urllib.urlopen(list_name)
         except:
-            list_file = open(list_name)
+            list_file = open(unicode(list_name, 'utf-8'))
             local_path = os.path.sep.join(list_name.split(os.path.sep)[:-1])
 
-        ext = os.path.splitext(list_name)[1].lower()
+        if ext in ('.m3u', '.pls'):
+            charset = 'iso-8859-1'
+        else:
+            charset = 'utf-8'
 
         if ext in ('.wpl', '.asx', '.wax', '.wvx', '.b4s'):
             playlist = []
             for line in list_file:
+                line = unicode(line, charset).encode('utf-8')
                 if ext == '.wpl':
                     s = wplfile(line)
                 elif ext == '.b4s':
@@ -207,6 +216,7 @@ class Music(Plugin):
         elif ext == '.pls':
             names, titles, lengths = {}, {}, {}
             for line in list_file:
+                line = unicode(line, charset).encode('utf-8')
                 s = plsfile(line)
                 if s:
                     names[s.group(1)] = s.group(2)
@@ -227,21 +237,21 @@ class Music(Plugin):
                     f.duration = lengths[key]
                 playlist.append(f)
 
-        else: # ext == '.m3u' or '.ram'
+        else: # ext == '.m3u' or '.m3u8' or '.ram'
             duration, title = 0, ''
             playlist = []
-            for x in list_file:
-                x = x.strip()
-                if x:
-                    if x.startswith('#EXTINF:'):
+            for line in list_file:
+                line = unicode(line.strip(), charset).encode('utf-8')
+                if line:
+                    if line.startswith('#EXTINF:'):
                         try:
-                            duration, title = x[8:].split(',')
+                            duration, title = line[8:].split(',')
                             duration = int(duration)
                         except ValueError:
                             duration = 0
 
-                    elif not x.startswith('#'):
-                        f = FileData(x, False)
+                    elif not line.startswith('#'):
+                        f = FileData(line, False)
                         f.title = title.strip()
                         f.duration = duration
                         playlist.append(f)
@@ -280,9 +290,11 @@ class Music(Plugin):
  
         def build_recursive_list(path, recurse=True):
             files = []
+            path = unicode(path, 'utf-8')
             for f in os.listdir(path):
                 f = os.path.join(path, f)
                 isdir = os.path.isdir(f)
+                f = f.encode('utf-8')
                 if recurse and isdir:
                     files.extend(build_recursive_list(f))
                 else:
@@ -347,7 +359,8 @@ class Music(Plugin):
                 if start:
                     local_base_path = self.get_local_base_path(handler, query)
                     start = unquote(start)
-                    start = start.replace(os.path.sep + cname, local_base_path)
+                    start = start.replace(os.path.sep + cname,
+                                          local_base_path, 1)
                     filenames = [x.name for x in filelist.files]
                     try:
                         index = filenames.index(start)
@@ -356,10 +369,7 @@ class Music(Plugin):
                     except ValueError:
                         print 'Start not found:', start
             else:
-                if 'Type' in sortby:
-                    filelist.files.sort(dir_sort)
-                else:
-                    filelist.files.sort(name_sort)
+                filelist.files.sort(dir_sort)
 
             filelist.sortby = sortby
             filelist.unsorted = False

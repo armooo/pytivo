@@ -44,14 +44,14 @@ class Plugin(object):
         subcname = query['Container'][0]
         container = handler.server.containers[subcname.split('/')[0]]
 
-        return container['path']
+        return os.path.normpath(container['path'])
 
     def get_local_path(self, handler, query):
 
         subcname = query['Container'][0]
         container = handler.server.containers[subcname.split('/')[0]]
 
-        path = container['path']
+        path = os.path.normpath(container['path'])
         for folder in subcname.split('/')[1:]:
             if folder == '..':
                 return False
@@ -75,9 +75,9 @@ class Plugin(object):
 
                 anchor = query['AnchorItem'][0]
                 if anchor.startswith(bs):
-                    anchor = anchor.replace(bs, '/')
+                    anchor = anchor.replace(bs, '/', 1)
                 anchor = unquote(anchor)
-                anchor = anchor.replace(os.path.sep + cname, local_base_path)
+                anchor = anchor.replace(os.path.sep + cname, local_base_path, 1)
                 if not '://' in anchor:
                     anchor = os.path.normpath(anchor)
 

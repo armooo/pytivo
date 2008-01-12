@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TvBusMarshalledStruct:TvBusEnvelope xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xmlns:TvBusMarshalledStruct="http://tivo.com/developer/xml/idl/TvBusMarshalledStruct" xmlns:TvPgdRecording="http://tivo.com/developer/xml/idl/TvPgdRecording" xmlns:TvBusDuration="http://tivo.com/developer/xml/idl/TvBusDuration" xmlns:TvPgdShowing="http://tivo.com/developer/xml/idl/TvPgdShowing" xmlns:TvDbShowingBit="http://tivo.com/developer/xml/idl/TvDbShowingBit" xmlns:TvBusDateTime="http://tivo.com/developer/xml/idl/TvBusDateTime" xmlns:TvPgdProgram="http://tivo.com/developer/xml/idl/TvPgdProgram" xmlns:TvDbColorCode="http://tivo.com/developer/xml/idl/TvDbColorCode" xmlns:TvPgdSeries="http://tivo.com/developer/xml/idl/TvPgdSeries" xmlns:TvDbShowType="http://tivo.com/developer/xml/idl/TvDbShowType" xmlns:TvPgdChannel="http://tivo.com/developer/xml/idl/TvPgdChannel" xmlns:TvDbTvRating="http://tivo.com/developer/xml/idl/TvDbTvRating" xmlns:TvDbRecordQuality="http://tivo.com/developer/xml/idl/TvDbRecordQuality" xmlns:TvDbBitstreamFormat="http://tivo.com/developer/xml/idl/TvDbBitstreamFormat" xs:schemaLocation="http://tivo.com/developer/xml/idl/TvBusMarshalledStruct TvBusMarshalledStruct.xsd http://tivo.com/developer/xml/idl/TvPgdRecording TvPgdRecording.xsd http://tivo.com/developer/xml/idl/TvBusDuration TvBusDuration.xsd http://tivo.com/developer/xml/idl/TvPgdShowing TvPgdShowing.xsd http://tivo.com/developer/xml/idl/TvDbShowingBit TvDbShowingBit.xsd http://tivo.com/developer/xml/idl/TvBusDateTime TvBusDateTime.xsd http://tivo.com/developer/xml/idl/TvPgdProgram TvPgdProgram.xsd http://tivo.com/developer/xml/idl/TvDbColorCode TvDbColorCode.xsd http://tivo.com/developer/xml/idl/TvPgdSeries TvPgdSeries.xsd http://tivo.com/developer/xml/idl/TvDbShowType TvDbShowType.xsd http://tivo.com/developer/xml/idl/TvPgdChannel TvPgdChannel.xsd http://tivo.com/developer/xml/idl/TvDbTvRating TvDbTvRating.xsd http://tivo.com/developer/xml/idl/TvDbRecordQuality TvDbRecordQuality.xsd http://tivo.com/developer/xml/idl/TvDbBitstreamFormat TvDbBitstreamFormat.xsd" xs:type="TvPgdRecording:TvPgdRecording">
-  <recordedDuration>$video.iso_durarion</recordedDuration>
+  <recordedDuration>$video.iso_duration</recordedDuration>
   <vActualShowing>
     <element>
         <showingBits value="$video.showingBits"/>
         <time>$video.time</time>
-        <duration>$video.iso_durarion</duration>
+        <duration>$video.iso_duration</duration>
         <program>
           <vActor>
                 #for $element in $video.vActor
@@ -25,7 +25,7 @@
                 #for $element in $video.vDirector
                 <element>$escape($element)</element>
                 #end for
-        </vDirector>
+          </vDirector>
           <episodeNumber>$escape($video.episodeNumber)</episodeNumber>
           <episodeTitle>$escape($video.title)</episodeTitle>
           <vExecProducer>
@@ -49,7 +49,14 @@
                 #end for
           </vHost>
           <isEpisode>$video.isEpisode</isEpisode>
+          #if $video.movieYear
+          <movieYear>$video.movieYear</movieYear>
+          #else
           <originalAirDate>$video.originalAirDate</originalAirDate>
+          #end if
+          #if $video.mpaaRating
+          <mpaaRating value="$video.mpaaRating[1]">$video.mpaaRating[0]</mpaaRating>
+          #end if
           <vProducer>
                 #for $element in $video.vProducer
                 <element>$escape($element)</element>
@@ -65,6 +72,9 @@
             <seriesTitle>$escape($video.seriesTitle)</seriesTitle>
           </series>
           <showType value="$video.showType[1]">$video.showType[0]</showType>
+          #if $video.starRating
+          <starRating value="$video.starRating[1]">$video.starRating[0]</starRating>
+          #end if
           <title>$escape($video.seriesTitle)</title>
           <vWriter>
                 #for $element in $video.vWriter
@@ -85,7 +95,7 @@
   <showing>
     <showingBits value="$video.showingBits"/>
     <time>$video.time</time>
-    <duration>$video.iso_durarion</duration>
+    <duration>$video.iso_duration</duration>
     <program>
       <vActor>
             #for $element in $video.vActor
@@ -105,7 +115,7 @@
             #for $element in $video.vDirector
             <element>$escape($element)</element>
             #end for
-    </vDirector>
+      </vDirector>
       <episodeNumber>$escape($video.episodeNumber)</episodeNumber>
       <episodeTitle>$escape($video.title)</episodeTitle>
       <vExecProducer>
@@ -129,7 +139,14 @@
             #end for
       </vHost>
       <isEpisode>$video.isEpisode</isEpisode>
+      #if $video.movieYear
+      <movieYear>$video.movieYear</movieYear>
+      #else
       <originalAirDate>$video.originalAirDate</originalAirDate>
+      #end if
+      #if $video.mpaaRating
+      <mpaaRating value="$video.mpaaRating[1]">$video.mpaaRating[0]</mpaaRating>
+      #end if
       <vProducer>
             #for $element in $video.vProducer
             <element>$escape($element)</element>
@@ -145,6 +162,9 @@
         <seriesTitle>$escape($video.seriesTitle)</seriesTitle>
       </series>
       <showType value="$video.showType[1]">$video.showType[0]</showType>
+      #if $video.starRating
+      <starRating value="$video.starRating[1]">$video.starRating[0]</starRating>
+      #end if
       <title>$escape($video.seriesTitle)</title>
       <vWriter>
             #for $element in $video.vWriter
