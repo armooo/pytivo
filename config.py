@@ -31,11 +31,11 @@ def get169Setting(tsn):
 
     if config.has_section('_tivo_' + tsn):
         if config.has_option('_tivo_' + tsn, 'aspect169'):
-            if config.get('_tivo_' + tsn, 'aspect169').lower() == 'true':
-                return True
-            else:
-                return False    
-    
+            try:
+                return config.getboolean('_tivo_' + tsn, 'aspect169')
+            except ValueError:
+                pass
+
     if tsn[:3] in BLACKLIST_169:
         return False
 
@@ -65,12 +65,8 @@ def getShares():
 
 def getDebug():
     try:
-        debug = config.get('Server', 'debug')
-        if debug.lower() == 'true':
-            return True
-        else:
-            return False
-    except NoOptionError:
+        return config.getboolean('Server', 'debug')
+    except NoOptionError, ValueError:
         return False
 
 def getHack83():
@@ -85,12 +81,8 @@ def getHack83():
 
 def getOptres():
     try:
-        optres = config.get('Server', 'optres')
-        if optres.lower() == 'true':
-            return True
-        else:
-            return False
-    except NoOptionError:
+        return config.getboolean('Server', 'optres')
+    except NoOptionError, ValueError:
         return False
 
 def get(section, key):
@@ -99,12 +91,12 @@ def get(section, key):
 def getFFMPEGTemplate(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            return config.get('_tivo_' + tsn, 'ffmpeg_prams', raw = True)
+            return config.get('_tivo_' + tsn, 'ffmpeg_prams', raw=True)
         except NoOptionError:
             pass
 
     try:
-        return config.get('Server', 'ffmpeg_prams', raw = True)
+        return config.get('Server', 'ffmpeg_prams', raw=True)
     except NoOptionError: #default
         return '-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -'
 
@@ -137,13 +129,13 @@ def nearestTivoWidth(width):
 def getTivoHeight(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            height = int(config.get('_tivo_' + tsn, 'height'))
+            height = config.getint('_tivo_' + tsn, 'height')
             return nearestTivoHeight(height)
         except NoOptionError:
             pass
 
     try:
-        height = int(config.get('Server', 'height'))
+        height = config.getint('Server', 'height')
         return nearestTivoHeight(height)
     except NoOptionError: #default
         return 480
@@ -151,13 +143,13 @@ def getTivoHeight(tsn):
 def getTivoWidth(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            width = int(config.get('_tivo_' + tsn, 'width'))
+            width = config.getint('_tivo_' + tsn, 'width')
             return nearestTivoWidth(width)
         except NoOptionError:
             pass
 
     try:
-        width = int(config.get('Server', 'width'))
+        width = config.getint('Server', 'width')
         return nearestTivoWidth(width)
     except NoOptionError: #default
         return 544
