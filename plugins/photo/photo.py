@@ -107,7 +107,8 @@ class Photo(Plugin):
             handler.wfile.write(data)
 
         path, query = handler.path.split('?')
-        infile = container['path'] + unquote(path)[len(name) + 1:]
+        infile = os.path.join(os.path.normpath(container['path']),
+                              unquote(path)[len(name) + 2:])
         opts = cgi.parse_qs(query)
 
         if 'Format' in opts and opts['Format'][0] != 'image/jpeg':
