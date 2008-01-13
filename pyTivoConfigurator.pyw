@@ -138,7 +138,7 @@ class pyTivoConfigurator(Frame):
         plugin = self.config.get(name, 'type')
 
         if self.config.has_option(name, 'auto_subshares') and \
-           self.config.get(name, 'auto_subshares') == 'True':
+           self.config.getboolean(name, 'auto_subshares'):
             subshares = 1
         else:
             subshares = 0
