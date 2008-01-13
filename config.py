@@ -119,13 +119,13 @@ def nearestTivoWidth(width):
 def getTivoHeight(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            height = int(config.get('_tivo_' + tsn, 'height'))
+            height = config.getint('_tivo_' + tsn, 'height')
             return nearestTivoHeight(height)
         except NoOptionError:
             pass
 
     try:
-        height = int(config.get('Server', 'height'))
+        height = config.getint('Server', 'height')
         return nearestTivoHeight(height)
     except NoOptionError: #default
         return 480
@@ -133,13 +133,13 @@ def getTivoHeight(tsn):
 def getTivoWidth(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            width = int(config.get('_tivo_' + tsn, 'width'))
+            width = config.getint('_tivo_' + tsn, 'width')
             return nearestTivoWidth(width)
         except NoOptionError:
             pass
 
     try:
-        width = int(config.get('Server', 'width'))
+        width = config.getint('Server', 'width')
         return nearestTivoWidth(width)
     except NoOptionError: #default
         return 544
