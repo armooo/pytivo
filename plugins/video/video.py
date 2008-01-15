@@ -91,7 +91,7 @@ class Video(Plugin):
 
         return metadata
 
-    def __metadata(self, full_path):
+    def __metadata(self, full_path, tsn =''):
 
         metadata = {}
 
@@ -110,7 +110,7 @@ class Video(Plugin):
 
         metadata.update( self.__getMetadataFromTxt(full_path) )
         
-        metadata['size'] = self.__est_size(full_path)
+        metadata['size'] = self.__est_size(full_path, tsn)
         metadata['duration'] = duration
 
         min = duration_delta.seconds / 60
@@ -148,7 +148,7 @@ class Video(Plugin):
             video['title'] = os.path.split(file)[1]
             video['is_dir'] = self.__isdir(file)
             if not  video['is_dir']:
-                video.update(self.__metadata(file))
+                video.update(self.__metadata(file, tsn))
 
             videos.append(video)
 
@@ -170,7 +170,7 @@ class Video(Plugin):
         file_path = os.path.join(path, file)
         
         file_info = VideoDetails()
-        file_info.update(self.__metadata(file_path))
+        file_info.update(self.__metadata(file_path, tsn))
 
         handler.send_response(200)
         handler.end_headers()
