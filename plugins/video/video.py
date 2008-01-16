@@ -349,6 +349,7 @@ class Video(Plugin):
 
     def TVBusQuery(self, handler, query):
        
+        tsn =  handler.headers.getheader('tsn', '')
         file = query['File'][0]
         path = self.get_local_path(handler, query)
         file_path = os.path.join(path, file)
