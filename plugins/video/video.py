@@ -123,7 +123,7 @@ class Video(Plugin):
 
     def QueryContainer(self, handler, query):
         
-        tsn =  handler.headers.getheader('tsn', '')
+        tsn = handler.headers.getheader('tsn', '')
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
          
@@ -164,7 +164,8 @@ class Video(Plugin):
         handler.wfile.write(t)
 
     def TVBusQuery(self, handler, query):
-       
+
+        tsn = handler.headers.getheader('tsn', '')       
         file = query['File'][0]
         path = self.get_local_path(handler, query)
         file_path = os.path.join(path, file)
