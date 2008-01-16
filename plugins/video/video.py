@@ -48,7 +48,7 @@ class Video(Plugin):
     def __est_size(self, full_path, tsn = ''):
         #Size is estimated by taking audio and video bit rate adding 2%
 
-        if transcode.tivo_compatable(full_path):  # Is TiVo compatible mpeg2
+        if transcode.tivo_compatable(full_path, tsn):  # Is TiVo compatible mpeg2
             return int(os.stat(full_path).st_size)
         else:  # Must be re-encoded
             audioBPS = config.strtod(config.getAudioBR(tsn))
