@@ -16,7 +16,7 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         self.daemon_threads = True
 
     def add_container(self, name, settings):
-        if self.containers.has_key(name) or name == 'TivoConnect':
+        if self.containers.has_key(name) or name == 'TiVoConnect':
             raise "Container Name in use"
         settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
         self.containers[name] = settings
