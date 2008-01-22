@@ -55,7 +55,7 @@ def transcode(inFile, outFile, tsn=''):
     cmd_string = config.getFFMPEGTemplate(tsn) % settings
 
     cmd = [FFMPEG, '-i', inFile] + cmd_string.split()
-
+    print cmd
     debug_write(['transcode: ffmpeg command is ', ' '.join(cmd), '\n'])
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
@@ -96,7 +96,9 @@ def select_aspect(inFile, tsn = ''):
     multiplier16by9 = (16.0 * TIVO_HEIGHT) / (9.0 * TIVO_WIDTH)
     multiplier4by3  =  (4.0 * TIVO_HEIGHT) / (3.0 * TIVO_WIDTH)
    
-    if (rwidth, rheight) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
+    if tsn[:3] in config.getHDtivos() and height <= TIVO_HEIGHT:
+        return []
+    elif (rwidth, rheight) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
         debug_write(['select_aspect: File is within 4:3 list.\n'])
         return ['-aspect', '4:3', '-s', str(TIVO_WIDTH) + 'x' + str(TIVO_HEIGHT)]
     elif ((rwidth, rheight) in [(16, 9), (20, 11), (40, 33), (118, 81), (59, 27)]) and aspect169:
