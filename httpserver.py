@@ -28,7 +28,7 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         self.daemon_threads = True
 
     def add_container(self, name, settings):
-        if self.containers.has_key(name) or name == 'TivoConnect':
+        if self.containers.has_key(name) or name == 'TiVoConnect':
             raise "Container Name in use"
         settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
         self.containers[name] = settings
@@ -40,12 +40,12 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         return host
 
     def do_GET(self):
+
+        basepath = unquote_plus(self.path).split('/')[1]
  
         ## Get File
         for name, container in self.server.containers.items():
-            #XXX make a regex
-	    path = unquote_plus(self.path)
-            if path.startswith('/' + name):
+            if basepath == name:
                 plugin = GetPlugin(container['type'])
                 plugin.send_file(self, container, name)
                 return
