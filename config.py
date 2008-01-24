@@ -163,8 +163,11 @@ def getAudioBR(tsn = None):
     try:
         audiobr = int(max(int(strtod(config.get('Server', 'audio_br'))/1000), 64)/64)*64
         return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
-    except NoOptionError: #default to 192
-        return '192k'
+    except NoOptionError: #defaults for S3/S2 TiVo
+        if tsn and tsn[:3] in getHDtivos():
+            return '384k'
+        else:
+            return '192k'
 
 def getAudioCodec(tsn = None):
     #check for HD tivo and return compatible audio parameters
