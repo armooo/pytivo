@@ -127,8 +127,11 @@ def getTivoHeight(tsn):
     try:
         height = config.getint('Server', 'height')
         return nearestTivoHeight(height)
-    except NoOptionError: #default
-        return 480
+    except NoOptionError: #defaults for S3/S2 TiVo
+        if tsn and tsn[:3] in getHDtivos():
+            return 720
+        else:
+            return 480
 
 def getTivoWidth(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
@@ -141,8 +144,11 @@ def getTivoWidth(tsn):
     try:
         width = config.getint('Server', 'width')
         return nearestTivoWidth(width)
-    except NoOptionError: #default
-        return 544
+    except NoOptionError: #defaults for S3/S2 TiVo
+        if tsn and tsn[:3] in getHDtivos():
+            return 1280
+        else:
+            return 544
 
 def getAudioBR(tsn = None):
     #convert to non-zero multiple of 64 to ensure ffmpeg compatibility
