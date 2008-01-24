@@ -185,8 +185,11 @@ def getVideoBR(tsn = None):
         
     try:
         return config.get('Server', 'video_br')
-    except NoOptionError: #default to 4096K
-        return '4096K'
+    except NoOptionError: #defaults for S3/S2 TiVo
+        if tsn and tsn[:3] in getHDtivos():
+            return '8192k'
+        else:
+            return '4096K'
 
 def getMaxVideoBR():
     try:
