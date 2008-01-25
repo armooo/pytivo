@@ -96,8 +96,9 @@ def select_aspect(inFile, tsn = ''):
     multiplier16by9 = (16.0 * TIVO_HEIGHT) / (9.0 * TIVO_WIDTH)
     multiplier4by3  =  (4.0 * TIVO_HEIGHT) / (3.0 * TIVO_WIDTH)
    
-    if tsn[:3] in config.getHDtivos() and height <= TIVO_HEIGHT:
-        return []
+    if tsn[:3] in config.getHDtivos() and height <= TIVO_HEIGHT and config.getOptres() == False:
+        return [] #pass all resolutions to S3/HD, except heights greater than conf height
+		# else, optres is enabled and resizes SD video to the "S2" standard on S3/HD.
     elif (rwidth, rheight) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
         debug_write(['select_aspect: File is within 4:3 list.\n'])
         return ['-aspect', '4:3', '-s', str(TIVO_WIDTH) + 'x' + str(TIVO_HEIGHT)]
