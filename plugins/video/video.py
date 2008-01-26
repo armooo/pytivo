@@ -316,8 +316,7 @@ class Video(Plugin):
             handler.end_headers()
             return
         
-        def video_file_filter(file, type = None):
-            full_path = file
+        def video_file_filter(full_path, type = None):
             if os.path.isdir(full_path):
                 return True
             return transcode.supported_format(full_path)
@@ -325,10 +324,12 @@ class Video(Plugin):
         files, total, start = self.get_files(handler, query, video_file_filter)
 
         videos = []
+        local_base_path = self.get_local_base_path(handler, query)
         for file in files:
             video = VideoDetails()
             video['name'] = os.path.split(file)[1]
             video['path'] = file
+            video['part_path'] = file.replace(local_base_path, '', 1)
             video['title'] = os.path.split(file)[1]
             video['is_dir'] = self.__isdir(file)
             if not  video['is_dir']:
@@ -339,6 +340,7 @@ class Video(Plugin):
         handler.send_response(200)
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'container.tmpl'))
+        t.container = cname
         t.name = subcname
         t.total = total
         t.start = start
@@ -352,8 +354,8 @@ class Video(Plugin):
         tsn = handler.headers.getheader('tsn', '')       
         file = query['File'][0]
         path = self.get_local_path(handler, query)
-        file_path = os.path.join(path, file)
-        
+        file_path = path + file
+
         file_info = VideoDetails()
         file_info.update(self.__metadata(file_path, tsn))
 
