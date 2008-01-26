@@ -132,8 +132,7 @@ class Video(Plugin):
             handler.end_headers()
             return
         
-        def video_file_filter(file, type = None):
-            full_path = file
+        def video_file_filter(full_path, type = None):
             if os.path.isdir(full_path):
                 return True
             return transcode.supported_format(full_path)
