@@ -40,7 +40,7 @@
             <Content>
                 <ContentType>video/x-tivo-mpeg</ContentType>
                     <AcceptsParams>No</AcceptsParams>
-                    <Url>/$quote($name)/$quote($video.name)</Url>
+                    <Url>/$quote($container)$quote($video.part_path)</Url>
                 </Content>
                 <CustomIcon>
                     <ContentType>video/*</ContentType>
@@ -50,7 +50,7 @@
             <TiVoVideoDetails>
                 <ContentType>text/xml</ContentType>
                 <AcceptsParams>No</AcceptsParams>
-                <Url>/TiVoConnect?Command=TVBusQuery&amp;Container=$escape($name)&amp;File=$quote($video.name)</Url>
+                <Url>/TiVoConnect?Command=TVBusQuery&amp;Container=$escape($container)&amp;File=$quote($video.part_path)</Url>
             </TiVoVideoDetails>
         </Links>
     </Item>
