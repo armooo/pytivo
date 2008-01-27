@@ -192,7 +192,6 @@ class Video(Plugin):
             handler.send_header('Connection', 'close')
             handler.send_header('Content-Type', 'video/x-tivo-mpeg')
             handler.send_header('Transfer-Encoding', 'chunked')
-            handler.send_header('Server', 'TiVo Server/1.4.257.475')
             handler.end_headers()
             handler.wfile.write("\x30\x0D\x0A")
             return
