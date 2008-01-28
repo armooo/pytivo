@@ -59,12 +59,12 @@ class Video(Plugin):
         if 'AnchorItem' in query and (query['AnchorItem']) != ['Hack8.3']:
             if "".join(query['AnchorItem']).find('Container=') >= 0:
                 #This is a folder
-                queryAnchor = unquote_plus("".join(query['AnchorItem'])).split('Container=')[-1]
-                (leftAnchor, rightAnchor) = queryAnchor.rsplit('/', 1)
+                queryAnchor = unquote("".join(query['AnchorItem'])).split('Container=')[-1]
+                (leftAnchor, rightAnchor) = queryAnchor.rsplit(os.path.sep, 1)
             else:
                 #This is a file
-                queryAnchor = unquote_plus("".join(query['AnchorItem'])).split('/',1)[-1]
-                (leftAnchor, rightAnchor) = queryAnchor.rsplit('/', 1)
+                queryAnchor = unquote("".join(query['AnchorItem'])).split('/',1)[-1]
+                (leftAnchor, rightAnchor) = queryAnchor.rsplit(os.path.sep, 1)
             debug_write(['Hack queryAnchor: ', queryAnchor, ' leftAnchor: ', leftAnchor, ' rightAnchor: ', rightAnchor, '\n'])
         
         try:
