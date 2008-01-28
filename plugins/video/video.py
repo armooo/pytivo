@@ -1,13 +1,19 @@
-import transcode, os, socket, re
+import transcode, os, socket, re, urllib
 from Cheetah.Template import Template
 from plugin import Plugin
-from urllib import unquote_plus, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
 from UserDict import DictMixin
 from datetime import datetime, timedelta
 import config
+
+if os.path.sep == '/':
+    quote = urllib.quote
+    unquote = urllib.unquote_plus
+else:
+    quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
+    unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -32,7 +38,7 @@ class Video(Plugin):
         tsn =  handler.headers.getheader('tsn', '')
 
         o = urlparse("http://fake.host" + handler.path)
-        path = unquote_plus(o[2])
+        path = unquote(o[2])
         handler.send_response(200)
         handler.end_headers()
         transcode.output_video(container['path'] + path[len(name)+1:], handler.wfile, tsn)
