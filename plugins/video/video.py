@@ -20,13 +20,12 @@ SCRIPTDIR = os.path.dirname(__file__)
 CLASS_NAME = 'Video'
 
 class Video(Plugin):
-    
+
     CONTENT_TYPE = 'x-container/tivo-videos'
 
     def send_file(self, handler, container, name):
-        
-        #No longer a 'cheep' hack :p
-        if handler.headers.getheader('Range') and not handler.headers.getheader('Range') == 'bytes=0-':
+        if handler.headers.getheader('Range') and \
+           handler.headers.getheader('Range') != 'bytes=0-':
             handler.send_response(206)
             handler.send_header('Connection', 'close')
             handler.send_header('Content-Type', 'video/x-tivo-mpeg')
@@ -41,8 +40,8 @@ class Video(Plugin):
         path = unquote(o[2])
         handler.send_response(200)
         handler.end_headers()
-        transcode.output_video(container['path'] + path[len(name)+1:], handler.wfile, tsn)
-        
+        transcode.output_video(container['path'] + path[len(name) + 1:],
+                               handler.wfile, tsn)
 
     def __isdir(self, full_path):
         return os.path.isdir(full_path)
@@ -51,16 +50,19 @@ class Video(Plugin):
         return transcode.video_info(full_path)[4]
 
     def __est_size(self, full_path, tsn = ''):
-        #Size is estimated by taking audio and video bit rate adding 2%
+        # Size is estimated by taking audio and video bit rate adding 2%
 
-        if transcode.tivo_compatable(full_path, tsn):  # Is TiVo compatible mpeg2
+        if transcode.tivo_compatable(full_path, tsn):
+            # Is TiVo-compatible mpeg2
             return int(os.stat(full_path).st_size)
-        else:  # Must be re-encoded
+        else:
+            # Must be re-encoded
             audioBPS = config.strtod(config.getAudioBR(tsn))
             videoBPS = config.strtod(config.getVideoBR(tsn))
             bitrate =  audioBPS + videoBPS
-            return int((self.__duration(full_path)/1000)*(bitrate * 1.02 / 8))
-   
+            return int((self.__duration(full_path) / 1000) *
+                       (bitrate * 1.02 / 8))
+
     def __getMetadataFromTxt(self, full_path):
         metadata = {}
 
@@ -97,7 +99,6 @@ class Video(Plugin):
         return metadata
 
     def __metadata(self, full_path, tsn =''):
-
         metadata = {}
 
         base_path, title = os.path.split(full_path)
@@ -105,7 +106,7 @@ class Video(Plugin):
         originalAirDate = datetime.fromtimestamp(os.stat(full_path).st_ctime)
         duration = self.__duration(full_path)
         duration_delta = timedelta(milliseconds = duration)
-        
+
         metadata['title'] = '.'.join(title.split('.')[:-1])
         metadata['seriesTitle'] = metadata['title'] # default to the filename
         metadata['originalAirDate'] = originalAirDate.isoformat()
@@ -114,7 +115,7 @@ class Video(Plugin):
         metadata['stopTime'] = (now + duration_delta).isoformat()
 
         metadata.update( self.__getMetadataFromTxt(full_path) )
-        
+
         metadata['size'] = self.__est_size(full_path, tsn)
         metadata['duration'] = duration
 
@@ -122,21 +123,22 @@ class Video(Plugin):
         sec = duration_delta.seconds % 60
         hours = min / 60
         min = min % 60
-        metadata['iso_duration'] = 'P' + str(duration_delta.days) + 'DT' + str(hours) + 'H' + str(min) + 'M' + str(sec) + 'S'
-
+        metadata['iso_duration'] = 'P' + str(duration_delta.days) + \
+                                   'DT' + str(hours) + 'H' + str(min) + \
+                                   'M' + str(sec) + 'S'
         return metadata
 
     def QueryContainer(self, handler, query):
-        
         tsn = handler.headers.getheader('tsn', '')
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
-         
-        if not handler.server.containers.has_key(cname) or not self.get_local_path(handler, query):
+
+        if not handler.server.containers.has_key(cname) or \
+           not self.get_local_path(handler, query):
             handler.send_response(404)
             handler.end_headers()
             return
-        
+
         def video_file_filter(full_path, type = None):
             if os.path.isdir(full_path):
                 return True
@@ -153,7 +155,7 @@ class Video(Plugin):
             video['part_path'] = file.replace(local_base_path, '', 1)
             video['title'] = os.path.split(file)[1]
             video['is_dir'] = self.__isdir(file)
-            if not  video['is_dir']:
+            if not video['is_dir']:
                 video.update(self.__metadata(file, tsn))
 
             videos.append(video)
@@ -171,7 +173,6 @@ class Video(Plugin):
         handler.wfile.write(t)
 
     def TVBusQuery(self, handler, query):
-
         tsn = handler.headers.getheader('tsn', '')       
         file = query['File'][0]
         path = self.get_local_path(handler, query)
@@ -186,10 +187,10 @@ class Video(Plugin):
         t.video = file_info
         t.escape = escape
         handler.wfile.write(t)
-    
+
 class VideoDetails(DictMixin):
-   
-    def __init__(self, d = None):
+
+    def __init__(self, d=None):
         if d:
             self.d = d
         else:
@@ -208,10 +209,10 @@ class VideoDetails(DictMixin):
 
     def __delitem__(self):
         del self.d[key]
-    
+
     def keys(self):
         return self.d.keys()
-    
+
     def __iter__(self):
         return self.d.__iter__()
 
@@ -227,7 +228,7 @@ class VideoDetails(DictMixin):
             'isEpisode' : 'true',
             'colorCode' : ('COLOR', '4'),
             'showType' : ('SERIES', '5'),
-            'tvRating' : ('NR', '7'),
+            'tvRating' : ('NR', '7')
         }
         if key in defaults:
             return defaults[key]
