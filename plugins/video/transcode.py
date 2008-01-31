@@ -78,7 +78,16 @@ def select_audiocodec(inFile, tsn = ''):
         else:
             return '-acodec ac3 -ar 48000'
     else:
-        return '-acodec mp2 -ac 2 -ar 44100'
+        if acodec == 'mp2':
+            if (inFile[-4:]).lower() == '.mkv':
+                return '-acodec copy'
+            elif not akbps == None and \
+                 int(akbps) <= config.getMaxAudioBR(tsn):
+                return '-acodec copy'
+            else:
+                return '-acodec mp2 -ac 2 -ar 44100'
+        else:
+            return '-acodec mp2 -ac 2 -ar 44100'
 
 def select_aspect(inFile, tsn = ''):
     TIVO_WIDTH = config.getTivoWidth(tsn)
