@@ -88,7 +88,7 @@ def getFFMPEGTemplate(tsn):
     try:
         return config.get('Server', 'ffmpeg_prams', raw=True)
     except NoOptionError: #default
-        return '-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -'
+        return '-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -copyts -f vob -'
 
 def getHDtivos():  # tsn's of High Definition Tivo's
     return ['648', '652']
