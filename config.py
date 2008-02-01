@@ -169,13 +169,6 @@ def getAudioBR(tsn = None):
         else:
             return '192k'
 
-def getAudioCodec(tsn = None):
-    #check for HD tivo and return compatible audio parameters
-    if tsn and tsn[:3] in getHDtivos():
-        return '-acodec ac3 -ar 48000'
-    else:
-        return '-acodec mp2 -ac 2 -ar 44100'
-
 def getVideoBR(tsn = None):
     if tsn and config.has_section('_tivo_' + tsn):
         try:

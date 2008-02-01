@@ -46,7 +46,7 @@ def transcode(inFile, outFile, tsn=''):
 
     settings = {}
     settings['audio_br'] = config.getAudioBR(tsn)
-    settings['audio_codec'] = config.getAudioCodec(tsn)
+    settings['audio_codec'] = select_audiocodec(tsn)
     settings['video_br'] = config.getVideoBR(tsn)
     settings['max_video_br'] = config.getMaxVideoBR()
     settings['buff_size'] = BUFF_SIZE
@@ -62,7 +62,14 @@ def transcode(inFile, outFile, tsn=''):
         shutil.copyfileobj(ffmpeg.stdout, outFile)
     except:
         kill(ffmpeg.pid)
-       
+
+def select_audiocodec(tsn = ''):
+    #check for HD tivo and return compatible audio parameters
+    if tsn and tsn[:3] in config.getHDtivos():
+        return '-acodec ac3 -ar 48000'
+    else:
+        return '-acodec mp2 -ac 2 -ar 44100'
+
 def select_aspect(inFile, tsn = ''):
     TIVO_WIDTH = config.getTivoWidth(tsn)
     TIVO_HEIGHT = config.getTivoHeight(tsn)
