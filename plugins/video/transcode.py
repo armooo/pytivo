@@ -64,18 +64,21 @@ def transcode(inFile, outFile, tsn=''):
         kill(ffmpeg.pid)
 
 def select_audiocodec(inFile, tsn = ''):
-    #check for HD tivo and return compatible audio parameters
     type, width, height, fps, millisecs, kbps, akbps, acodec =  video_info(inFile)
+    # Default, compatible with all TiVo's
     codec = '-acodec mp2 -ac 2 -ar 44100'
     if tsn and tsn[:3] in config.getHDtivos():
+        # Is HD Tivo, use ac3
         codec = '-acodec ac3 -ar 48000'
         if acodec == 'liba52':
             if (not akbps == None and int(akbps) <= config.getMaxAudioBR(tsn)) or \
                 (inFile[-4:]).lower() == '.mkv':
+                # compatible codec and bitrate, do not reencode audio
                 codec = '-acodec copy'
     if acodec == 'mp2':
         if (not akbps == None and int(akbps) <= config.getMaxAudioBR(tsn)) or \
             (inFile[-4:]).lower() == '.mkv':
+            # compatible codec and bitrate, do not reencode audio
             codec = '-acodec copy'
     return codec
 
