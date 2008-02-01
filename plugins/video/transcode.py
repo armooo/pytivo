@@ -66,28 +66,18 @@ def transcode(inFile, outFile, tsn=''):
 def select_audiocodec(inFile, tsn = ''):
     #check for HD tivo and return compatible audio parameters
     type, width, height, fps, millisecs, kbps, akbps, acodec =  video_info(inFile)
+    codec = '-acodec mp2 -ac 2 -ar 44100'
     if tsn and tsn[:3] in config.getHDtivos():
+        codec = '-acodec ac3 -ar 48000'
         if acodec == 'liba52':
-            if (inFile[-4:]).lower() == '.mkv':
-                return '-acodec copy'
-            elif not akbps == None and \
-                 int(akbps) <= config.getMaxAudioBR(tsn):
-                return '-acodec copy'
-            else:
-                return '-acodec ac3 -ar 48000'
-        else:
-            return '-acodec ac3 -ar 48000'
-    else:
-        if acodec == 'mp2':
-            if (inFile[-4:]).lower() == '.mkv':
-                return '-acodec copy'
-            elif not akbps == None and \
-                 int(akbps) <= config.getMaxAudioBR(tsn):
-                return '-acodec copy'
-            else:
-                return '-acodec mp2 -ac 2 -ar 44100'
-        else:
-            return '-acodec mp2 -ac 2 -ar 44100'
+            if (not akbps == None and int(akbps) <= config.getMaxAudioBR(tsn)) or \
+                (inFile[-4:]).lower() == '.mkv':
+                codec = '-acodec copy'
+    if acodec == 'mp2':
+        if (not akbps == None and int(akbps) <= config.getMaxAudioBR(tsn)) or \
+            (inFile[-4:]).lower() == '.mkv':
+            codec = '-acodec copy'
+    return codec
 
 def select_aspect(inFile, tsn = ''):
     TIVO_WIDTH = config.getTivoWidth(tsn)
