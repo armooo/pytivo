@@ -94,7 +94,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         t = Template(file=os.path.join(SCRIPTDIR,'templates','unsupported.tmpl'))
         t.query = query
         self.wfile.write(t)
-       
+
 if __name__ == '__main__':
     def start_server():
         httpd = TivoHTTPServer(('', 9032), TivoHTTPHandler)
