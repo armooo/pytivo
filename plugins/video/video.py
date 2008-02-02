@@ -1,19 +1,12 @@
 import transcode, os, socket, re, urllib
 from Cheetah.Template import Template
-from plugin import Plugin
+from plugin import Plugin, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
 from UserDict import DictMixin
 from datetime import datetime, timedelta
 import config
-
-if os.path.sep == '/':
-    quote = urllib.quote
-    unquote = urllib.unquote_plus
-else:
-    quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
-    unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -22,6 +15,11 @@ CLASS_NAME = 'Video'
 class Video(Plugin):
 
     CONTENT_TYPE = 'x-container/tivo-videos'
+
+    def video_file_filter(self, full_path, type=None):
+        if os.path.isdir(full_path):
+            return True
+        return transcode.supported_format(full_path)
 
     def send_file(self, handler, container, name):
         if handler.headers.getheader('Range') and \
@@ -139,12 +137,8 @@ class Video(Plugin):
             handler.end_headers()
             return
 
-        def video_file_filter(full_path, type = None):
-            if os.path.isdir(full_path):
-                return True
-            return transcode.supported_format(full_path)
-
-        files, total, start = self.get_files(handler, query, video_file_filter)
+        files, total, start = self.get_files(handler, query,
+                                             self.video_file_filter)
 
         videos = []
         local_base_path = self.get_local_base_path(handler, query)
