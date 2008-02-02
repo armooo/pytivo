@@ -3,11 +3,10 @@ import config
 
 info_cache = lrucache.LRUCache(1000)
 
-
 debug = config.getDebug()
 BUFF_SIZE = config.getBuffSize()
-
 FFMPEG = config.get('Server', 'ffmpeg')
+videotest = os.path.join(os.path.dirname(__file__), 'videotest.mpg')
 
 def debug_write(data):
     if debug:
@@ -31,7 +30,7 @@ def patchSubprocess():
 mswindows = (sys.platform == "win32")
 if mswindows:
     patchSubprocess()
-        
+
 def output_video(inFile, outFile, tsn=''):
     if tivo_compatable(inFile, tsn):
         debug_write(['output_video: ', inFile, ' is tivo compatible\n'])
@@ -64,28 +63,30 @@ def transcode(inFile, outFile, tsn=''):
         kill(ffmpeg.pid)
 
 def select_audiocodec(inFile, tsn = ''):
-    type, width, height, fps, millisecs, kbps, akbps, acodec =  video_info(inFile)
     # Default, compatible with all TiVo's
     codec = '-acodec mp2 -ac 2 -ar 44100'
+    type, width, height, fps, millisecs, kbps, akbps, acodec =  video_info(inFile)
+    if akbps == None and acodec in ('liba52', 'mp2'):
+        cmd_string = '-y -vcodec mpeg2video -r 29.97 -b 1000k -acodec copy -t 00:00:01 -f vob -'
+        if video_check(inFile, cmd_string):
+            type, width, height, fps, millisecs, kbps, akbps, acodec =  video_info(videotest)
     if tsn and tsn[:3] in config.getHDtivos():
         # Is HD Tivo, use ac3
         codec = '-acodec ac3 -ar 48000'
-        if acodec == 'liba52':
-            if (not akbps == None and int(akbps) <= config.getMaxAudioBR(tsn)) or \
-                (inFile[-4:]).lower() == '.mkv':
-                # compatible codec and bitrate, do not reencode audio
-                codec = '-acodec copy'
-    if acodec == 'mp2':
-        if (not akbps == None and int(akbps) <= config.getMaxAudioBR(tsn)) or \
-            (inFile[-4:]).lower() == '.mkv':
+        if acodec == 'liba52' and not akbps == None and \
+            int(akbps) <= config.getMaxAudioBR(tsn):
             # compatible codec and bitrate, do not reencode audio
             codec = '-acodec copy'
+    if acodec == 'mp2' and not akbps == None and \
+        int(akbps) <= config.getMaxAudioBR(tsn):
+        # compatible codec and bitrate, do not reencode audio
+        codec = '-acodec copy'
     return codec
 
 def select_aspect(inFile, tsn = ''):
     TIVO_WIDTH = config.getTivoWidth(tsn)
     TIVO_HEIGHT = config.getTivoHeight(tsn)
-    
+
     type, width, height, fps, millisecs, kbps, akbps, acodec =  video_info(inFile)
 
     debug_write(['tsn:', tsn, '\n'])
@@ -114,7 +115,7 @@ def select_aspect(inFile, tsn = ''):
 
     multiplier16by9 = (16.0 * TIVO_HEIGHT) / (9.0 * TIVO_WIDTH)
     multiplier4by3  =  (4.0 * TIVO_HEIGHT) / (3.0 * TIVO_WIDTH)
-   
+
     if tsn[:3] in config.getHDtivos() and height <= TIVO_HEIGHT and config.getOptres() == False:
         return [] #pass all resolutions to S3/HD, except heights greater than conf height
 		# else, optres is enabled and resizes SD video to the "S2" standard on S3/HD.
@@ -274,9 +275,10 @@ def tivo_compatable(inFile, tsn = ''):
 
 def video_info(inFile):
     mtime = os.stat(inFile).st_mtime
-    if inFile in info_cache and info_cache[inFile][0] == mtime:
-        debug_write(['video_info: ', inFile, ' cache hit!', '\n'])
-        return info_cache[inFile][1]
+    if inFile != videotest:
+        if inFile in info_cache and info_cache[inFile][0] == mtime:
+            debug_write(['video_info: ', inFile, ' cache hit!', '\n'])
+            return info_cache[inFile][1]
 
     if (inFile[-5:]).lower() == '.tivo':
         info_cache[inFile] = (mtime, (True, True, True, True, True, True, True, True))
@@ -381,6 +383,16 @@ def video_info(inFile):
     info_cache[inFile] = (mtime, (codec, width, height, fps, millisecs, kbps, akbps, acodec))
     debug_write(['video_info: Codec=', codec, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, ' kbps=', kbps, ' akbps=', akbps, ' acodec=', acodec, '\n'])
     return codec, width, height, fps, millisecs, kbps, akbps, acodec
+
+def video_check(inFile, cmd_string):
+    cmd = [FFMPEG, '-i', inFile] + cmd_string.split()
+    ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    try:
+        shutil.copyfileobj(ffmpeg.stdout, open(videotest, 'wb'))
+        return True
+    except:
+        kill(ffmpeg.pid)
+        return False
 
 def supported_format(inFile):
     if video_info(inFile)[0]:
