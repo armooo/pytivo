@@ -44,6 +44,11 @@ class Video(Plugin):
     count = 0
     request_history = {}
 
+    def video_file_filter(self, full_path, type=None):
+        if os.path.isdir(full_path):
+            return True
+        return transcode.supported_format(full_path)
+
     def hack(self, handler, query, subcname):
         debug_write(['Hack new request ------------------------', '\n'])
         debug_write(['Hack TiVo request is: \n', query, '\n'])
@@ -51,7 +56,7 @@ class Video(Plugin):
         rightAnchor = ''
         leftAnchor = ''
         tsn =  handler.headers.getheader('tsn', '')
-        
+
         #not a tivo
         if not tsn:
             debug_write(['Hack this was not a TiVo request.', '\n'])
@@ -61,14 +66,14 @@ class Video(Plugin):
         if 'AnchorItem' in query and (query['AnchorItem']) != ['Hack8.3']:
             if "".join(query['AnchorItem']).find('Container=') >= 0:
                 #This is a folder
-                queryAnchor = unquote("".join(query['AnchorItem'])).split('Container=')[-1]
-                (leftAnchor, rightAnchor) = queryAnchor.rsplit(os.path.sep, 1)
+                queryAnchor = urllib.unquote_plus("".join(query['AnchorItem'])).split('Container=')[-1]
+                (leftAnchor, rightAnchor) = queryAnchor.rsplit('/', 1)
             else:
                 #This is a file
-                queryAnchor = unquote("".join(query['AnchorItem'])).split(os.path.sep,1)[-1]
-                (leftAnchor, rightAnchor) = queryAnchor.rsplit(os.path.sep, 1)
+                queryAnchor = urllib.unquote_plus("".join(query['AnchorItem'])).split('/', 1)[-1]
+                (leftAnchor, rightAnchor) = queryAnchor.rsplit('/', 1)
             debug_write(['Hack queryAnchor: ', queryAnchor, ' leftAnchor: ', leftAnchor, ' rightAnchor: ', rightAnchor, '\n'])
-        
+
         try:
             path, state, = self.request_history[tsn]
         except KeyError:
@@ -84,13 +89,6 @@ class Video(Plugin):
         debug_write(['Hack our saved request is: \n', state['query'], '\n'])
 
         current_folder = subcname.split('/')[-1]
-
-        #Needed to get list of files
-        def video_file_filter(file, type = None):
-	    full_path = file
-	    if os.path.isdir(full_path):
-	        return True
-            return transcode.supported_format(full_path)
 
         #Begin figuring out what the request TiVo sent us means
         #There are 7 options that can occur
@@ -111,8 +109,8 @@ class Video(Plugin):
             path[:] = subcname.split('/')
             state['query'] = query
             state['time'] = int(time.time())
-            filePath = self.get_local_path(handler, state['query'])
-            files, total, start = self.get_files(handler, state['query'], video_file_filter)
+            files, total, start = self.get_files(handler, state['query'], 
+                                                 self.video_file_filter)
             if len(files) >= 1:
                 state['page'] = files[0]
             else:
@@ -151,15 +149,16 @@ class Video(Plugin):
             if leftAnchor == str("/".join(path)):
                 debug_write(['Hack leftAnchor matched.', '\n'])
                 query['Container'] = ["/".join(path)]
-                filePath = self.get_local_path(handler, query)
-                files, total, start = self.get_files(handler, query, video_file_filter)
-                debug_write(['Hack saved page is= ', state['page'], ' top returned file is= ', files[0], '\n'])
+                files, total, start = self.get_files(handler, query, 
+                                                     self.video_file_filter)
+                debug_write(['Hack saved page is= ', state['page'],
+                             ' top returned file is= ', files[0], '\n'])
                 #If the first file returned equals the top of the page
                 #then we haven't scrolled pages
                 if files[0] != str(state['page']):
                     debug_write(['Hack this is scrolling within a folder.', '\n'])
-                    filePath = self.get_local_path(handler, query)
-                    files, total, start = self.get_files(handler, query, video_file_filter)
+                    files, total, start = self.get_files(handler, query,
+                                                         self.video_file_filter)
                     state['page'] = files[0]
                     return query, path               
 
@@ -171,8 +170,8 @@ class Video(Plugin):
         #just use that request.
         if (int(time.time()) - state['time']) <= 1:
             debug_write(['Hack erroneous request, send a 302 error', '\n'])
-            filePath = self.get_local_path(handler, query)
-            files, total, start = self.get_files(handler, query, video_file_filter)
+            files, total, start = self.get_files(handler, query,
+                                                 self.video_file_filter)
             return None, path
         #7. this is a request to exit a folder
         #this request came by itself it must be to exit a folder
@@ -325,12 +324,8 @@ class Video(Plugin):
             handler.end_headers()
             return
 
-        def video_file_filter(full_path, type = None):
-            if os.path.isdir(full_path):
-                return True
-            return transcode.supported_format(full_path)
-
-        files, total, start = self.get_files(handler, query, video_file_filter)
+        files, total, start = self.get_files(handler, query,
+                                             self.video_file_filter)
 
         videos = []
         local_base_path = self.get_local_base_path(handler, query)
