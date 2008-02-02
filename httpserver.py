@@ -8,8 +8,10 @@ import config
 from xml.sax.saxutils import escape
 
 SCRIPTDIR = os.path.dirname(__file__)
+
 debug = config.getDebug()
 hack83 = config.getHack83()
+
 def debug_write(data):
     if debug:
         debug_out = []
