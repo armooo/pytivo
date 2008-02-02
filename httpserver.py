@@ -108,21 +108,15 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 debug_write(['Unsupported request, yup it is video send to video plugin for it to sort out.', '\n'])
                 method = getattr(plugin, command)
                 method(self, query)
-            else:        
-                self.send_response(404)
-		self.send_header('Content-type', 'text/html')
-		self.end_headers()
-		t = Template(file=os.path.join(SCRIPTDIR,'templates','unsupported.tmpl'))
-		t.query = query
-		self.wfile.write(t)
-        else:
-		self.send_response(404)
-		self.send_header('Content-type', 'text/html')
-		self.end_headers()
-		t = Template(file=os.path.join(SCRIPTDIR,'templates','unsupported.tmpl'))
-		t.query = query
-		self.wfile.write(t)
-       
+                return
+
+        self.send_response(404)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        t = Template(file=os.path.join(SCRIPTDIR,'templates','unsupported.tmpl'))
+        t.query = query
+        self.wfile.write(t)
+
 if __name__ == '__main__':
     def start_server():
         httpd = TivoHTTPServer(('', 9032), TivoHTTPHandler)
