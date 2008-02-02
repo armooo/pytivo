@@ -22,6 +22,7 @@ CLASS_NAME = 'Video'
 
 debug = config.getDebug()
 hack83 = config.getHack83()
+
 def debug_write(data):
     if debug:
         debug_out = []
@@ -31,6 +32,7 @@ def debug_write(data):
         fdebug = open('debug.txt', 'a')
         fdebug.write(' '.join(debug_out))
         fdebug.close()
+
 if hack83:
     debug_write(['Hack83 is enabled.\n'])
 
@@ -63,7 +65,7 @@ class Video(Plugin):
                 (leftAnchor, rightAnchor) = queryAnchor.rsplit(os.path.sep, 1)
             else:
                 #This is a file
-                queryAnchor = unquote("".join(query['AnchorItem'])).split('/',1)[-1]
+                queryAnchor = unquote("".join(query['AnchorItem'])).split(os.path.sep,1)[-1]
                 (leftAnchor, rightAnchor) = queryAnchor.rsplit(os.path.sep, 1)
             debug_write(['Hack queryAnchor: ', queryAnchor, ' leftAnchor: ', leftAnchor, ' rightAnchor: ', rightAnchor, '\n'])
         
@@ -301,7 +303,7 @@ class Video(Plugin):
         
         ##If you are running 8.3 software you want to enable hack83 in the config file
         if hack83:
-            print '========================================================================='
+            print '=' * 73
             query, hackPath = self.hack(handler, query, subcname)
             print 'Tivo said: ' + subcname + ' || Hack said: ' + "/".join(hackPath)
             debug_write(['Hack Tivo said: ', subcname, ' || Hack said: ' , "/".join(hackPath), '\n'])
