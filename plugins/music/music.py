@@ -1,7 +1,7 @@
 import os, random, re, shutil, socket, sys, urllib
 from Cheetah.Template import Template
 from Cheetah.Filters import Filter
-from plugin import Plugin
+from plugin import Plugin, quote, unquote
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
 from urlparse import urlparse
@@ -21,13 +21,6 @@ b4sfile = re.compile('Playstring="file:(.+)"').search
 plsfile = re.compile('[Ff]ile(\d+)=(.+)').match
 plstitle = re.compile('[Tt]itle(\d+)=(.+)').match
 plslength = re.compile('[Ll]ength(\d+)=(\d+)').match
-
-if os.path.sep == '/':
-    quote = urllib.quote
-    unquote = urllib.unquote_plus
-else:
-    quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
-    unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
 
 # Preload the templates
 tfname = os.path.join(SCRIPTDIR, 'templates', 'container.tmpl')

@@ -14,7 +14,7 @@ def getGUID():
     else:
         guid = '123456'
     return guid
- 
+
 def getBeaconAddresses():
     if config.has_option('Server', 'beacon'):
         beacon_ips = config.get('Server', 'beacon')
@@ -42,7 +42,9 @@ def get169Setting(tsn):
     return True
 
 def getShares():
-    shares = [ (section, dict(config.items(section))) for section in config.sections() if not(section.startswith('_tivo_') or section == 'Server') ]
+    shares = [(section, dict(config.items(section)))
+              for section in config.sections()
+              if not(section.startswith('_tivo_') or section == 'Server')]
 
     for name, data in shares:
         if not data.get('auto_subshares', 'False').lower() == 'true':
@@ -58,10 +60,9 @@ def getShares():
             new_data = dict(data)
             new_data['path'] = item_path
 
-            shares.append( (new_name, new_data) )
+            shares.append((new_name, new_data))
 
     return shares
-
 
 def getDebug():
     try:
@@ -84,7 +85,6 @@ def getFFMPEGTemplate(tsn):
             return config.get('_tivo_' + tsn, 'ffmpeg_prams', raw=True)
         except NoOptionError:
             pass
-
     try:
         return config.get('Server', 'ffmpeg_prams', raw=True)
     except NoOptionError: #default
@@ -102,10 +102,10 @@ def getValidHeights():
 # Return the number in list that is nearest to x
 # if two values are equidistant, return the larger
 def nearest(x, list):
-    return reduce(lambda a, b: closest(x,a,b), list)
+    return reduce(lambda a, b: closest(x, a, b), list)
 
-def closest(x,a, b):
-    if abs(x-a) < abs(x-b) or (abs(x-a) == abs(x-b)and a>b):
+def closest(x, a, b):
+    if abs(x - a) < abs(x - b) or (abs(x - a) == abs(x - b) and a > b):
         return a
     else:
         return b
@@ -123,7 +123,6 @@ def getTivoHeight(tsn):
             return nearestTivoHeight(height)
         except NoOptionError:
             pass
-
     try:
         height = config.getint('Server', 'height')
         return nearestTivoHeight(height)
@@ -140,7 +139,6 @@ def getTivoWidth(tsn):
             return nearestTivoWidth(width)
         except NoOptionError:
             pass
-
     try:
         width = config.getint('Server', 'width')
         return nearestTivoWidth(width)
@@ -159,7 +157,6 @@ def getAudioBR(tsn = None):
             return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
         except NoOptionError:
             pass
-
     try:
         audiobr = int(max(int(strtod(config.get('Server', 'audio_br'))/1000), 64)/64)*64
         return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
@@ -175,7 +172,6 @@ def getVideoBR(tsn = None):
             return config.get('_tivo_' + tsn, 'video_br')
         except NoOptionError:
             pass
-        
     try:
         return config.get('Server', 'video_br')
     except NoOptionError: #defaults for S3/S2 TiVo
@@ -203,7 +199,6 @@ def getMaxAudioBR(tsn = None):
             return int(int(strtod(config.get('_tivo_' + tsn, 'max_audio_br'))/1000)/64)*64
         except NoOptionError:
             pass
-
     try:
         return int(int(strtod(config.get('Server', 'max_audio_br'))/1000)/64)*64
     except NoOptionError: 
@@ -212,12 +207,14 @@ def getMaxAudioBR(tsn = None):
         else:
             return int(384) #default to 384, max supported by mp2 audio (S2 TiVo)
 
-
 # Parse a bitrate using the SI/IEEE suffix values as if by ffmpeg
 # For example, 2K==2000, 2Ki==2048, 2MB==16000000, 2MiB==16777216
 # Algorithm: http://svn.mplayerhq.hu/ffmpeg/trunk/libavcodec/eval.c
 def strtod(value):
-    prefixes = {"y":-24,"z":-21,"a":-18,"f":-15,"p":-12,"n":-9,"u":-6,"m":-3,"c":-2,"d":-1,"h":2,"k":3,"K":3,"M":6,"G":9,"T":12,"P":15,"E":18,"Z":21,"Y":24}
+    prefixes = {'y': -24, 'z': -21, 'a': -18, 'f': -15, 'p': -12,
+                'n': -9,  'u': -6,  'm': -3,  'c': -2,  'd': -1,
+                'h': 2,   'k': 3,   'K': 3,   'M': 6,   'G': 9,
+                'T': 12,  'P': 15,  'E': 18,  'Z': 21,  'Y': 24}
     p = re.compile(r'^(\d+)(?:([yzafpnumcdhkKMGTPEZY])(i)?)?([Bb])?$')
     m = p.match(value)
     if m is None:
@@ -227,12 +224,12 @@ def strtod(value):
         value = float(coef)
     else:
         exponent = float(prefixes[prefix])
-        if power == "i":
+        if power == 'i':
             # Use powers of 2
-            value = float(coef) * pow(2.0, exponent/0.3)
+            value = float(coef) * pow(2.0, exponent / 0.3)
         else:
             # Use powers of 10
             value = float(coef) * pow(10.0, exponent)
-    if byte == "B": # B==Byte, b=bit
+    if byte == 'B': # B == Byte, b == bit
         value *= 8;
     return value

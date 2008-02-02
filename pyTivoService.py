@@ -26,7 +26,8 @@ class PyTivoService(win32serviceutil.ServiceFramework):
 
         port = config.getPort()
 
-        httpd = httpserver.TivoHTTPServer(('', int(port)), httpserver.TivoHTTPHandler)
+        httpd = httpserver.TivoHTTPServer(('', int(port)),
+                                          httpserver.TivoHTTPHandler)
 
         for section, settings in config.getShares():
             httpd.add_container(section, settings)
