@@ -23,6 +23,11 @@ class Video(Plugin):
 
     CONTENT_TYPE = 'x-container/tivo-videos'
 
+    def video_file_filter(self, full_path, type=None):
+        if os.path.isdir(full_path):
+            return True
+        return transcode.supported_format(full_path)
+
     def send_file(self, handler, container, name):
         if handler.headers.getheader('Range') and \
            handler.headers.getheader('Range') != 'bytes=0-':
@@ -139,12 +144,8 @@ class Video(Plugin):
             handler.end_headers()
             return
 
-        def video_file_filter(full_path, type = None):
-            if os.path.isdir(full_path):
-                return True
-            return transcode.supported_format(full_path)
-
-        files, total, start = self.get_files(handler, query, video_file_filter)
+        files, total, start = self.get_files(handler, query,
+                                             self.video_file_filter)
 
         videos = []
         local_base_path = self.get_local_base_path(handler, query)
