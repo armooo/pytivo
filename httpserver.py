@@ -42,7 +42,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if not self.path.startswith('/TiVoConnect'):
             self.infopage()
             return
-        
+
         o = urlparse("http://fake.host" + self.path)
         query = parse_qs(o[4])
 
