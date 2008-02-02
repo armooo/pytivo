@@ -1,19 +1,12 @@
 import transcode, os, socket, re, urllib
 from Cheetah.Template import Template
-from plugin import Plugin
+from plugin import Plugin, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
 from UserDict import DictMixin
 from datetime import datetime, timedelta
 import config
-
-if os.path.sep == '/':
-    quote = urllib.quote
-    unquote = urllib.unquote_plus
-else:
-    quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
-    unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
 
 SCRIPTDIR = os.path.dirname(__file__)
 
