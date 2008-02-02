@@ -29,20 +29,13 @@ import Image
 from cStringIO import StringIO
 from Cheetah.Template import Template
 from Cheetah.Filters import Filter
-from plugin import Plugin
+from plugin import Plugin, quote, unquote
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
 
 SCRIPTDIR = os.path.dirname(__file__)
 
 CLASS_NAME = 'Photo'
-
-if os.path.sep == '/':
-    quote = urllib.quote
-    unquote = urllib.unquote_plus
-else:
-    quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
-    unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
 
 # Match Exif date -- YYYY:MM:DD HH:MM:SS
 exif_date = re.compile(r'(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)').search
