@@ -20,10 +20,10 @@ ffmpeg=/usr/bin/ffmpeg
 # mpegs with video bitrate above this setting will also be transcoded.
 #MAX_VIDEO_BR=17408k
 
-# Audio bit-rate, default 192K
-#audio_br=192K
+# Audio bit-rate, defaults to 192K for S2, 384K for S3/HD
+#audio_br=320K
 
-# Video bit-rate, default 4096K
+# Video bit-rate, defaults to 4096K for S2, 8192K for S3/HD
 #video_br=12Mi
 
 # Beacon broadcast address(es)
@@ -35,9 +35,12 @@ ffmpeg=/usr/bin/ffmpeg
 # broadcasts.)
 #beacon=192.168.1.255 listen
 
-# Output Pixel Width: if you have an HDTV you might want to try 720 or 704
-# Valid: 720, 704, 544, 480, 352
-#width=1440
+# Output Pixel Width:
+# Width, defaults to 544 for S2, 1280 for S3/HD
+# Height, defaults to 480 for S2, 720 for S3/HD
+# Valid widths: [S3/HD = 1920, 1440, 1280], [S2/S3/HD = 720, 704, 544, 480, 352]
+# Valid heights: [S3/HD = 1080, 720], [S2/S3/HD = 480]
+#width=1280
 #height=720
 
 #ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -
@@ -55,9 +58,6 @@ ffmpeg=/usr/bin/ffmpeg
 #video_br=12Mi
 
 #ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -
-
-#audio_br=320K
-#video_br=12Mi
 
 [MyMovies]
 # Type can be 'video', 'music', or 'photo'

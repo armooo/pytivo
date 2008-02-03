@@ -46,7 +46,7 @@ def transcode(inFile, outFile, tsn=''):
 
     settings = {}
     settings['audio_br'] = config.getAudioBR(tsn)
-    settings['audio_codec'] = config.getAudioCodec(tsn)
+    settings['audio_codec'] = select_audiocodec(tsn)
     settings['video_br'] = config.getVideoBR(tsn)
     settings['max_video_br'] = config.getMaxVideoBR()
     settings['buff_size'] = BUFF_SIZE
@@ -55,14 +55,21 @@ def transcode(inFile, outFile, tsn=''):
     cmd_string = config.getFFMPEGTemplate(tsn) % settings
 
     cmd = [FFMPEG, '-i', inFile] + cmd_string.split()
-
+    print cmd
     debug_write(['transcode: ffmpeg command is ', ' '.join(cmd), '\n'])
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, outFile)
     except:
         kill(ffmpeg.pid)
-       
+
+def select_audiocodec(tsn = ''):
+    #check for HD tivo and return compatible audio parameters
+    if tsn and tsn[:3] in config.getHDtivos():
+        return '-acodec ac3 -ar 48000'
+    else:
+        return '-acodec mp2 -ac 2 -ar 44100'
+
 def select_aspect(inFile, tsn = ''):
     TIVO_WIDTH = config.getTivoWidth(tsn)
     TIVO_HEIGHT = config.getTivoHeight(tsn)
@@ -96,7 +103,10 @@ def select_aspect(inFile, tsn = ''):
     multiplier16by9 = (16.0 * TIVO_HEIGHT) / (9.0 * TIVO_WIDTH)
     multiplier4by3  =  (4.0 * TIVO_HEIGHT) / (3.0 * TIVO_WIDTH)
    
-    if (rwidth, rheight) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
+    if tsn[:3] in config.getHDtivos() and height <= TIVO_HEIGHT and config.getOptres() == False:
+        return [] #pass all resolutions to S3/HD, except heights greater than conf height
+		# else, optres is enabled and resizes SD video to the "S2" standard on S3/HD.
+    elif (rwidth, rheight) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
         debug_write(['select_aspect: File is within 4:3 list.\n'])
         return ['-aspect', '4:3', '-s', str(TIVO_WIDTH) + 'x' + str(TIVO_HEIGHT)]
     elif ((rwidth, rheight) in [(16, 9), (20, 11), (40, 33), (118, 81), (59, 27)]) and aspect169:
