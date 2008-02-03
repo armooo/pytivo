@@ -159,7 +159,9 @@ class Video(Plugin):
             video['title'] = os.path.split(file)[1]
             video['is_dir'] = self.__isdir(file)
             if not video['is_dir']:
-                video.update(self.__metadata(file, tsn))
+                video['valid'] = transcode.supported_format(file)
+                if video['valid']:
+                    video.update(self.__metadata(file, tsn))
 
             videos.append(video)
 
@@ -182,7 +184,9 @@ class Video(Plugin):
         file_path = path + file
 
         file_info = VideoDetails()
-        file_info.update(self.__metadata(file_path, tsn))
+        valid = transcode.supported_format(file_path)
+        if valid:
+            file_info.update(self.__metadata(file_path, tsn))
 
         handler.send_response(200)
         handler.end_headers()

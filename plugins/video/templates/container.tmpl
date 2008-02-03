@@ -28,6 +28,9 @@
         <Details>
             <Title>$escape($video.title)</Title>
             <ContentType>video/x-tivo-mpeg</ContentType>
+            #if not $video.valid
+            <CopyProtected>Yes</CopyProtected>
+            #end if
             <SourceFormat>video/x-ms-wmv</SourceFormat>
             <SourceSize>$video.size</SourceSize>
             <Duration>$video.duration</Duration>
