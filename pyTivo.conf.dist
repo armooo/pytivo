@@ -1,19 +1,23 @@
+# This is an example config file, showing all the options. You probably 
+# won't need most of them. Your working config file will be named 
+# "pyTivo.conf". '#' starts a comment.
+
 [Server]
 port=9032
 
-#Full path to ffmpeg including filename
-#For windows: ffmpeg=c:\Program Files\pyTivo\plugins\video\ffmpeg_mp2.exe
-#For linux:   ffmpeg=/usr/bin/ffmpeg
+# Full path to ffmpeg including filename
+# For windows: ffmpeg=c:\Program Files\pyTivo\plugins\video\ffmpeg_mp2.exe
+# For linux:   ffmpeg=/usr/bin/ffmpeg
 #ffmpeg=c:\Program Files\pyTivo\plugins\video\ffmpeg_mp2.exe
 ffmpeg=/usr/bin/ffmpeg
 
-#This will make a large debug.txt file in your base directory.  It only 
-#debugs transcode.py right now.
+# This will make a large debug.txt file in your base directory.  It only 
+# debugs transcode.py right now.
 #debug=false
 
-#  Max video bitrate, default 17408k
-#    sets ffmpeg -maxrate setting to minimize bitrate peak playback issues.
-#    mpegs with video bitrate above this setting will also be transcoded.
+# Max video bitrate, default 17408k
+# sets ffmpeg -maxrate setting to minimize bitrate peak playback issues.
+# mpegs with video bitrate above this setting will also be transcoded.
 #MAX_VIDEO_BR=17408k
 
 # Audio bit-rate, default 192K
@@ -22,45 +26,52 @@ ffmpeg=/usr/bin/ffmpeg
 # Video bit-rate, default 4096K
 #video_br=12Mi
 
-#Beacon broadcast address(es)
-#Typically use 255.255.255.255, but on some multihomed machines you may
-#need to specify the subnet broadcast address(es) of your Tivo boxes
-#beacon=255.255.255.255
+# Beacon broadcast address(es)
+# The default is 255.255.255.255, but on some multihomed machines you 
+# may need to specify the subnet broadcast address(es) of your Tivo 
+# boxes. You can also specify "listen" to listen for direct connection 
+# attempts on port 2190, for use with the "Manually add a server..." 
+# function. (And if you set beacon to listen _only_, it turns off 
+# broadcasts.)
+#beacon=192.168.1.255 listen
 
-#Output Pixel Width: if you have an HDTV you might want to try 720 or 704
-#Valid: 720, 704, 544, 480, 352
+# Output Pixel Width: if you have an HDTV you might want to try 720 or 704
+# Valid: 720, 704, 544, 480, 352
 #width=1440
 #height=720
+
 #ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -
 
-##Per tivo options
+# Per tivo options
 # section named _tivo_TSN with the tsn in all caps
 #[_tivo_00000DEADBEEF]
 
-#If you want to use 16:9 or 4:3 on this tivo
+# If you want to use 16:9 or 4:3 on this tivo
 #aspect169=true
+
 #width=1440
 #height=720
 #audio_br=320K
 #video_br=12Mi
+
 #ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -
 
 #audio_br=320K
 #video_br=12Mi
 
 [MyMovies]
-#Type can be 'video', 'music', or 'photo'
+# Type can be 'video', 'music', or 'photo'
 type=video
 
-#Path is the full path to your files (No trailing slash needed)
-#For windows: path=c:\videos
-#For linux:   path=/media
+# Path is the full path to your files (No trailing slash needed)
+# For windows: path=c:\videos
+# For linux:   path=/media
 path=/home/armooo/Videos
 
-#Make all subfolders in to top level shares
-#auto_subshares= True
+# Make all subfolders in to top level shares
+#auto_subshares=True
 
-##You can have more than one share
+# You can have more than one share
 #[MyTelevision]
 #type=video
 #path=d:\television
