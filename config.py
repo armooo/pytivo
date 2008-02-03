@@ -91,9 +91,7 @@ def getFFMPEGTemplate(tsn):
         return '-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -'
 
 def getHDtivos(tsn):  # tsn's of High Definition Tivo's
-    if tsn and tsn[:3] in ['648', '652']:
-        return True
-    return False
+    return tsn and tsn[:3] in ['648', '652']
 
 def getValidWidths():
     return [1920, 1440, 1280, 720, 704, 544, 480, 352]
