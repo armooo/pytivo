@@ -12,6 +12,12 @@ SCRIPTDIR = os.path.dirname(__file__)
 
 CLASS_NAME = 'Video'
 
+extfile = os.path.join(SCRIPTDIR, 'video.ext')
+try:
+    extensions = file(extfile).read().split()
+except:
+    extensions = None
+
 class Video(Plugin):
 
     CONTENT_TYPE = 'x-container/tivo-videos'
@@ -19,7 +25,10 @@ class Video(Plugin):
     def video_file_filter(self, full_path, type=None):
         if os.path.isdir(full_path):
             return True
-        return transcode.supported_format(full_path)
+        if extensions:
+            return os.path.splitext(full_path)[1].lower() in extensions
+        else:
+            return transcode.supported_format(full_path)
 
     def send_file(self, handler, container, name):
         if handler.headers.getheader('Range') and \
@@ -32,7 +41,7 @@ class Video(Plugin):
             handler.wfile.write("\x30\x0D\x0A")
             return
 
-        tsn =  handler.headers.getheader('tsn', '')
+        tsn = handler.headers.getheader('tsn', '')
 
         o = urlparse("http://fake.host" + handler.path)
         path = unquote(o[2])
