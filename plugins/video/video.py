@@ -56,15 +56,15 @@ class Video(Plugin):
             return query, None
 
         # this breaks up the anchor item request into seperate parts
-        if 'AnchorItem' in query and (query['AnchorItem']) != ['Hack8.3']:
-            if ''.join(query['AnchorItem']).find('Container=') >= 0:
+        if 'AnchorItem' in query and query['AnchorItem'] != ['Hack8.3']:
+            queryAnchor = urllib.unquote_plus(''.join(query['AnchorItem']))
+            if queryAnchor.find('Container=') >= 0:
                 # This is a folder
-                queryAnchor = urllib.unquote_plus(''.join(query['AnchorItem'])).split('Container=')[-1]
-                (leftAnchor, rightAnchor) = queryAnchor.rsplit('/', 1)
+                queryAnchor = queryAnchor.split('Container=')[-1]
             else:
                 # This is a file
-                queryAnchor = urllib.unquote_plus(''.join(query['AnchorItem'])).split('/', 1)[-1]
-                (leftAnchor, rightAnchor) = queryAnchor.rsplit('/', 1)
+                queryAnchor = queryAnchor.split('/', 1)[-1]
+            leftAnchor, rightAnchor = queryAnchor.rsplit('/', 1)
             debug_write(['Hack queryAnchor: ', queryAnchor,
                          ' leftAnchor: ', leftAnchor,
                          ' rightAnchor: ', rightAnchor, '\n'])
@@ -151,8 +151,8 @@ class Video(Plugin):
                                                      self.video_file_filter)
                 debug_write(['Hack saved page is= ', state['page'],
                              ' top returned file is= ', files[0], '\n'])
-                #If the first file returned equals the top of the page
-                #then we haven't scrolled pages
+                # If the first file returned equals the top of the page
+                # then we haven't scrolled pages
                 if files[0] != str(state['page']):
                     debug_write(['Hack this is scrolling within a folder.\n'])
                     files, total, start = self.get_files(handler, query,
@@ -307,19 +307,19 @@ class Video(Plugin):
         if hack83:
             print '=' * 73
             query, hackPath = self.hack(handler, query, subcname)
-            print 'Tivo said: ' + subcname + ' || Hack said: ' + \
-                  '/'.join(hackPath)
+            hackPath = '/'.join(hackPath)
+            print 'Tivo said:', subcname, '|| Hack said:', hackPath
             debug_write(['Hack Tivo said: ', subcname, ' || Hack said: ',
-                         '/'.join(hackPath), '\n'])
-            subcname = '/'.join(hackPath)
+                         hackPath, '\n'])
+            subcname = hackPath
 
             if not query:
                 debug_write(['Hack sending 302 redirect page', '\n'])
                 handler.send_response(302)
                 handler.send_header('Location ', 'http://' +
                                     handler.headers.getheader('host') +
-                                    '/TiVoConnect?Command=QueryContainer&AnchorItem=Hack8.3&Container=' +
-                                    '/'.join(hackPath))
+                                    '/TiVoConnect?Command=QueryContainer&' +
+                                    'AnchorItem=Hack8.3&Container=' + hackPath)
                 handler.end_headers()
                 return
 
