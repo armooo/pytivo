@@ -1,15 +1,23 @@
 ---Changes
 - Transfer End Properly
 
-- File Sizes are estimated now. Sending 6gig estimates for a 400meg file caused TiVo to unnecessarily dump shows for space. New estimation will generally still be over but by a reasonable amount now.
+- File Sizes are estimated now. Sending 6gig estimates for a 400meg file 
+  caused TiVo to unnecessarily dump shows for space. New estimation will 
+  generally still be over but by a reasonable amount now.
 
-- Ratios are altered.  Filed that are almost 4:3 or 16:9 will be crammed into those formats, looks better on TV and streching image by less than 1% is not noticable.
+- Ratios are altered.  Filed that are almost 4:3 or 16:9 will be crammed 
+  into those formats, looks better on TV and streching image by less 
+  than 1% is not noticable.
 
-- Padding for videos that have a lower ratio than 4:3 is added. This allows for black bars on left and right for oddly shaped movies.
+- Padding for videos that have a lower ratio than 4:3 is added. This 
+  allows for black bars on left and right for oddly shaped movies.
 
 ---Description
 
-pyTivo lets you stream most videos from yout PC to your unhacked tivo. It uses the HMO server protocol. It will guess if your video is 4:3 or 16:9 and pad your video if it thinks it is needed (looked good on my tests). It will not transcode an mpeg that is supported by your tivo.
+pyTivo lets you stream most videos from yout PC to your unhacked tivo. 
+It uses the HMO server protocol. It will guess if your video is 4:3 or 
+16:9 and pad your video if it thinks it is needed (looked good on my 
+tests). It will not transcode an mpeg that is supported by your tivo.
 
 ---Download
 
@@ -17,12 +25,14 @@ http://armooo.net/~armooo/pyTivo/pyTivo.zip
 
 ---Requirements
 
-OS = Anything that will run python and ffmpeg, which I think is anything.  I have it running on linux, I know windows works as well.
+OS = Anything that will run python and ffmpeg, which I think is 
+anything.  I have it running on linux, I know windows works as well.
 
 Python - http://www.python.org/download/
 - You need at least version 2.4 of python
 
-pywin32 (only to install as a service) - http://sourceforge.net/project/showfiles.php?group_id=78018&package_id=79063 
+pywin32 (only to install as a service) - 
+http://sourceforge.net/project/showfiles.php?group_id=78018&package_id=79063
 - Windows users only and only if you intend to install as a service
 
 ---Usage
@@ -33,8 +43,9 @@ You need to edit pyTivo.conf in 3 places
 2. [<name of share>]
 3. path=
 
-ffmpeg should be the full path to ffmpeg including filename.  For windows users the exe has been included and is in the plugins/video directory.
-path is the absolute path to your media
+ffmpeg should be the full path to ffmpeg including filename.  For 
+windows users the exe has been included and is in the plugins/video 
+directory. path is the absolute path to your media.
 
 run pyTivo.py
 
@@ -49,8 +60,11 @@ run pyTivoService.py remove
 ---Known Problems
 
 - Now Playing List disappears
-This seems to be an error with the TiVo software.  But what happens is that the NPL is replaced with the directory listing of your pyTivo server.  Very odd.
-Workaround - go to the bottom of the page and either select "Recently Deleted" or your pyTivo server that is listed and then hit the left arrow.  Your NPL will be back to normal
+This seems to be an error with the TiVo software.  But what happens is 
+that the NPL is replaced with the directory listing of your pyTivo 
+server.  Very odd. Workaround - go to the bottom of the page and either 
+select "Recently Deleted" or your pyTivo server that is listed and then 
+hit the left arrow.  Your NPL will be back to normal.
 
 ---Notes
 Most of the work has been done by armooo.  With minor updates by KRKeegan.
