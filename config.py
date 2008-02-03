@@ -100,7 +100,7 @@ def getFFMPEGTemplate(tsn):
     except NoOptionError: #default
         return '-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -'
 
-def getHDtivos(tsn):  # tsn's of High Definition Tivo's
+def isHDtivo(tsn):  # tsn's of High Definition Tivo's
     return tsn != '' and tsn[:3] in ['648', '652']
 
 def getValidWidths():
@@ -137,7 +137,7 @@ def getTivoHeight(tsn):
         height = config.getint('Server', 'height')
         return nearestTivoHeight(height)
     except NoOptionError: #defaults for S3/S2 TiVo
-        if getHDtivos(tsn):
+        if isHDtivo(tsn):
             return 720
         else:
             return 480
@@ -153,7 +153,7 @@ def getTivoWidth(tsn):
         width = config.getint('Server', 'width')
         return nearestTivoWidth(width)
     except NoOptionError: #defaults for S3/S2 TiVo
-        if getHDtivos(tsn):
+        if isHDtivo(tsn):
             return 1280
         else:
             return 544
@@ -171,7 +171,7 @@ def getAudioBR(tsn = None):
         audiobr = int(max(int(strtod(config.get('Server', 'audio_br'))/1000), 64)/64)*64
         return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
     except NoOptionError: #defaults for S3/S2 TiVo
-        if getHDtivos(tsn):
+        if isHDtivo(tsn):
             return '384k'
         else:
             return '192k'
@@ -185,7 +185,7 @@ def getVideoBR(tsn = None):
     try:
         return config.get('Server', 'video_br')
     except NoOptionError: #defaults for S3/S2 TiVo
-        if getHDtivos(tsn):
+        if isHDtivo(tsn):
             return '8192k'
         else:
             return '4096K'
@@ -212,7 +212,7 @@ def getMaxAudioBR(tsn = None):
     try:
         return int(int(strtod(config.get('Server', 'max_audio_br'))/1000)/64)*64
     except NoOptionError: 
-        if getHDtivos(tsn):
+        if isHDtivo(tsn):
             return int(448) #default to 448, max supported by HD TiVo's
         else:
             return int(384) #default to 384, max supported by mp2 audio (S2 TiVo)
