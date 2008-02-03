@@ -136,8 +136,11 @@ def getTivoHeight(tsn):
     try:
         height = config.getint('Server', 'height')
         return nearestTivoHeight(height)
-    except NoOptionError: #default
-        return 480
+    except NoOptionError: #defaults for S3/S2 TiVo
+        if tsn and tsn[:3] in getHDtivos():
+            return 720
+        else:
+            return 480
 
 def getTivoWidth(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
@@ -149,8 +152,11 @@ def getTivoWidth(tsn):
     try:
         width = config.getint('Server', 'width')
         return nearestTivoWidth(width)
-    except NoOptionError: #default
-        return 544
+    except NoOptionError: #defaults for S3/S2 TiVo
+        if tsn and tsn[:3] in getHDtivos():
+            return 1280
+        else:
+            return 544
 
 def getAudioBR(tsn = None):
     #convert to non-zero multiple of 64 to ensure ffmpeg compatibility
@@ -164,15 +170,11 @@ def getAudioBR(tsn = None):
     try:
         audiobr = int(max(int(strtod(config.get('Server', 'audio_br'))/1000), 64)/64)*64
         return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
-    except NoOptionError: #default to 192
-        return '192k'
-
-def getAudioCodec(tsn = None):
-    #check for HD tivo and return compatible audio parameters
-    if tsn and tsn[:3] in getHDtivos():
-        return '-acodec ac3 -ar 48000'
-    else:
-        return '-acodec mp2 -ac 2 -ar 44100'
+    except NoOptionError: #defaults for S3/S2 TiVo
+        if tsn and tsn[:3] in getHDtivos():
+            return '384k'
+        else:
+            return '192k'
 
 def getVideoBR(tsn = None):
     if tsn and config.has_section('_tivo_' + tsn):
@@ -182,8 +184,11 @@ def getVideoBR(tsn = None):
             pass
     try:
         return config.get('Server', 'video_br')
-    except NoOptionError: #default to 4096K
-        return '4096K'
+    except NoOptionError: #defaults for S3/S2 TiVo
+        if tsn and tsn[:3] in getHDtivos():
+            return '8192k'
+        else:
+            return '4096K'
 
 def getMaxVideoBR():
     try:
