@@ -275,7 +275,7 @@ def video_info(inFile):
     ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
 
     # wait 4 sec if ffmpeg is not back give up
-    for i in range(80):
+    for i in xrange(80):
         time.sleep(.05)
         if not ffmpeg.poll() == None:
             break

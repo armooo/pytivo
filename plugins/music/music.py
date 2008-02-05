@@ -1,4 +1,5 @@
-import os, random, re, shutil, socket, sys, urllib
+import subprocess, os, random, re, shutil, socket, sys, urllib, time
+import config
 from Cheetah.Template import Template
 from Cheetah.Filters import Filter
 from plugin import Plugin, quote, unquote
@@ -9,10 +10,15 @@ import eyeD3
 
 SCRIPTDIR = os.path.dirname(__file__)
 
+FFMPEG = config.get('Server', 'ffmpeg')
+
 CLASS_NAME = 'Music'
 
 PLAYLISTS = ('.m3u', '.m3u8', '.ram', '.pls', '.b4s', '.wpl', '.asx',
              '.wax', '.wvx')
+
+TRANSCODE = ('.mp4', '.m4a', '.flc', '.ogg', '.wma', '.aac', '.wav',
+             '.aif', '.aiff', '.au')
 
 # Search strings for different playlist types
 asxfile = re.compile('ref +href *= *"(.+)"', re.IGNORECASE).search
@@ -22,12 +28,30 @@ plsfile = re.compile('[Ff]ile(\d+)=(.+)').match
 plstitle = re.compile('[Tt]itle(\d+)=(.+)').match
 plslength = re.compile('[Ll]ength(\d+)=(\d+)').match
 
+# Duration -- parse from ffmpeg output
+durre = re.compile(r'.*Duration: (.{2}):(.{2}):(.{2})\.(.),').search
+
 # Preload the templates
 tfname = os.path.join(SCRIPTDIR, 'templates', 'container.tmpl')
 tpname = os.path.join(SCRIPTDIR, 'templates', 'm3u.tmpl')
 folder_template = file(tfname, 'rb').read()
 playlist_template = file(tpname, 'rb').read()
 
+# XXX BIG HACK
+# subprocess is broken for me on windows so super hack
+def patchSubprocess():
+    o = subprocess.Popen._make_inheritable
+
+    def _make_inheritable(self, handle):
+        if not handle: return subprocess.GetCurrentProcess()
+        return o(self, handle)
+
+    subprocess.Popen._make_inheritable = _make_inheritable
+
+mswindows = (sys.platform == "win32")
+if mswindows:
+    patchSubprocess()
+    
 class FileData:
     def __init__(self, name, isdir):
         self.name = name
@@ -68,14 +92,25 @@ class Music(Plugin):
         path = unquote(o[2])
         fname = container['path'] + path[len(name) + 1:]
         fname = unicode(fname, 'utf-8')
-        fsize = os.path.getsize(fname)
+        needs_transcode = os.path.splitext(fname)[1].lower() in TRANSCODE
         handler.send_response(200)
         handler.send_header('Content-Type', 'audio/mpeg')
-        handler.send_header('Content-Length', fsize)
+        if not needs_transcode:
+            fsize = os.path.getsize(fname)
+            handler.send_header('Content-Length', fsize)
         handler.send_header('Connection', 'close')
         handler.end_headers()
-        f = file(fname, 'rb')
-        shutil.copyfileobj(f, handler.wfile)
+        if needs_transcode:
+            cmd = [FFMPEG, '-i', fname, '-acodec', 'libmp3lame', '-ab', 
+                   '320k', '-ar', '44100', '-f', 'mp3', '-']
+            ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            try:
+                shutil.copyfileobj(ffmpeg.stdout, handler.wfile)
+            except:
+                kill(ffmpeg.pid)
+        else:
+            f = file(fname, 'rb')
+            shutil.copyfileobj(f, handler.wfile)
 
     def QueryContainer(self, handler, query):
 
@@ -93,6 +128,8 @@ class Music(Plugin):
                 ftype = self.AUDIO
             elif os.path.splitext(f)[1].lower() in PLAYLISTS:
                 ftype = self.PLAYLIST
+            elif os.path.splitext(f)[1].lower() in TRANSCODE:
+                ftype = self.AUDIO
             else:
                 ftype = False
 
@@ -125,6 +162,42 @@ class Music(Plugin):
                 self.media_data_cache[f.name] = item
                 return item
 
+            if os.path.splitext(f.name)[1].lower() in TRANSCODE:
+                # If the format is: (track #) Song name...
+                #artist, album, track = f.name.split(os.path.sep)[-3:]
+                #track = os.path.splitext(track)[0]
+                #if track[0].isdigit:
+                #    track = ' '.join(track.split(' ')[1:])
+
+                #item['SongTitle'] = track
+                #item['AlbumTitle'] = album
+                #item['ArtistName'] = artist
+                cmd = [FFMPEG, '-i', f.name]
+                ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE,
+                                               stdout=subprocess.PIPE, 
+                                               stdin=subprocess.PIPE)
+
+                # wait 4 sec if ffmpeg is not back give up
+                for i in xrange(80):
+                    time.sleep(.05)
+                    if not ffmpeg.poll() == None:
+                        break
+
+                if ffmpeg.poll() != None:
+                    output = ffmpeg.stderr.read()
+                    d = durre(output)
+                    if d:
+                        millisecs = (int(d.group(1)) * 3600 + \
+                                     int(d.group(2)) * 60 + \
+                                     int(d.group(3))) * 1000 + \
+                                     int(d.group(4)) * 100
+                    else:
+                        millisecs = 0
+                    item['Duration'] = millisecs
+
+                self.media_data_cache[f.name] = item
+                return item
+            
             try:
                 audioFile = eyeD3.Mp3AudioFile(unicode(f.name, 'utf-8'))
                 item['Duration'] = audioFile.getPlayTime() * 1000
