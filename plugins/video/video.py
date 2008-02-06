@@ -57,7 +57,7 @@ class Video(Plugin):
         queryAnchor = ''
         rightAnchor = ''
         leftAnchor = ''
-        tsn =  handler.headers.getheader('tsn', '')
+        tsn = handler.headers.getheader('tsn', '')
 
         # not a tivo
         if not tsn:
@@ -78,7 +78,7 @@ class Video(Plugin):
                          ' leftAnchor: ', leftAnchor,
                          ' rightAnchor: ', rightAnchor, '\n'])
         try:
-            path, state, = self.request_history[tsn]
+            path, state = self.request_history[tsn]
         except KeyError:
             # Never seen this tsn, starting new history
             debug_write(['New TSN.\n'])
@@ -103,7 +103,7 @@ class Video(Plugin):
             path[:] = [current_folder]
             state['query'] = query
             state['page'] = ''
-            return state['query'], path
+            return query, path
 
         # 2. entering a new folder
         # If there is no AnchorItem in the request then we must be 
@@ -116,11 +116,11 @@ class Video(Plugin):
             state['time'] = int(time.time())
             files, total, start = self.get_files(handler, query,
                                                  self.video_file_filter)
-            if len(files) >= 1:
+            if files:
                 state['page'] = files[0]
             else:
                 state['page'] = ''
-            return state['query'], path
+            return query, path
 
         # 3. Request a page after pyTivo sent a 302 code
         # we know this is the proper page
