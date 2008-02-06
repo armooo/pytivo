@@ -177,8 +177,6 @@ class Video(Plugin):
         # request.
         if (int(time.time()) - state['time']) <= 1:
             debug_write(['Hack erroneous request, send a 302 error', '\n'])
-            files, total, start = self.get_files(handler, query,
-                                                 self.video_file_filter)
             return None, path
 
         # 7. this is a request to exit a folder
