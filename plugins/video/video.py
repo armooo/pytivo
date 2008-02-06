@@ -183,13 +183,11 @@ class Video(Plugin):
             debug_write(['Hack over 1 second,',
                          'must be request to exit folder\n'])
             path.pop()
-            downQuery = {}
-            downQuery['Command'] = query['Command']
-            downQuery['SortOrder'] = query['SortOrder']
-            downQuery['ItemCount'] = query['ItemCount']
-            downQuery['Filter'] = query['Filter']
-            downQuery['Container'] = ['/'.join(path)]
-            state['query'] = downQuery
+            state['query'] = {'Command': query['Command'],
+                              'SortOrder': query['SortOrder'],
+                              'ItemCount': query['ItemCount'],
+                              'Filter': query['Filter'],
+                              'Container': ['/'.join(path)]}
             return None, path
 
         # just in case we missed something.
