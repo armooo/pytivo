@@ -114,7 +114,7 @@ class Video(Plugin):
             path[:] = subcname.split('/')
             state['query'] = query
             state['time'] = int(time.time())
-            files, total, start = self.get_files(handler, state['query'], 
+            files, total, start = self.get_files(handler, query,
                                                  self.video_file_filter)
             if len(files) >= 1:
                 state['page'] = files[0]
@@ -164,8 +164,6 @@ class Video(Plugin):
                 # then we haven't scrolled pages
                 if files[0] != str(state['page']):
                     debug_write(['Hack this is scrolling within a folder.\n'])
-                    files, total, start = self.get_files(handler, query,
-                                                         self.video_file_filter)
                     state['page'] = files[0]
                     return query, path               
 
