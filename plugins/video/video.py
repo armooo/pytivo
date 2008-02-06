@@ -175,8 +175,9 @@ class Video(Plugin):
         t.start = start
         t.videos = videos
         t.quote = quote
-        t.crc = zlib.crc32
         t.escape = escape
+        t.crc = zlib.crc32
+        t.guid = config.getGUID()
         handler.wfile.write(t)
 
     def TVBusQuery(self, handler, query):
