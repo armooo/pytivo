@@ -158,8 +158,9 @@ class Video(Plugin):
             video['part_path'] = file.replace(local_base_path, '', 1)
             video['title'] = os.path.split(file)[1]
             video['is_dir'] = self.__isdir(file)
-            video['small_path'] = subcname + '/' + video['name']
-            if not video['is_dir']:
+            if video['is_dir']:
+                video['small_path'] = subcname + '/' + video['name']
+            else:
                 video['valid'] = transcode.supported_format(file)
                 if video['valid']:
                     video.update(self.__metadata(file, tsn))
