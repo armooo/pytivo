@@ -1,4 +1,4 @@
-import transcode, os, socket, re, urllib
+import transcode, os, socket, re, urllib, zlib
 from Cheetah.Template import Template
 from plugin import Plugin, quote, unquote
 from urlparse import urlparse
@@ -354,6 +354,7 @@ class Video(Plugin):
             video['part_path'] = file.replace(local_base_path, '', 1)
             video['title'] = os.path.split(file)[1]
             video['is_dir'] = self.__isdir(file)
+            video['small_path'] = subcname + '/' + video['name']
             if not video['is_dir']:
                 video['valid'] = transcode.supported_format(file)
                 if video['valid']:
@@ -370,6 +371,7 @@ class Video(Plugin):
         t.start = start
         t.videos = videos
         t.quote = quote
+        t.crc = zlib.crc32
         t.escape = escape
         handler.wfile.write(t)
 
