@@ -1,7 +1,8 @@
-import os, random, re, shutil, socket, sys, urllib
+import subprocess, os, random, re, shutil, socket, sys, urllib, time
+import config
 from Cheetah.Template import Template
 from Cheetah.Filters import Filter
-from plugin import Plugin
+from plugin import Plugin, quote, unquote
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
 from urlparse import urlparse
@@ -9,9 +10,15 @@ import eyeD3
 
 SCRIPTDIR = os.path.dirname(__file__)
 
+FFMPEG = config.get('Server', 'ffmpeg')
+
 CLASS_NAME = 'Music'
 
-PLAYLISTS = ('.m3u', '.ram', '.pls', '.b4s', '.wpl', '.asx', '.wax', '.wvx')
+PLAYLISTS = ('.m3u', '.m3u8', '.ram', '.pls', '.b4s', '.wpl', '.asx',
+             '.wax', '.wvx')
+
+TRANSCODE = ('.mp4', '.m4a', '.flc', '.ogg', '.wma', '.aac', '.wav',
+             '.aif', '.aiff', '.au')
 
 # Search strings for different playlist types
 asxfile = re.compile('ref +href *= *"(.+)"', re.IGNORECASE).search
@@ -21,13 +28,30 @@ plsfile = re.compile('[Ff]ile(\d+)=(.+)').match
 plstitle = re.compile('[Tt]itle(\d+)=(.+)').match
 plslength = re.compile('[Ll]ength(\d+)=(\d+)').match
 
-if os.path.sep == '/':
-    quote = urllib.quote
-    unquote = urllib.unquote_plus
-else:
-    quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
-    unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
+# Duration -- parse from ffmpeg output
+durre = re.compile(r'.*Duration: (.{2}):(.{2}):(.{2})\.(.),').search
 
+# Preload the templates
+tfname = os.path.join(SCRIPTDIR, 'templates', 'container.tmpl')
+tpname = os.path.join(SCRIPTDIR, 'templates', 'm3u.tmpl')
+folder_template = file(tfname, 'rb').read()
+playlist_template = file(tpname, 'rb').read()
+
+# XXX BIG HACK
+# subprocess is broken for me on windows so super hack
+def patchSubprocess():
+    o = subprocess.Popen._make_inheritable
+
+    def _make_inheritable(self, handle):
+        if not handle: return subprocess.GetCurrentProcess()
+        return o(self, handle)
+
+    subprocess.Popen._make_inheritable = _make_inheritable
+
+mswindows = (sys.platform == "win32")
+if mswindows:
+    patchSubprocess()
+    
 class FileData:
     def __init__(self, name, isdir):
         self.name = name
@@ -60,19 +84,33 @@ class Music(Plugin):
     PLAYLIST = 'play'
 
     media_data_cache = LRUCache(300)
+    recurse_cache = LRUCache(5)
+    dir_cache = LRUCache(10)
 
     def send_file(self, handler, container, name):
         o = urlparse("http://fake.host" + handler.path)
         path = unquote(o[2])
         fname = container['path'] + path[len(name) + 1:]
-        fsize = os.path.getsize(fname)
+        fname = unicode(fname, 'utf-8')
+        needs_transcode = os.path.splitext(fname)[1].lower() in TRANSCODE
         handler.send_response(200)
         handler.send_header('Content-Type', 'audio/mpeg')
-        handler.send_header('Content-Length', fsize)
+        if not needs_transcode:
+            fsize = os.path.getsize(fname)
+            handler.send_header('Content-Length', fsize)
         handler.send_header('Connection', 'close')
         handler.end_headers()
-        f = file(fname, 'rb')
-        shutil.copyfileobj(f, handler.wfile)
+        if needs_transcode:
+            cmd = [FFMPEG, '-i', fname, '-acodec', 'libmp3lame', '-ab', 
+                   '320k', '-ar', '44100', '-f', 'mp3', '-']
+            ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            try:
+                shutil.copyfileobj(ffmpeg.stdout, handler.wfile)
+            except:
+                kill(ffmpeg.pid)
+        else:
+            f = file(fname, 'rb')
+            shutil.copyfileobj(f, handler.wfile)
 
     def QueryContainer(self, handler, query):
 
@@ -90,6 +128,8 @@ class Music(Plugin):
                 ftype = self.AUDIO
             elif os.path.splitext(f)[1].lower() in PLAYLISTS:
                 ftype = self.PLAYLIST
+            elif os.path.splitext(f)[1].lower() in TRANSCODE:
+                ftype = self.AUDIO
             else:
                 ftype = False
 
@@ -107,7 +147,7 @@ class Music(Plugin):
 
             item = {}
             item['path'] = f.name
-            item['part_path'] = f.name.replace(local_base_path, '')
+            item['part_path'] = f.name.replace(local_base_path, '', 1)
             item['name'] = os.path.split(f.name)[1]
             item['is_dir'] = f.isdir
             item['is_playlist'] = f.isplay
@@ -122,14 +162,54 @@ class Music(Plugin):
                 self.media_data_cache[f.name] = item
                 return item
 
+            if os.path.splitext(f.name)[1].lower() in TRANSCODE:
+                # If the format is: (track #) Song name...
+                #artist, album, track = f.name.split(os.path.sep)[-3:]
+                #track = os.path.splitext(track)[0]
+                #if track[0].isdigit:
+                #    track = ' '.join(track.split(' ')[1:])
+
+                #item['SongTitle'] = track
+                #item['AlbumTitle'] = album
+                #item['ArtistName'] = artist
+                cmd = [FFMPEG, '-i', f.name]
+                ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE,
+                                               stdout=subprocess.PIPE, 
+                                               stdin=subprocess.PIPE)
+
+                # wait 10 sec if ffmpeg is not back give up
+                for i in xrange(200):
+                    time.sleep(.05)
+                    if not ffmpeg.poll() == None:
+                        break
+
+                if ffmpeg.poll() != None:
+                    output = ffmpeg.stderr.read()
+                    d = durre(output)
+                    if d:
+                        millisecs = (int(d.group(1)) * 3600 + \
+                                     int(d.group(2)) * 60 + \
+                                     int(d.group(3))) * 1000 + \
+                                     int(d.group(4)) * 100
+                    else:
+                        millisecs = 0
+                    item['Duration'] = millisecs
+
+                self.media_data_cache[f.name] = item
+                return item
+            
             try:
-                audioFile = eyeD3.Mp3AudioFile(f.name)
+                audioFile = eyeD3.Mp3AudioFile(unicode(f.name, 'utf-8'))
                 item['Duration'] = audioFile.getPlayTime() * 1000
 
                 tag = audioFile.getTag()
-                item['ArtistName'] = tag.getArtist()
+                artist = tag.getArtist()
+                title = tag.getTitle()
+                if artist == 'Various Artists' and '/' in title:
+                    artist, title = title.split('/')
+                item['ArtistName'] = artist.strip()
+                item['SongTitle'] = title.strip()
                 item['AlbumTitle'] = tag.getAlbum()
-                item['SongTitle'] = tag.getTitle()
                 item['AlbumYear'] = tag.getYear()
                 item['MusicGenre'] = tag.getGenre().getName()
             except Exception, msg:
@@ -147,14 +227,12 @@ class Music(Plugin):
             handler.send_response(404)
             handler.end_headers()
             return
-        
+
         if os.path.splitext(subcname)[1].lower() in PLAYLISTS:
-            t = Template(file=os.path.join(SCRIPTDIR, 'templates', 'm3u.tmpl'),
-                         filter=EncodeUnicode)
+            t = Template(playlist_template, filter=EncodeUnicode)
             t.files, t.total, t.start = self.get_playlist(handler, query)
         else:
-            t = Template(file=os.path.join(SCRIPTDIR,'templates', 
-                         'container.tmpl'), filter=EncodeUnicode)
+            t = Template(folder_template, filter=EncodeUnicode)
             t.files, t.total, t.start = self.get_files(handler, query,
                                                        AudioFileFilter)
         t.files = map(media_data, t.files)
@@ -171,71 +249,126 @@ class Music(Plugin):
         handler.end_headers()
         handler.wfile.write(page)
 
-    def item_count(self, handler, query, cname, files):
-        """Return only the desired portion of the list, as specified by 
-           ItemCount, AnchorItem and AnchorOffset
-        """
-        totalFiles = len(files)
-        index = 0
+    def parse_playlist(self, list_name, recurse):
 
-        if query.has_key('ItemCount'):
-            count = int(query['ItemCount'][0])
+        ext = os.path.splitext(list_name)[1].lower()
 
-            if query.has_key('AnchorItem'):
-                bs = '/TiVoConnect?Command=QueryContainer&Container='
-                local_base_path = self.get_local_base_path(handler, query)
+        try:
+            url = list_name.index('http://')
+            list_name = list_name[url:]
+            list_file = urllib.urlopen(list_name)
+        except:
+            list_file = open(unicode(list_name, 'utf-8'))
+            local_path = os.path.sep.join(list_name.split(os.path.sep)[:-1])
 
-                anchor = query['AnchorItem'][0]
-                if anchor.startswith(bs):
-                    anchor = anchor.replace(bs, '/')
-                anchor = unquote(anchor)
-                anchor = anchor.replace(os.path.sep + cname, local_base_path)
-                anchor = os.path.normpath(anchor)
+        if ext in ('.m3u', '.pls'):
+            charset = 'iso-8859-1'
+        else:
+            charset = 'utf-8'
 
-                filenames = [x.name for x in files]
-                try:
-                    index = filenames.index(anchor)
-                except ValueError:
-                    print 'Anchor not found:', anchor  # just use index = 0
+        if ext in ('.wpl', '.asx', '.wax', '.wvx', '.b4s'):
+            playlist = []
+            for line in list_file:
+                line = unicode(line, charset).encode('utf-8')
+                if ext == '.wpl':
+                    s = wplfile(line)
+                elif ext == '.b4s':
+                    s = b4sfile(line)
+                else:
+                    s = asxfile(line)
+                if s:
+                    playlist.append(FileData(s.group(1), False))
 
-                if count > 0:
-                    index += 1
+        elif ext == '.pls':
+            names, titles, lengths = {}, {}, {}
+            for line in list_file:
+                line = unicode(line, charset).encode('utf-8')
+                s = plsfile(line)
+                if s:
+                    names[s.group(1)] = s.group(2)
+                else:
+                    s = plstitle(line)
+                    if s:
+                        titles[s.group(1)] = s.group(2)
+                    else:
+                        s = plslength(line)
+                        if s:
+                            lengths[s.group(1)] = int(s.group(2))
+            playlist = []
+            for key in names:
+                f = FileData(names[key], False)
+                if key in titles:
+                    f.title = titles[key]
+                if key in lengths:
+                    f.duration = lengths[key]
+                playlist.append(f)
 
-                if query.has_key('AnchorOffset'):
-                    index += int(query['AnchorOffset'][0])
+        else: # ext == '.m3u' or '.m3u8' or '.ram'
+            duration, title = 0, ''
+            playlist = []
+            for line in list_file:
+                line = unicode(line.strip(), charset).encode('utf-8')
+                if line:
+                    if line.startswith('#EXTINF:'):
+                        try:
+                            duration, title = line[8:].split(',')
+                            duration = int(duration)
+                        except ValueError:
+                            duration = 0
 
-                #foward count
-                if count > 0:
-                    files = files[index:index + count]
-                #backwards count
-                elif count < 0:
-                    if index + count < 0:
-                        count = -index
-                    files = files[index + count:index]
-                    index += count
+                    elif not line.startswith('#'):
+                        f = FileData(line, False)
+                        f.title = title.strip()
+                        f.duration = duration
+                        playlist.append(f)
+                        duration, title = 0, ''
 
-            else:  # No AnchorItem
+        list_file.close()
 
-                if count >= 0:
-                    files = files[:count]
-                elif count < 0:
-                    index = count % len(files)
-                    files = files[count:]
+        # Expand relative paths
+        for i in xrange(len(playlist)):
+            if not '://' in playlist[i].name:
+                name = playlist[i].name
+                if not os.path.isabs(name):
+                    name = os.path.join(local_path, name)
+                playlist[i].name = os.path.normpath(name)
 
-        return files, totalFiles, index
+        if recurse:
+            newlist = []
+            for i in playlist:
+                if i.isplay:
+                    newlist.extend(self.parse_playlist(i.name, recurse))
+                else:
+                    newlist.append(i)
+
+            playlist = newlist
+
+        return playlist
 
     def get_files(self, handler, query, filterFunction=None):
 
+        class SortList:
+            def __init__(self, files):
+                self.files = files
+                self.unsorted = True
+                self.sortby = None
+                self.last_start = 0
+ 
         def build_recursive_list(path, recurse=True):
             files = []
+            path = unicode(path, 'utf-8')
             for f in os.listdir(path):
                 f = os.path.join(path, f)
                 isdir = os.path.isdir(f)
+                f = f.encode('utf-8')
                 if recurse and isdir:
                     files.extend(build_recursive_list(f))
                 else:
-                   if isdir or filterFunction(f, file_type):
-                       files.append(FileData(f, isdir))
+                   fd = FileData(f, isdir)
+                   if recurse and fd.isplay:
+                       files.extend(self.parse_playlist(f, recurse))
+                   elif isdir or filterFunction(f, file_type):
+                       files.append(fd)
             return files
 
         def dir_sort(x, y):
@@ -257,91 +390,76 @@ class Music(Plugin):
         file_type = query.get('Filter', [''])[0]
 
         recurse = query.get('Recurse',['No'])[0] == 'Yes'
-        filelist = build_recursive_list(path, recurse)
 
-        # Sort
-        if query.get('SortOrder',['Normal'])[0] == 'Random':
-            seed = query.get('RandomSeed', ['1'])[0]
-            self.random_lock.acquire()
-            random.seed(seed)
-            random.shuffle(filelist)
-            self.random_lock.release()
+        if recurse and path in self.recurse_cache:
+            filelist = self.recurse_cache[path]
+        elif not recurse and path in self.dir_cache:
+            filelist = self.dir_cache[path]
         else:
-            filelist.sort(dir_sort)
+            filelist = SortList(build_recursive_list(path, recurse))
+
+            if recurse:
+                self.recurse_cache[path] = filelist
+            else:
+                self.dir_cache[path] = filelist
+
+        # Sort it
+        seed = ''
+        start = ''
+        sortby = query.get('SortOrder', ['Normal'])[0] 
+        if 'Random' in sortby:
+            if 'RandomSeed' in query:
+                seed = query['RandomSeed'][0]
+                sortby += seed
+            if 'RandomStart' in query:
+                start = query['RandomStart'][0]
+                sortby += start
+
+        if filelist.unsorted or filelist.sortby != sortby:
+            if 'Random' in sortby:
+                self.random_lock.acquire()
+                if seed:
+                    random.seed(seed)
+                random.shuffle(filelist.files)
+                self.random_lock.release()
+                if start:
+                    local_base_path = self.get_local_base_path(handler, query)
+                    start = unquote(start)
+                    start = start.replace(os.path.sep + cname,
+                                          local_base_path, 1)
+                    filenames = [x.name for x in filelist.files]
+                    try:
+                        index = filenames.index(start)
+                        i = filelist.files.pop(index)
+                        filelist.files.insert(0, i)
+                    except ValueError:
+                        print 'Start not found:', start
+            else:
+                filelist.files.sort(dir_sort)
+
+            filelist.sortby = sortby
+            filelist.unsorted = False
+
+        files = filelist.files[:]
 
         # Trim the list
-        return self.item_count(handler, query, cname, filelist)
+        files, total, start = self.item_count(handler, query, cname, files,
+                                              filelist.last_start)
+        filelist.last_start = start
+        return files, total, start
 
     def get_playlist(self, handler, query):
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
 
-        list_name = self.get_local_path(handler, query)
-        local_path = os.path.sep.join(list_name.split(os.path.sep)[:-1])
-        ext = os.path.splitext(list_name)[1].lower()
+        try:
+            url = subcname.index('http://')
+            list_name = subcname[url:]
+        except:
+            list_name = self.get_local_path(handler, query)
 
-        if ext in ('.wpl', '.asx', '.wax', '.wvx', '.b4s'):
-            playlist = []
-            for line in file(list_name):
-                if ext == '.wpl':
-                    s = wplfile(line)
-                elif ext == '.b4s':
-                    s = b4sfile(line)
-                else:
-                    s = asxfile(line)
-                if s:
-                    playlist.append(FileData(s.group(1), False))
-
-        elif ext == '.pls':
-            names, titles, lengths = {}, {}, {}
-            for line in file(list_name):
-                s = plsfile(line)
-                if s:
-                    names[s.group(1)] = s.group(2)
-                else:
-                    s = plstitle(line)
-                    if s:
-                        titles[s.group(1)] = s.group(2)
-                    else:
-                        s = plslength(line)
-                        if s:
-                            lengths[s.group(1)] = int(s.group(2))
-            playlist = []
-            for key in names:
-                f = FileData(names[key], False)
-                if key in titles:
-                    f.title = titles[key]
-                if key in lengths:
-                    f.duration = lengths[key]
-                playlist.append(f)
-
-        else: # ext == '.m3u' or '.ram'
-            duration, title = 0, ''
-            playlist = []
-            for x in file(list_name):
-                x = x.strip()
-                if x:
-                    if x.startswith('#EXTINF:'):
-                        try:
-                            duration, title = x[8:].split(',')
-                            duration = int(duration)
-                        except ValueError:
-                            duration = 0
-
-                    elif not x.startswith('#'):
-                        f = FileData(x, False)
-                        f.title = title.strip()
-                        f.duration = duration
-                        playlist.append(f)
-                        duration, title = 0, ''
-
-        # Expand relative paths
-        for i in xrange(len(playlist)):
-            if not '://' in playlist[i].name:
-                name = playlist[i].name
-                if not os.path.isabs(name):
-                    name = os.path.join(local_path, name)
-                playlist[i].name = os.path.normpath(name)
+        recurse = query.get('Recurse',['No'])[0] == 'Yes'
+        playlist = self.parse_playlist(list_name, recurse)
 
         # Trim the list
         return self.item_count(handler, query, cname, playlist)

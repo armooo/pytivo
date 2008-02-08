@@ -7,6 +7,7 @@
         <ContentType>x-container/tivo-videos</ContentType>
         <SourceFormat>x-container/folder</SourceFormat>
         <TotalItems>$total</TotalItems>
+        <UniqueId>$crc($guid + $name)</UniqueId>
     </Details>
     #for $video in $videos
     #if $video.is_dir
@@ -15,11 +16,12 @@
             <Title>$escape($video.title)</Title>
             <ContentType>x-container/folder</ContentType>
             <SourceFormat>x-tivo-container/tivo-dvr</SourceFormat>
+            <UniqueId>$crc($guid + $video.small_path)</UniqueId>
         </Details>
         <Links>
             <Content>
-                    <Url>/TiVoConnect?Command=QueryContainer&amp;Container=$quote($name)/$quote($video.name)</Url>
-                    <ContentType>x-tivo-container/folder</ContentType>
+                <Url>/TiVoConnect?Command=QueryContainer&amp;Container=$quote($name)/$quote($video.name)</Url>
+                <ContentType>x-tivo-container/folder</ContentType>
             </Content>
         </Links>
     </Item>
@@ -28,6 +30,9 @@
         <Details>
             <Title>$escape($video.title)</Title>
             <ContentType>video/x-tivo-mpeg</ContentType>
+            #if not $video.valid
+            <CopyProtected>Yes</CopyProtected>
+            #end if
             <SourceFormat>video/x-ms-wmv</SourceFormat>
             <SourceSize>$video.size</SourceSize>
             <Duration>$video.duration</Duration>
@@ -40,7 +45,7 @@
             <Content>
                 <ContentType>video/x-tivo-mpeg</ContentType>
                     <AcceptsParams>No</AcceptsParams>
-                    <Url>/$quote($name)/$quote($video.name)</Url>
+                    <Url>/$quote($container)$quote($video.part_path)</Url>
                 </Content>
                 <CustomIcon>
                     <ContentType>video/*</ContentType>
@@ -50,11 +55,10 @@
             <TiVoVideoDetails>
                 <ContentType>text/xml</ContentType>
                 <AcceptsParams>No</AcceptsParams>
-                <Url>/TiVoConnect?Command=TVBusQuery&amp;Container=$escape($name)&amp;File=$quote($video.name)</Url>
+                <Url>/TiVoConnect?Command=TVBusQuery&amp;Container=$quote($container)&amp;File=$quote($video.part_path)</Url>
             </TiVoVideoDetails>
         </Links>
     </Item>
     #end if
     #end for
 </TiVoContainer>
-

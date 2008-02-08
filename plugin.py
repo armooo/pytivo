@@ -36,7 +36,7 @@ class Plugin(object):
         path = unquote(o[2])
         handler.send_response(200)
         handler.end_headers()
-        f = file(container['path'] + path[len(name)+1:], 'rb')
+        f = file(container['path'] + path[len(name) + 1:], 'rb')
         shutil.copyfileobj(f, handler.wfile)
 
     def get_local_base_path(self, handler, query):
@@ -58,9 +58,10 @@ class Plugin(object):
             path = os.path.join(path, folder)
         return path
 
-    def item_count(self, handler, query, cname, files):
+    def item_count(self, handler, query, cname, files, last_start=0):
         """Return only the desired portion of the list, as specified by 
-           ItemCount, AnchorItem and AnchorOffset
+           ItemCount, AnchorItem and AnchorOffset. 'files' is either a 
+           list of strings, OR a list of objects with a 'name' attribute.
         """
         totalFiles = len(files)
         index = 0
@@ -77,12 +78,23 @@ class Plugin(object):
                     anchor = anchor.replace(bs, '/', 1)
                 anchor = unquote(anchor)
                 anchor = anchor.replace(os.path.sep + cname, local_base_path, 1)
-                anchor = os.path.normpath(anchor)
+                if not '://' in anchor:
+                    anchor = os.path.normpath(anchor)
 
+                if type(files[0]) == str:
+                    filenames = files
+                else:
+                    filenames = [x.name for x in files]
                 try:
-                    index = files.index(anchor)
+                    index = filenames.index(anchor, last_start)
                 except ValueError:
-                    print 'Anchor not found:', anchor  # just use index = 0
+                    if last_start:
+                        try:
+                            index = filenames.index(anchor, 0, last_start)
+                        except ValueError:
+                            print 'Anchor not found:', anchor
+                    else:
+                        print 'Anchor not found:', anchor  # just use index = 0
 
                 if count > 0:
                     index += 1
@@ -111,20 +123,26 @@ class Plugin(object):
         return files, totalFiles, index
 
     def get_files(self, handler, query, filterFunction=None):
+
+        def build_recursive_list(path, recurse=True):
+            files = []
+            for file in os.listdir(path):
+                file = os.path.join(path, file)
+                if recurse and os.path.isdir(file):
+                    files.extend(build_recursive_list(file))
+                else:
+                   if not filterFunction or filterFunction(file, file_type):
+                       files.append(file)
+            return files
+
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
         path = self.get_local_path(handler, query)
-        
-        files = [ os.path.join(path, file) for file in os.listdir(path)]
-        if query.get('Recurse',['No'])[0]  == 'Yes':
-            for file in files:
-                if os.path.isdir(file):
-                    for new_file in os.listdir(file):
-                        files.append( os.path.join(file, new_file) )
 
         file_type = query.get('Filter', [''])[0]
-        if filterFunction:
-            files = [file for file in files if filterFunction(file, file_type)]
+
+        recurse = query.get('Recurse',['No'])[0] == 'Yes'
+        files = build_recursive_list(path, recurse)
 
         totalFiles = len(files)
 
