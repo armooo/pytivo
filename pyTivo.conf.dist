@@ -42,7 +42,7 @@ ffmpeg=/usr/bin/ffmpeg
 # Valid heights: [S3/HD = 1080, 720], [S2/S3/HD = 480]
 #width=1280
 #height=720
-#ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -
+#ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ab %(audio_br)s %(audio_fr)s %(audio_codec)s -f vob -
 
 # Per tivo options
 # section named _tivo_TSN with the tsn in all caps
@@ -55,7 +55,7 @@ ffmpeg=/usr/bin/ffmpeg
 #height=720
 #audio_br=320K
 #video_br=12Mi
-#ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_codec)s -ab %(audio_br)s -f vob -
+#ffmpeg_prams=-vcodec mpeg2video -r 29.97 -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ab %(audio_br)s %(audio_fr)s %(audio_codec)s -f vob -
 
 [MyMovies]
 # Type can be 'video', 'music', or 'photo'
