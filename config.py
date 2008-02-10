@@ -41,10 +41,21 @@ def get169Setting(tsn):
 
     return True
 
-def getShares():
+def getShares(tsn=''):
     shares = [(section, dict(config.items(section)))
               for section in config.sections()
               if not(section.startswith('_tivo_') or section == 'Server')]
+
+    if config.has_section('_tivo_' + tsn):
+        if config.has_option('_tivo_' + tsn, 'shares'):
+            # clean up leading and trailing spaces & make sure ref is valid
+            tsnshares = []
+            for x in config.get('_tivo_' + tsn, 'shares').split(','):
+                y = x.lstrip().rstrip()
+                if config.has_section(y):
+                    tsnshares += [(y, dict(config.items(y)))]
+            if tsnshares:
+                shares = tsnshares
 
     for name, data in shares:
         if not data.get('auto_subshares', 'False').lower() == 'true':

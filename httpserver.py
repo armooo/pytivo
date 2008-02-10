@@ -87,9 +87,15 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.unsupported(query)
 
     def root_container(self):
+         tsn = self.headers.getheader('TiVo_TCD_ID', '')
+         tsnshares = config.getShares(tsn)
+         tsncontainers = {}
+         for section, settings in tsnshares:
+            settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
+            tsncontainers[section] = settings
          t = Template(file=os.path.join(SCRIPTDIR, 'templates',
                                         'root_container.tmpl'))
-         t.containers = self.server.containers
+         t.containers = tsncontainers
          t.hostname = socket.gethostname()
          t.escape = escape
          self.send_response(200)
