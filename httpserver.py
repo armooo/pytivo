@@ -4,6 +4,7 @@ from urlparse import urlparse
 from cgi import parse_qs
 from Cheetah.Template import Template
 from plugin import GetPlugin
+import config
 from xml.sax.saxutils import escape
 
 SCRIPTDIR = os.path.dirname(__file__)
