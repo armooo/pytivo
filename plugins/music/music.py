@@ -1,6 +1,5 @@
 import subprocess, os, random, re, shutil, socket, sys, urllib, time
 import config
-from plugins.video.transcode import kill
 from Cheetah.Template import Template
 from Cheetah.Filters import Filter
 from plugin import Plugin, quote, unquote

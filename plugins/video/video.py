@@ -61,8 +61,8 @@ class Video(Plugin):
 
         # not a tivo
         if not tsn:
-            debug_write(['Hack this was not a TiVo request.\n'])
-            return query, None
+            debug_write(['Hack this was not a TiVo request. Using default tsn.', '\n'])
+            tsn = '123456789'
 
         # this breaks up the anchor item request into seperate parts
         if 'AnchorItem' in query and query['AnchorItem'] != ['Hack8.3']:
