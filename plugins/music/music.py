@@ -104,6 +104,7 @@ class Music(Plugin):
 
         fname = os.path.join(os.path.normpath(container['path']),
                              unquote(path)[len(name) + 2:])
+        fname = unicode(fname, 'utf-8')
 
         needs_transcode = os.path.splitext(fname)[1].lower() in TRANSCODE \
                           or seek or duration
