@@ -14,6 +14,7 @@ for section, settings in config.getShares():
     if settings.get('precache', 'False').lower() == 'true':
         plugin = GetPlugin(settings.get('type'))
         if hasattr(plugin,'pre_cache'):
+            print "PreCaching the " + section + " share."
             pre_cache_filter = getattr(plugin, 'pre_cache')
             
             def build_recursive_list(path):
@@ -34,6 +35,7 @@ b.start()
 if 'listen' in config.getBeaconAddresses():
     b.listen()
 
+print "pyTivo is ready."
 try:
     httpd.serve_forever()
 except KeyboardInterrupt:
