@@ -118,6 +118,8 @@ class Music(Plugin):
         handler.end_headers()
 
         if needs_transcode:
+            if mswindows:
+                fname = fname.encode('iso8859-1')
             cmd = [FFMPEG, '-i', fname, '-acodec', 'libmp3lame', '-ab', 
                    '320k', '-ar', '44100', '-f', 'mp3', '-']
             if seek:
@@ -198,7 +200,10 @@ class Music(Plugin):
                 #item['SongTitle'] = track
                 #item['AlbumTitle'] = album
                 #item['ArtistName'] = artist
-                cmd = [FFMPEG, '-i', f.name]
+                fname = unicode(f.name, 'utf-8')
+                if mswindows:
+                    fname = fname.encode('iso8859-1')
+                cmd = [FFMPEG, '-i', fname]
                 ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE,
                                                stdout=subprocess.PIPE, 
                                                stdin=subprocess.PIPE)
