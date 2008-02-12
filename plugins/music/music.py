@@ -1,4 +1,4 @@
-import subprocess, os, random, re, shutil, socket, sys, urllib, time
+import subprocess, os, random, re, shutil, socket, sys, urllib, time, cgi
 import config
 from plugins.video.transcode import kill
 from Cheetah.Template import Template
@@ -89,11 +89,25 @@ class Music(Plugin):
     dir_cache = LRUCache(10)
 
     def send_file(self, handler, container, name):
-        o = urlparse("http://fake.host" + handler.path)
-        path = unquote(o[2])
-        fname = container['path'] + path[len(name) + 1:]
-        fname = unicode(fname, 'utf-8')
-        needs_transcode = os.path.splitext(fname)[1].lower() in TRANSCODE
+        seek, duration = 0, 0
+
+        try:
+            path, query = handler.path.split('?')
+        except ValueError:
+            path = handler.path
+        else:
+            opts = cgi.parse_qs(query)
+            if 'Seek' in opts:
+                seek = int(opts['Seek'][0])
+            if 'Duration' in opts:
+                seek = int(opts['Duration'][0])
+
+        fname = os.path.join(os.path.normpath(container['path']),
+                             unquote(path)[len(name) + 2:])
+
+        needs_transcode = os.path.splitext(fname)[1].lower() in TRANSCODE \
+                          or seek or duration
+
         handler.send_response(200)
         handler.send_header('Content-Type', 'audio/mpeg')
         if not needs_transcode:
@@ -101,9 +115,15 @@ class Music(Plugin):
             handler.send_header('Content-Length', fsize)
         handler.send_header('Connection', 'close')
         handler.end_headers()
+
         if needs_transcode:
             cmd = [FFMPEG, '-i', fname, '-acodec', 'libmp3lame', '-ab', 
                    '320k', '-ar', '44100', '-f', 'mp3', '-']
+            if seek:
+                cmd[-1:] = ['-ss', '%.3f' % (seek / 1000.0), '-']
+            if duration:
+                cmd[-1:] = ['-t', '%.3f' % (duration / 1000.0), '-']
+
             ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
             try:
                 shutil.copyfileobj(ffmpeg.stdout, handler.wfile)
@@ -111,7 +131,10 @@ class Music(Plugin):
                 kill(ffmpeg.pid)
         else:
             f = file(fname, 'rb')
-            shutil.copyfileobj(f, handler.wfile)
+            try:
+                shutil.copyfileobj(f, handler.wfile)
+            except:
+                pass
 
     def QueryContainer(self, handler, query):
 
@@ -152,6 +175,7 @@ class Music(Plugin):
             item['name'] = os.path.split(f.name)[1]
             item['is_dir'] = f.isdir
             item['is_playlist'] = f.isplay
+            item['params'] = 'No'
 
             if f.title:
                 item['Title'] = f.title
@@ -195,26 +219,26 @@ class Music(Plugin):
                     else:
                         millisecs = 0
                     item['Duration'] = millisecs
+            else:
+                try:
+                    audioFile = eyeD3.Mp3AudioFile(unicode(f.name, 'utf-8'))
+                    item['Duration'] = audioFile.getPlayTime() * 1000
 
-                self.media_data_cache[f.name] = item
-                return item
-            
-            try:
-                audioFile = eyeD3.Mp3AudioFile(unicode(f.name, 'utf-8'))
-                item['Duration'] = audioFile.getPlayTime() * 1000
+                    tag = audioFile.getTag()
+                    artist = tag.getArtist()
+                    title = tag.getTitle()
+                    if artist == 'Various Artists' and '/' in title:
+                        artist, title = title.split('/')
+                    item['ArtistName'] = artist.strip()
+                    item['SongTitle'] = title.strip()
+                    item['AlbumTitle'] = tag.getAlbum()
+                    item['AlbumYear'] = tag.getYear()
+                    item['MusicGenre'] = tag.getGenre().getName()
+                except Exception, msg:
+                    print msg
 
-                tag = audioFile.getTag()
-                artist = tag.getArtist()
-                title = tag.getTitle()
-                if artist == 'Various Artists' and '/' in title:
-                    artist, title = title.split('/')
-                item['ArtistName'] = artist.strip()
-                item['SongTitle'] = title.strip()
-                item['AlbumTitle'] = tag.getAlbum()
-                item['AlbumYear'] = tag.getYear()
-                item['MusicGenre'] = tag.getGenre().getName()
-            except Exception, msg:
-                print msg
+            if 'Duration' in item:
+                item['params'] = 'Yes'
 
             self.media_data_cache[f.name] = item
             return item
