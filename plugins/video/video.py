@@ -24,8 +24,7 @@ class Video(Plugin):
 
     def pre_cache(self, full_path):
         if Video.video_file_filter(self, full_path):
-            return transcode.supported_format(full_path)
-        return False
+            transcode.supported_format(full_path)
 
     def video_file_filter(self, full_path, type=None):
         if os.path.isdir(full_path):
