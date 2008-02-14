@@ -172,13 +172,13 @@ class Video(Plugin):
             if video['is_dir']:
                 video['small_path'] = subcname + '/' + video['name']
             else:
-                if len(files) > 1:
-                    video['valid'] = True
-                    video.update(self.__metadata_basic(file))
-                else:
+                if len(files) == 1 or file in transcode.info_cache:
                     video['valid'] = transcode.supported_format(file)
                     if video['valid']:
                         video.update(self.__metadata_full(file, tsn))
+                else:
+                    video['valid'] = True
+                    video.update(self.__metadata_basic(file))
 
             videos.append(video)
 
