@@ -351,6 +351,9 @@ class Video(Plugin):
             handler.end_headers()
             return
 
+        container = handler.server.containers[cname]
+        precache = container.get('precache', 'False').lower() == 'true'
+
         files, total, start = self.get_files(handler, query,
                                              self.video_file_filter)
 
@@ -366,7 +369,7 @@ class Video(Plugin):
             if video['is_dir']:
                 video['small_path'] = subcname + '/' + video['name']
             else:
-                if len(files) == 1 or file in transcode.info_cache:
+                if precache or len(files) == 1 or file in transcode.info_cache:
                     video['valid'] = transcode.supported_format(file)
                     if video['valid']:
                         video.update(self.__metadata_full(file, tsn))

@@ -13,7 +13,7 @@ for section, settings in config.getShares():
     # Precaching of files: does a recursive list of base path
     if settings.get('precache', 'False').lower() == 'true':
         plugin = GetPlugin(settings.get('type'))
-        if hasattr(plugin,'pre_cache'):
+        if hasattr(plugin, 'pre_cache'):
             print 'Pre-caching the', section, 'share.'
             pre_cache_filter = getattr(plugin, 'pre_cache')
 
