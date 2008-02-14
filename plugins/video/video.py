@@ -270,18 +270,29 @@ class Video(Plugin):
 
         return metadata
 
-    def __metadata(self, full_path, tsn =''):
+    def __metadata_basic(self, full_path):
         metadata = {}
 
         base_path, title = os.path.split(full_path)
-        now = datetime.now()
         originalAirDate = datetime.fromtimestamp(os.stat(full_path).st_ctime)
-        duration = self.__duration(full_path)
-        duration_delta = timedelta(milliseconds = duration)
 
         metadata['title'] = '.'.join(title.split('.')[:-1])
         metadata['seriesTitle'] = metadata['title'] # default to the filename
         metadata['originalAirDate'] = originalAirDate.isoformat()
+
+        metadata.update(self.__getMetadataFromTxt(full_path))
+
+        return metadata
+
+    def __metadata_full(self, full_path, tsn=''):
+        metadata = {}
+        metadata.update(self.__metadata_basic(full_path))
+
+        now = datetime.now()
+
+        duration = self.__duration(full_path)
+        duration_delta = timedelta(milliseconds = duration)
+
         metadata['time'] = now.isoformat()
         metadata['startTime'] = now.isoformat()
         metadata['stopTime'] = (now + duration_delta).isoformat()
@@ -351,9 +362,13 @@ class Video(Plugin):
             if video['is_dir']:
                 video['small_path'] = subcname + '/' + video['name']
             else:
-                video['valid'] = transcode.supported_format(file)
-                if video['valid']:
-                    video.update(self.__metadata(file, tsn))
+                if len(files) > 1:
+                    video['valid'] = True
+                    video.update(self.__metadata_basic(file))
+                else:
+                    video['valid'] = transcode.supported_format(file)
+                    if video['valid']:
+                        video.update(self.__metadata_full(file, tsn))
 
             videos.append(video)
 
@@ -378,9 +393,9 @@ class Video(Plugin):
         file_path = path + file
 
         file_info = VideoDetails()
-        valid = transcode.supported_format(file_path)
-        if valid:
-            file_info.update(self.__metadata(file_path, tsn))
+        file_info['valid'] = transcode.supported_format(file_path)
+        if file_info['valid']:
+            file_info.update(self.__metadata_full(file_path, tsn))
 
         handler.send_response(200)
         handler.end_headers()
