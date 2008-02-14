@@ -43,6 +43,10 @@ class Video(Plugin):
     count = 0
     request_history = {}
 
+    def pre_cache(self, full_path):
+        if Video.video_file_filter(self, full_path):
+            transcode.supported_format(full_path)
+
     def video_file_filter(self, full_path, type=None):
         if os.path.isdir(full_path):
             return True
