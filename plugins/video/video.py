@@ -22,6 +22,11 @@ class Video(Plugin):
 
     CONTENT_TYPE = 'x-container/tivo-videos'
 
+    def pre_cache(self, full_path):
+        if Video.video_file_filter(self, full_path):
+            return transcode.supported_format(full_path)
+        return False
+
     def video_file_filter(self, full_path, type=None):
         if os.path.isdir(full_path):
             return True
