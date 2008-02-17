@@ -45,8 +45,7 @@ class Video(Plugin):
 
     def pre_cache(self, full_path):
         if Video.video_file_filter(self, full_path):
-            return transcode.supported_format(full_path)
-        return False
+            transcode.supported_format(full_path)
 
     def video_file_filter(self, full_path, type=None):
         if os.path.isdir(full_path):
@@ -275,18 +274,29 @@ class Video(Plugin):
 
         return metadata
 
-    def __metadata(self, full_path, tsn =''):
+    def __metadata_basic(self, full_path):
         metadata = {}
 
         base_path, title = os.path.split(full_path)
-        now = datetime.now()
         originalAirDate = datetime.fromtimestamp(os.stat(full_path).st_ctime)
-        duration = self.__duration(full_path)
-        duration_delta = timedelta(milliseconds = duration)
 
         metadata['title'] = '.'.join(title.split('.')[:-1])
         metadata['seriesTitle'] = metadata['title'] # default to the filename
         metadata['originalAirDate'] = originalAirDate.isoformat()
+
+        metadata.update(self.__getMetadataFromTxt(full_path))
+
+        return metadata
+
+    def __metadata_full(self, full_path, tsn=''):
+        metadata = {}
+        metadata.update(self.__metadata_basic(full_path))
+
+        now = datetime.now()
+
+        duration = self.__duration(full_path)
+        duration_delta = timedelta(milliseconds = duration)
+
         metadata['time'] = now.isoformat()
         metadata['startTime'] = now.isoformat()
         metadata['stopTime'] = (now + duration_delta).isoformat()
@@ -341,6 +351,9 @@ class Video(Plugin):
             handler.end_headers()
             return
 
+        container = handler.server.containers[cname]
+        precache = container.get('precache', 'False').lower() == 'true'
+
         files, total, start = self.get_files(handler, query,
                                              self.video_file_filter)
 
@@ -356,9 +369,13 @@ class Video(Plugin):
             if video['is_dir']:
                 video['small_path'] = subcname + '/' + video['name']
             else:
-                video['valid'] = transcode.supported_format(file)
-                if video['valid']:
-                    video.update(self.__metadata(file, tsn))
+                if precache or len(files) == 1 or file in transcode.info_cache:
+                    video['valid'] = transcode.supported_format(file)
+                    if video['valid']:
+                        video.update(self.__metadata_full(file, tsn))
+                else:
+                    video['valid'] = True
+                    video.update(self.__metadata_basic(file))
 
             videos.append(video)
 
@@ -383,9 +400,9 @@ class Video(Plugin):
         file_path = path + file
 
         file_info = VideoDetails()
-        valid = transcode.supported_format(file_path)
-        if valid:
-            file_info.update(self.__metadata(file_path, tsn))
+        file_info['valid'] = transcode.supported_format(file_path)
+        if file_info['valid']:
+            file_info.update(self.__metadata_full(file_path, tsn))
 
         handler.send_response(200)
         handler.end_headers()
