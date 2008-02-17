@@ -77,7 +77,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 for name, container in self.server.containers.items():
                     if query['Container'][0].startswith(name):
                         plugin = GetPlugin(container['type'])
-                        if hasattr(plugin,command):
+                        if hasattr(plugin, command):
                             method = getattr(plugin, command)
                             method(self, query)
                         else:
