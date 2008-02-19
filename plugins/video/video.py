@@ -225,6 +225,22 @@ class Video(Plugin):
     def __duration(self, full_path):
         return transcode.video_info(full_path)[4]
 
+    def __total_items(self, full_path):
+        count = 0
+        for file in os.listdir(full_path):
+            if file.startswith('.'):
+                continue
+            file = os.path.join(full_path, file)
+            if os.path.isdir(file):
+                count += 1
+            elif extensions:
+                if os.path.splitext(file)[1].lower() in extensions:
+                    count += 1
+            elif file in transcode.info_cache:
+                if transcode.supported_format(file):
+                    count += 1
+        return count
+
     def __est_size(self, full_path, tsn = ''):
         # Size is estimated by taking audio and video bit rate adding 2%
 
@@ -368,6 +384,7 @@ class Video(Plugin):
             video['is_dir'] = self.__isdir(file)
             if video['is_dir']:
                 video['small_path'] = subcname + '/' + video['name']
+                video['total_items'] = self.__total_items(file)
             else:
                 if precache or len(files) == 1 or file in transcode.info_cache:
                     video['valid'] = transcode.supported_format(file)
