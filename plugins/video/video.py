@@ -292,7 +292,7 @@ class Video(Plugin):
         metadata = {}
         metadata.update(self.__metadata_basic(full_path))
 
-        now = datetime.now()
+        now = datetime.utcnow()
 
         duration = self.__duration(full_path)
         duration_delta = timedelta(milliseconds = duration)
