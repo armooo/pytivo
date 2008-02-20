@@ -17,6 +17,8 @@
             <ContentType>x-container/folder</ContentType>
             <SourceFormat>x-tivo-container/tivo-dvr</SourceFormat>
             <UniqueId>$crc($guid + $video.small_path)</UniqueId>
+            <TotalItems>$video.total_items</TotalItems>
+            <LastCaptureDate>$video.captureDate</LastCaptureDate> 
         </Details>
         <Links>
             <Content>
@@ -40,6 +42,7 @@
             <SourceChannel>$escape($video.displayMajorNumber)</SourceChannel>
             <SourceStation>$escape($video.callsign)</SourceStation>
             <SeriesId>$video.seriesId</SeriesId>
+            <CaptureDate>$video.captureDate</CaptureDate> 
         </Details>
         <Links>
             <Content>

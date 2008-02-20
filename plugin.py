@@ -127,6 +127,8 @@ class Plugin(object):
         def build_recursive_list(path, recurse=True):
             files = []
             for file in os.listdir(path):
+                if file.startswith('.'):
+                    continue
                 file = os.path.join(path, file)
                 if recurse and os.path.isdir(file):
                     files.extend(build_recursive_list(file))

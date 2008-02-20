@@ -65,8 +65,8 @@ class Video(Plugin):
 
         # not a tivo
         if not tsn:
-            debug_write(['Hack this was not a TiVo request.\n'])
-            return query, None
+            debug_write(['Hack this was not a TiVo request. Using default tsn.', '\n'])
+            tsn = '123456789'
 
         # this breaks up the anchor item request into seperate parts
         if 'AnchorItem' in query and query['AnchorItem'] != ['Hack8.3']:
@@ -225,6 +225,22 @@ class Video(Plugin):
     def __duration(self, full_path):
         return transcode.video_info(full_path)[4]
 
+    def __total_items(self, full_path):
+        count = 0
+        for file in os.listdir(full_path):
+            if file.startswith('.'):
+                continue
+            file = os.path.join(full_path, file)
+            if os.path.isdir(file):
+                count += 1
+            elif extensions:
+                if os.path.splitext(file)[1].lower() in extensions:
+                    count += 1
+            elif file in transcode.info_cache:
+                if transcode.supported_format(file):
+                    count += 1
+        return count
+
     def __est_size(self, full_path, tsn = ''):
         # Size is estimated by taking audio and video bit rate adding 2%
 
@@ -360,7 +376,9 @@ class Video(Plugin):
         videos = []
         local_base_path = self.get_local_base_path(handler, query)
         for file in files:
+            mtime = datetime.fromtimestamp(os.stat(file).st_mtime)
             video = VideoDetails()
+            video['captureDate'] = hex(int(time.mktime(mtime.timetuple())))
             video['name'] = os.path.split(file)[1]
             video['path'] = file
             video['part_path'] = file.replace(local_base_path, '', 1)
@@ -368,6 +386,7 @@ class Video(Plugin):
             video['is_dir'] = self.__isdir(file)
             if video['is_dir']:
                 video['small_path'] = subcname + '/' + video['name']
+                video['total_items'] = self.__total_items(file)
             else:
                 if precache or len(files) == 1 or file in transcode.info_cache:
                     video['valid'] = transcode.supported_format(file)
