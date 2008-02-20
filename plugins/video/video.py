@@ -376,7 +376,9 @@ class Video(Plugin):
         videos = []
         local_base_path = self.get_local_base_path(handler, query)
         for file in files:
+            mtime = datetime.fromtimestamp(os.stat(file).st_mtime)
             video = VideoDetails()
+            video['captureDate'] = hex(int(time.mktime(mtime.timetuple())))
             video['name'] = os.path.split(file)[1]
             video['path'] = file
             video['part_path'] = file.replace(local_base_path, '', 1)
