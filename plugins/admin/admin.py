@@ -20,6 +20,22 @@ config_file_path = os.path.join(p, 'pyTivo.conf')
 class Admin(Plugin):
     
     CONTENT_TYPE = 'text/html'
+    def Admin(self, handler, query):
+        #Read config file new each time in case there was any outside edits
+        config = ConfigParser.ConfigParser()
+        config.read(config_file_path)
+
+        server_known = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", "optres", "audio_br", "video_br", "max_video_br", "width", "height", "ffmpeg_prams", "bufsize"]
+        
+        subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
+        handler.send_response(200)
+        handler.end_headers()
+        t = Template(file=os.path.join(SCRIPTDIR,'templates', 'settings.tmpl'))
+        t.container = cname
+        t.server_data = dict(config.items('Server'))
+        t.server_known = server_known
+        handler.wfile.write(t)
        
     def QueryContainer(self, handler, query):
         #Read config file new each time in case there was any outside edits
