@@ -83,9 +83,15 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                         if hasattr(plugin, command):
                             method = getattr(plugin, command)
                             method(self, query)
+                            return
                         else:
                             self.unsupported(query)
+                            return
                         break
+    
+            #if we made it here it means we couldn't match the request to anything.
+            self.unsupported(query)
+            return
         else:
             self.unsupported(query)
 
