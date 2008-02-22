@@ -33,8 +33,11 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     def add_container(self, name, settings):
         if self.containers.has_key(name) or name == 'TiVoConnect':
             raise "Container Name in use"
-        settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
-        self.containers[name] = settings
+        try:
+            settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
+            self.containers[name] = settings
+        except KeyError:
+            print 'Unable to add container', name
 
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
@@ -91,8 +94,11 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
          tsnshares = config.getShares(tsn)
          tsncontainers = {}
          for section, settings in tsnshares:
-            settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
-            tsncontainers[section] = settings
+             try:
+                settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
+                tsncontainers[section] = settings
+             except:
+                 None
          t = Template(file=os.path.join(SCRIPTDIR, 'templates',
                                         'root_container.tmpl'))
          t.containers = tsncontainers
