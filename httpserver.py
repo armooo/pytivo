@@ -86,34 +86,31 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                             method(self, query)
                             return
                         else:
-                            self.unsupported(query)
-                            return
-                        break
-    
-            #if we made it here it means we couldn't match the request to anything.
-            self.unsupported(query)
-            return
-        else:
-            self.unsupported(query)
+                            break
+
+        # If we made it here it means we couldn't match the request to 
+        # anything.
+        self.unsupported(query)
 
     def root_container(self):
-         tsn = self.headers.getheader('TiVo_TCD_ID', '')
-         tsnshares = config.getShares(tsn)
-         tsncontainers = {}
-         for section, settings in tsnshares:
-             try:
-                settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
+        tsn = self.headers.getheader('TiVo_TCD_ID', '')
+        tsnshares = config.getShares(tsn)
+        tsncontainers = {}
+        for section, settings in tsnshares:
+            try:
+                settings['content_type'] = \
+                    GetPlugin(settings['type']).CONTENT_TYPE
                 tsncontainers[section] = settings
-             except:
-                 pass
-         t = Template(file=os.path.join(SCRIPTDIR, 'templates',
-                                        'root_container.tmpl'))
-         t.containers = tsncontainers
-         t.hostname = socket.gethostname()
-         t.escape = escape
-         self.send_response(200)
-         self.end_headers()
-         self.wfile.write(t)
+            except Exception, msg:
+                print section, '-', msg
+        t = Template(file=os.path.join(SCRIPTDIR, 'templates',
+                                       'root_container.tmpl'))
+        t.containers = tsncontainers
+        t.hostname = socket.gethostname()
+        t.escape = escape
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(t)
 
     def infopage(self):
         self.send_response(200)
