@@ -50,12 +50,12 @@ document.all.hideshow.divs[i].visibility = 'visible';
 </head>
 
 
-<body style="background-color: rgb(255, 255, 255);">
+<body style="background-color: rgb(250, 250, 250);">
 
 <p align="center"><font size="6">pyTivo Web
 Configuration</font> <a href="#">help</a></p>
-
-<table style="text-align: left; margin-left: auto; margin-right: auto;" border="0" cellpadding="0" cellspacing="4">
+<center>
+<table style="background-color: rgb(255, 255, 255);text-align: left; margin-left: auto; margin-right: auto;" border="0" cellpadding="0" cellspacing="4">
 
   <tbody>
 
@@ -63,14 +63,18 @@ Configuration</font> <a href="#">help</a></p>
 
       <td style="border-right: 1px dotted rgb(153, 153, 153); vertical-align: top;">
       <div id="leftframe" style="position: relative; text-align: center; width: 200px;">
-      <form method="post">Sections
-        <select name="D1" size="7">
-        <option>Global Server Settings</option>
-        <option>My Videos</option>
-        <option>_tivo_1234456</option>
+      <form name="select_section">Sections
+        <select name="section" size="7">
+        <option value="set-server">Global Server Settings</option>
+#for $name, $data in $shares_data
+	<option value="set-share-$name">$name</option>
+#end for
+#for $name, $data in $tivos_data
+	<option value="set-tivo-$name">$name</option>
+#end for
         </select>
 
-        <input name="B3" value="Edit Section" type="button"> <input name="B1" value="Delete Section" type="button"><input name="B2" value="Add Section" type="button"></form>
+        <input name="B3" value="Edit Section" type="button" onclick="switchDiv(select_section.section.options[select_section.section.selectedIndex].value, 'set-');return true;"> <input name="B1" value="Delete Section" type="button"><input name="B2" value="Add Section" type="button"></form>
 
       <hr>Administration
       <form method="post">
@@ -85,16 +89,16 @@ View Raw File </div>
       <td style="vertical-align: top;">
       <div id="settings" style="width: 300px; overflow: scroll; height: 400px; position: relative;">
       <form method="post">
-        <div id="server-settings" style="text-align: center;">Global
+        <div id="set-server" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">Global
 Server Settings<br>
 
         <hr style="width: 100%; height: 2px;"> 
 #for $key in $server_known
 #if $key in $server_data
-        <p>$key : <input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+        <p>$key : <input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 #else
-        <p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+        <p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 #end if
 #end for
@@ -102,21 +106,21 @@ Server Settings<br>
 #for $key in $server_data 
 #if not $key in $server_known
         <p> $key : 
-        <input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+        <input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 #end if 
 #end for 
 	</div>
 
 #for $name, $data in $shares_data
-	<div id="share-settings" style="text-align: center;">$name<br>
+	<div id="set-share-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="title" value="$name">]<br>
 	<hr style="width: 100%; height: 2px;">
 	#for $key in $shares_known
 		#if $key in $data
-			<p>$key : <input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+			<p>$key : <input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 		#else
-			<p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+			<p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 		#end if
 	#end for
@@ -125,7 +129,7 @@ Server Settings<br>
 	#for $key in $data 
 		#if not $key in $shares_known
 			<p> $key : 
-			<input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+			<input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 		#end if 
 	#end for
@@ -134,14 +138,14 @@ Server Settings<br>
 #end for
 
 #for $name, $data in $tivos_data
-	<div id="share-settings" style="text-align: center;">$name<br>
+	<div id="set-tivo-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="title" value="$name">]<br>
 	<hr style="width: 100%; height: 2px;">
 	#for $key in $tivos_known
 		#if $key in $data
-			<p>$key : <input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+			<p>$key : <input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 		#else
-			<p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+			<p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 		#end if
 	#end for
@@ -150,7 +154,7 @@ Server Settings<br>
 	#for $key in $data 
 		#if not $key in $tivos_known
 			<p> $key : 
-			<input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+			<input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 		#end if 
 	#end for
@@ -166,14 +170,14 @@ Server Settings<br>
 
       <td style="border-left: 1px dotted rgb(153, 153, 153); vertical-align: top;">
       <div id="sidesections" style="width: 400px; position: relative;"><!-- HELP SECTIONS -->
-      <div id="set-instructions" style="position: absolute; left: 0px; top: 0px; visibility: visible;">
+      <div id="help-instructions" style="position: absolute; left: 0px; top: 0px; visibility: visible;">
       <p align="center"><strong>Instructions</strong>
       </p>
 
 Instructions and sample settings will appear here when you click on the
 settings boxes</div>
 
-      <div id="set-port" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-port" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>port</strong> </p>
 
       <p> <strong>Default Setting:</strong> None,
@@ -195,7 +199,7 @@ may need to change it to something like port=9254.<br>
 
       </div>
 
-      <div id="set-guid" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-guid" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>guid</strong> </p>
 
       <p> <strong>Default Setting:</strong> 123456<br>
@@ -218,7 +222,7 @@ number. </p>
 
       </div>
 
-      <div id="set-ffmpeg" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-ffmpeg" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>ffmpeg</strong>
       </p>
 
@@ -240,7 +244,7 @@ Files\pyTivo\plugins\video\ffmpeg_mp2.exe </p>
 
       </div>
 
-      <div id="set-beacon" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-beacon" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>beacon</strong>
       </p>
 
@@ -262,7 +266,7 @@ setting. If set to listen will accept incoming TCP requests.<br>
 
       </div>
 
-      <div id="set-hack83" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-hack83" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>hack83</strong>
       </p>
 
@@ -285,7 +289,7 @@ with this setting enabled may cause <a class="wiki" href="/wiki/TiVo">TiVo</a> t
 
       </div>
 
-      <div id="set-debug" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-debug" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>debug</strong>
       </p>
 
@@ -307,7 +311,7 @@ by support staff.<br>
 
       </div>
 
-      <div id="set-optres" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-optres" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>optres</strong>
       </p>
 
@@ -333,7 +337,7 @@ quality.<br>
 
       </div>
 
-      <div id="set-audio_br" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-audio_br" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>audio_br</strong>
       </p>
 
@@ -358,7 +362,7 @@ over the network.<br>
 
       </div>
 
-      <div id="set-max_audio_br" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-max_audio_br" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>max_audio_br</strong>
       </p>
 
@@ -378,7 +382,7 @@ rate will be transcoded to ensure <a class="wiki" href="/wiki/TiVo">TiVo</a> com
 
       </div>
 
-      <div id="set-video_br" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-video_br" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>video_br</strong>
       </p>
 
@@ -406,7 +410,7 @@ over the network.<br>
 
       </div>
 
-      <div id="set-max_video_br" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-max_video_br" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>max_video_br</strong>
       </p>
 
@@ -436,7 +440,7 @@ ffmpeg throws an error with 17Mi but accepts 17408K just fine. <br>
 
       </div>
 
-      <div id="set-width" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-width" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>width</strong>
       </p>
 
@@ -462,7 +466,7 @@ longer to transfer over the network.<br>
 
       </div>
 
-      <div id="set-height" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-height" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>height</strong>
       </p>
 
@@ -487,7 +491,7 @@ longer to transfer over the network.<br>
 
       </div>
 
-      <div id="set-ffmpeg_prams" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-ffmpeg_prams" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>ffmpeg_prams</strong>
       </p>
 
@@ -521,7 +525,7 @@ and the forum. </p>
 
       </div>
 
-      <div id="set-bufsize" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-bufsize" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>bufsize</strong>
       </p>
 
@@ -544,7 +548,7 @@ advanced users.<br>
 
       </div>
 
-      <div id="set-type" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-type" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>type</strong> </p>
 
       <p> <strong>Default Setting:</strong> None<br>
@@ -564,7 +568,7 @@ not start.<br>
 
       </div>
 
-      <div id="set-path" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-path" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>path</strong> </p>
 
       <p> <strong>Default Setting:</strong> None<br>
@@ -584,7 +588,7 @@ shares will not work at all.<br>
 
       </div>
 
-      <div id="set-subshares" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-subshares" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>auto_subshares</strong>
       </p>
 
@@ -605,7 +609,7 @@ setting which enables the <a class="wiki" href="/wiki/SubFoldersBranch">SubFolde
 
       </div>
 
-      <div id="set-precache" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-precache" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>precache</strong>
       </p>
 
@@ -653,7 +657,7 @@ longer needed.<br>
 
       </div>
 
-      <div id="set-aspect169" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-aspect169" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>aspect169</strong>
       </p>
 
@@ -675,7 +679,7 @@ will not have to mess with this.<br>
 
       </div>
 
-      <div id="set-shares" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-shares" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>shares</strong>
       </p>
 
@@ -707,6 +711,6 @@ all shares will be visible on this TiVo.<br>
 
   </tbody>
 </table>
-
+</center>
 </body>
 </html>
