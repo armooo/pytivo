@@ -105,7 +105,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
                 tsncontainers[section] = settings
              except:
-                 None
+                 pass
          t = Template(file=os.path.join(SCRIPTDIR, 'templates',
                                         'root_container.tmpl'))
          t.containers = tsncontainers
