@@ -26,6 +26,7 @@ class Admin(Plugin):
         config.read(config_file_path)
 
         server_known = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", "optres", "audio_br", "video_br", "max_video_br", "width", "height", "ffmpeg_prams", "bufsize"]
+        shares_known = ["type", "path", "auto_subshares"]
         
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
@@ -35,6 +36,8 @@ class Admin(Plugin):
         t.container = cname
         t.server_data = dict(config.items('Server'))
         t.server_known = server_known
+        t.shares_data = shares_data = [ (section, dict(config.items(section))) for section in config.sections() if not(section.startswith('_tivo_') or section.startswith('Server')) and (config.has_option(section,'type') and config.get(section,'type').lower() != 'admin')]
+        t.shares_known = shares_known
         handler.wfile.write(t)
        
     def QueryContainer(self, handler, query):
