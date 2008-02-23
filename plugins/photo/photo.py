@@ -28,7 +28,7 @@ import os, re, random, urllib, threading, time, cgi, sys
 try:
     import Image
 except ImportError:
-    print 'Photo Plugin Error: The python Imaging Library is not installed'
+    print 'Photo Plugin Error: The Python Imaging Library is not installed'
     sys.exit(1)
 from cStringIO import StringIO
 from Cheetah.Template import Template

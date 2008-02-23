@@ -33,8 +33,11 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     def add_container(self, name, settings):
         if self.containers.has_key(name) or name == 'TiVoConnect':
             raise "Container Name in use"
-        settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
-        self.containers[name] = settings
+        try:
+            settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
+            self.containers[name] = settings
+        except KeyError:
+            print 'Unable to add container', name
 
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
@@ -74,33 +77,40 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
             if query.has_key('Container'):
                 # Dispatch to the container plugin
+                basepath = query['Container'][0].split('/')[0]
                 for name, container in self.server.containers.items():
-                    if query['Container'][0].startswith(name):
+                    if basepath == name:
                         plugin = GetPlugin(container['type'])
                         if hasattr(plugin, command):
                             method = getattr(plugin, command)
                             method(self, query)
+                            return
                         else:
-                            self.unsupported(query)
-                        break
-        else:
-            self.unsupported(query)
+                            break
+
+        # If we made it here it means we couldn't match the request to 
+        # anything.
+        self.unsupported(query)
 
     def root_container(self):
-         tsn = self.headers.getheader('TiVo_TCD_ID', '')
-         tsnshares = config.getShares(tsn)
-         tsncontainers = {}
-         for section, settings in tsnshares:
-            settings['content_type'] = GetPlugin(settings['type']).CONTENT_TYPE
-            tsncontainers[section] = settings
-         t = Template(file=os.path.join(SCRIPTDIR, 'templates',
-                                        'root_container.tmpl'))
-         t.containers = tsncontainers
-         t.hostname = socket.gethostname()
-         t.escape = escape
-         self.send_response(200)
-         self.end_headers()
-         self.wfile.write(t)
+        tsn = self.headers.getheader('TiVo_TCD_ID', '')
+        tsnshares = config.getShares(tsn)
+        tsncontainers = {}
+        for section, settings in tsnshares:
+            try:
+                settings['content_type'] = \
+                    GetPlugin(settings['type']).CONTENT_TYPE
+                tsncontainers[section] = settings
+            except Exception, msg:
+                print section, '-', msg
+        t = Template(file=os.path.join(SCRIPTDIR, 'templates',
+                                       'root_container.tmpl'))
+        t.containers = tsncontainers
+        t.hostname = socket.gethostname()
+        t.escape = escape
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(t)
 
     def infopage(self):
         self.send_response(200)
