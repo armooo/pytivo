@@ -87,30 +87,40 @@ View Raw File </div>
       </td>
 
       <td style="vertical-align: top;">
-      <div id="settings" style="width: 300px; overflow: scroll; height: 400px; position: relative;">
+      <div id="settings" style="width: 300px; overflow: scroll; height: 450px; position: relative;">
       <form method="post">
-        <div id="set-server" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">Global
-Server Settings<br>
+        <div id="set-server" style="width: 280px; text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;"><b>Global
+Server Settings</b><br>
 
         <hr style="width: 100%; height: 2px;"> 
+        <table align="center">
+#set $i = 0
 #for $key in $server_known
+#set $i += 1
+#if $i%2
+<tr style="background-color: rgb(250, 250, 250);">
+#else
+<tr>
+#end if
+<td>
 #if $key in $server_data
-        <p>$key : <input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+        <p>$key :</td><td><input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 #else
-        <p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+        <p>$key :</td><td><input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 #end if
+</td></tr>
 #end for
-        <hr> 
+<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">User Defined Settings:</td></tr>        
 #for $key in $server_data 
 #if not $key in $server_known
-        <p> $key : 
+<tr><td>        <p> $key :</td><td>
         <input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
-
+</td></tr>
 #end if 
 #end for 
-	</div>
+	</table> </div>
 
 #for $name, $data in $shares_data
 	<div id="set-share-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="title" value="$name">]<br>
