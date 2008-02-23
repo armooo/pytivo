@@ -24,9 +24,6 @@ class Admin(Plugin):
         #Read config file new each time in case there was any outside edits
         config = ConfigParser.ConfigParser()
         config.read(config_file_path)
-
-        server_known = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", "optres", "audio_br", "video_br", "max_video_br", "width", "height", "ffmpeg_prams", "bufsize"]
-        shares_known = ["type", "path", "auto_subshares"]
         
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
@@ -35,9 +32,19 @@ class Admin(Plugin):
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'settings.tmpl'))
         t.container = cname
         t.server_data = dict(config.items('Server'))
-        t.server_known = server_known
-        t.shares_data = shares_data = [ (section, dict(config.items(section))) for section in config.sections() if not(section.startswith('_tivo_') or section.startswith('Server')) and (config.has_option(section,'type') and config.get(section,'type').lower() != 'admin')]
-        t.shares_known = shares_known
+        t.server_known = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", \
+                          "optres", "audio_br", "video_br", "max_video_br", "width",\
+                          "height", "ffmpeg_prams", "bufsize"]
+        t.shares_data = shares_data = [ (section, dict(config.items(section))) \
+                                        for section in config.sections() \
+                                        if not(section.startswith('_tivo_') \
+                                        or section.startswith('Server')) and \
+                                        (config.has_option(section,'type') and \
+                                         config.get(section,'type').lower() != 'admin')]
+        t.shares_known = ["type", "path", "auto_subshares"]
+        t.tivos_data = [ (section, dict(config.items(section))) for section in config.sections() \
+                         if section.startswith('_tivo_')]
+        t.tivos_known = ["aspect169", "audio_br", "video_br", "width", "height", "ffmpeg_prams"]
         handler.wfile.write(t)
        
     def QueryContainer(self, handler, query):

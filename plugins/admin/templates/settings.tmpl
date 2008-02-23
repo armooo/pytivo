@@ -101,36 +101,61 @@ Server Settings<br>
         <hr> 
 #for $key in $server_data 
 #if not $key in $server_known
-        <p> <input size="20" name="$key" value="$key" onfocus="switchDiv('set-$key', 'set-');return true;" type="text">:
+        <p> $key : 
         <input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
 
 #end if 
 #end for 
-</div>
+	</div>
 
 #for $name, $data in $shares_data
-<div id="share-settings" style="text-align: center;">$name<br>
+	<div id="share-settings" style="text-align: center;">$name<br>
+	<hr style="width: 100%; height: 2px;">
+	#for $key in $shares_known
+		#if $key in $data
+			<p>$key : <input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
 
-        <hr style="width: 100%; height: 2px;">
-#for $key in $shares_known
-#if $key in $data
-        <p>$key : <input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+		#else
+			<p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
 
-#else
-        <p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+		#end if
+	#end for
 
-#end if
+	<hr> 
+	#for $key in $data 
+		#if not $key in $shares_known
+			<p> $key : 
+			<input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+
+		#end if 
+	#end for
+
+	</div>
 #end for
-        <hr> 
-#for $key in $data 
-#if not $key in $shares_known
-        <p> <input size="20" name="$key" value="$key" onfocus="switchDiv('set-$key', 'set-');return true;" type="text">:
-        <input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
 
-#end if 
-#end for
+#for $name, $data in $tivos_data
+	<div id="share-settings" style="text-align: center;">$name<br>
+	<hr style="width: 100%; height: 2px;">
+	#for $key in $tivos_known
+		#if $key in $data
+			<p>$key : <input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
 
-</div>
+		#else
+			<p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+
+		#end if
+	#end for
+
+	<hr> 
+	#for $key in $data 
+		#if not $key in $tivos_known
+			<p> $key : 
+			<input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('set-$key', 'set-');return true;" type="text"></p>
+
+		#end if 
+	#end for
+
+	</div>
 #end for
 
       </form>
@@ -260,7 +285,7 @@ with this setting enabled may cause <a class="wiki" href="/wiki/TiVo">TiVo</a> t
 
       </div>
 
-      <div id="set-path" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="set-debug" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>debug</strong>
       </p>
 
