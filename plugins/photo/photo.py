@@ -24,12 +24,12 @@
 # Version 0.2,  Dec. 8  -- thumbnail caching, faster thumbnails
 # Version 0.1,  Dec. 7, 2007
 
-import os, re, random, urllib, threading, time, cgi
+import os, re, random, urllib, threading, time, cgi, sys
 try:
     import Image
 except ImportError:
     print 'Photo Plugin Error: The Python Imaging Library is not installed'
-    exit(1)
+    sys.exit(1)
 from cStringIO import StringIO
 from Cheetah.Template import Template
 from Cheetah.Filters import Filter
