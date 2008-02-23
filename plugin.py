@@ -8,11 +8,19 @@ else:
     quote = lambda x: urllib.quote(x.replace(os.path.sep, '/'))
     unquote = lambda x: urllib.unquote_plus(x).replace('/', os.path.sep)
 
+class Error:
+    CONTENT_TYPE = 'text/html'
+
 def GetPlugin(name):
     module_name = '.'.join(['plugins', name, name])
-    module = __import__(module_name, globals(), locals(), name)
-    plugin = getattr(module, module.CLASS_NAME)()
-    return plugin
+    try:
+        module = __import__(module_name, globals(), locals(), name)
+        plugin = getattr(module, module.CLASS_NAME)()
+        return plugin
+    except:
+        print 'Error no', name, 'plugin exists. Check the type ' \
+              'setting for your share.'
+        return Error
 
 class Plugin(object):
 
