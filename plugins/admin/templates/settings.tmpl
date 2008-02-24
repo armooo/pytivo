@@ -113,62 +113,99 @@ Server Settings</b><br>
 </td></tr>
 #end for
 <tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">User Defined Settings:</td></tr>        
+#set $i = 0
 #for $key in $server_data 
-#if not $key in $server_known
-<tr><td>        <p> $key :</td><td>
-        <input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
-</td></tr>
-#end if 
+	#if not $key in $server_known
+		#set $i += 1
+		#if $i%2
+			<tr style="background-color: rgb(250, 250, 250);">
+		#else
+			<tr>
+		#end if
+		<td>        <p> $key :</td><td>
+	        <input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+		</td></tr>
+	#end if 
 #end for 
 	</table> </div>
 
 #for $name, $data in $shares_data
 	<div id="set-share-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="title" value="$name">]<br>
-	<hr style="width: 100%; height: 2px;">
+	<hr style="width: 100%; height: 2px;"><table align="center">
+	#set $i = 0
 	#for $key in $shares_known
-		#if $key in $data
-			<p>$key : <input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
-
+		#set $i += 1
+		#if $i%2
+			<tr style="background-color: rgb(250, 250, 250);">
 		#else
-			<p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
-
+			<tr>
 		#end if
+		#if $key in $data
+			<td><p>$key :</td><td><input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			</td>
+		#else
+			<td><p>$key : </td><td><input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			</td>
+		#end if
+		</tr>
 	#end for
 
-	<hr> 
+	<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">User Defined Settings:</td></tr> 
+	#set $i = 0
 	#for $key in $data 
 		#if not $key in $shares_known
-			<p> $key : 
+			#set $i += 1
+			#if $i%2
+				<tr style="background-color: rgb(250, 250, 250);">
+			#else
+				<tr>
+			#end if
+			<td><p> $key : </td><td>
 			<input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
-
+			</td></tr>
 		#end if 
 	#end for
-
+	</table>
 	</div>
 #end for
 
 #for $name, $data in $tivos_data
 	<div id="set-tivo-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="title" value="$name">]<br>
-	<hr style="width: 100%; height: 2px;">
+	<hr style="width: 100%; height: 2px;"><table align="center">
+	#set $i = 0
 	#for $key in $tivos_known
-		#if $key in $data
-			<p>$key : <input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
-
+		#set $i += 1
+		#if $i%2
+			<tr style="background-color: rgb(250, 250, 250);">
 		#else
-			<p>$key : <input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
-
+			<tr>
 		#end if
+		#if $key in $data
+			<td><p>$key :</td><td><input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			</td>
+		#else
+			<td><p>$key :</td><td><input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			</td>
+		#end if
+		</tr>
 	#end for
 
-	<hr> 
+	<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">User Defined Settings:</td></tr> 
+	#set $i = 0
 	#for $key in $data 
 		#if not $key in $tivos_known
-			<p> $key : 
+			#set $i += 1
+			#if $i%2
+				<tr style="background-color: rgb(250, 250, 250);">
+			#else
+				<tr>
+			#end if
+			<td><p> $key :</td><td> 
 			<input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
-
+			</td></tr>
 		#end if 
 	#end for
-
+	</table>
 	</div>
 #end for
 
