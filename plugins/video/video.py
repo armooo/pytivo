@@ -320,9 +320,6 @@ class Video(Plugin):
         metadata['time'] = now.isoformat()
         metadata['startTime'] = now.isoformat()
         metadata['stopTime'] = (now + duration_delta).isoformat()
-
-        metadata.update( self.__getMetadataFromTxt(full_path) )
-
         metadata['size'] = self.__est_size(full_path, tsn)
         metadata['duration'] = duration
 
