@@ -261,9 +261,12 @@ class Video(Plugin):
 
         default_file = os.path.join(os.path.split(full_path)[0], 'default.txt')
         description_file = full_path + '.txt'
+        description_file2 = os.path.join(os.path.dirname(full_path), '.meta',
+                                         os.path.basename(full_path))  + '.txt'
 
         metadata.update(self.__getMetadataFromFile(default_file))
         metadata.update(self.__getMetadataFromFile(description_file))
+        metadata.update(self.__getMetadataFromFile(description_file2))
 
         return metadata
 
