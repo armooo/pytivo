@@ -37,18 +37,18 @@ class Admin(Plugin):
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'settings.tmpl'))
         t.container = cname
-        t.server_data = dict(config.items('Server'))
+        t.server_data = dict(config.items('Server', raw=True))
         t.server_known = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", \
                           "optres", "audio_br", "video_br", "max_video_br", "width",\
                           "height", "ffmpeg_prams", "bufsize"]
-        t.shares_data = shares_data = [ (section, dict(config.items(section))) \
+        t.shares_data = shares_data = [ (section, dict(config.items(section, raw=True))) \
                                         for section in config.sections() \
                                         if not(section.startswith('_tivo_') \
                                         or section.startswith('Server')) and \
                                         (config.has_option(section,'type') and \
                                          config.get(section,'type').lower() != 'admin')]
         t.shares_known = ["type", "path", "auto_subshares"]
-        t.tivos_data = [ (section, dict(config.items(section))) for section in config.sections() \
+        t.tivos_data = [ (section, dict(config.items(section, raw=True))) for section in config.sections() \
                          if section.startswith('_tivo_')]
         t.tivos_known = ["aspect169", "audio_br", "video_br", "width", "height", "ffmpeg_prams"]
         handler.wfile.write(t)
