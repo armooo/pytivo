@@ -53,6 +53,18 @@ document.all.hideshow.divs[i].visibility = '';
 }
 }
 }
+function deleteSection(id){
+var answer = confirm("Are you sure you wish to delete the '" + select_section.section.options[id].text + "' Section?")
+if (answer){
+	switchDiv('set-delete', 'set-');
+	select_section.section.options[id] = null;
+	// add stuff here to populate title with 'Delete_Me'
+	return true;
+}
+else{
+	//Don't delete
+}
+}
   </script>
 </head>
 
@@ -82,7 +94,7 @@ Configuration</font> <a href="#">help</a></p>
         </select>
 
         <input name="B3" value="Edit Section" type="button" onclick="switchDiv(select_section.section.options[select_section.section.selectedIndex].value, 'set-');return true;"> 
-        <input name="B1" value="Delete Section" type="button">
+        <input name="B1" value="Delete Section" type="button" onclick="deleteSection(select_section.section.selectedIndex)">
         <input name="B2" value="Add Section" type="button"onfocus="switchDiv('set-add', 'set-');return true;"></form>
 
       <hr>Administration
@@ -279,6 +291,12 @@ View Raw File </div>
 	<td> Section Name :</td><td> 
 		<input size="20" name="new_Section" value="" onfocus="switchDiv('help-add', 'help-');return true;">
 	</td></tr></table>
+</div>
+<div id="set-delete" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
+	Delete a Section
+	<hr>
+	<br>
+	The Section has been marked for deletion. However it will not be actually deleted until you click the <b>Save Changes</b> button.
 </div>
 <input type="hidden" name="Section_Map" value="$section_map">
       </form>
