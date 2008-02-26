@@ -10,6 +10,9 @@ config_file = os.path.join(p, 'pyTivo.conf')
 config.read(config_file)
 
 def reset():
+    global config
+    del config
+    config = ConfigParser.ConfigParser()
     config.read(config_file)
 
 def getGUID():
