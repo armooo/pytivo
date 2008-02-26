@@ -20,7 +20,7 @@ config_file_path = os.path.join(p, 'pyTivo.conf')
 class Admin(Plugin):
     CONTENT_TYPE = 'text/html'
 
-    def Restart(self, handler, query):
+    def Reset(self, handler, query):
         config.reset()
         handler.server.reset()
         
