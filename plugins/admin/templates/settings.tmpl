@@ -7,6 +7,13 @@
 
 
   <script language="javascript" type="text/javascript">
+function fillBlank(){
+var texts=document.getElementsByTagName('input')
+for (var i_tem = 0; i_tem < texts.length; i_tem++)
+if (texts[i_tem].value=='')
+texts[i_tem].value=' '
+}
+
 function switchDiv(pass, type){ hideallids(type);
 showDiv(pass);
 }
@@ -78,7 +85,7 @@ Configuration</font> <a href="#">help</a></p>
 
       <hr>Administration
       <form method="post">
-        <p align="center"><input name="B1" value="Save Changes" type="button"><input name="B2" value="Restart pyTivo" type="submit"></p>
+        <p align="center"><input name="B1" value="Save Changes" type="button" onclick="fillBlank();document.config.submit();return true;"><input name="B2" value="Soft Reset pyTivo" type="button"></p>
 
       </form>
 
@@ -88,7 +95,9 @@ View Raw File </div>
 
       <td style="vertical-align: top;">
       <div id="settings" style="width: 300px; overflow: scroll; height: 450px; position: relative;">
-      <form method="post">
+      <form name="config" method="GET" action="TiVoConnect" onsubmit="fillBlank()">
+      <input type="hidden" name="Command" value="UpdateSettings">
+      <input type="hidden" name="Container" value="$container">
 <div id="set-server" style="width: 280px; text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
 	<b>Global Server Settings</b><br>
         <hr style="width: 100%; height: 2px;"> 
@@ -137,6 +146,7 @@ View Raw File </div>
 		<div id="add-server-field" style="position: absolute; position: absolute; left: 0px; top: 0px; visibility: hidden;">
 			<table style="width: 265px;">
 			<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">Add a Setting</td></tr>
+			<tr><td>Setting Name:</td><td>Setting Value:</td></tr>
 			<tr><td><input size="16" name="Server.new__setting" type="text" value=""></td><td><input size="16" type="text" name="Server.new__value" value=""></td></tr>
 			</table>
 		</div>
@@ -194,6 +204,7 @@ View Raw File </div>
 			<div id="add-$name-field" style="position: absolute; position: absolute; left: 0px; top: 0px; visibility: hidden;">
 				<table style="width: 265px;">
 				<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">Add a Setting</td></tr>
+				<tr><td>Setting Name:</td><td>Setting Value:</td></tr>
 				<tr><td><input size="16" name="$(section_number).new__setting" type="text" value=""></td><td><input size="16" type="text" name="$(section_number).new__value" value=""></td></tr>
 				</table>
 			</div>
@@ -241,6 +252,21 @@ View Raw File </div>
 		#end if 
 	#end for
 	</table>
+		<div style="position: relative;">
+			<div id="add-$name-button" style="width: 280px; position: absolute; position: absolute; left: 0px; top: 0px;">
+				<br>
+				<center>
+				<input type="button" value="Add Setting" onclick="switchDiv('add-$name-field', 'add-$name-');return true;">
+				</center>
+			</div>
+			<div id="add-$name-field" style="position: absolute; position: absolute; left: 0px; top: 0px; visibility: hidden;">
+				<table style="width: 265px;">
+				<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">Add a Setting</td></tr>
+				<tr><td>Setting Name:</td><td>Setting Value:</td></tr>
+				<tr><td><input size="16" name="$(section_number).new__setting" type="text" value=""></td><td><input size="16" type="text" name="$(section_number).new__value" value=""></td></tr>
+				</table>
+			</div>
+		</div>
 	</div>
 #end for
 
