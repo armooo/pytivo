@@ -67,6 +67,15 @@ else{
 	//Don't delete
 }
 }
+function resetpyTivo(){
+var answer = confirm("Are you sure you wish to reset the pyTivo Server? Any unsaved changes will be lost!")
+if (answer){
+	window.location="/TiVoConnect?Command=Reset&Container=$container"
+}
+else{
+	//Don't reset
+}
+}
   </script>
 </head>
 
@@ -101,7 +110,8 @@ Configuration</font> <a href="#">help</a></p>
 
       <hr>Administration
       <form method="post">
-        <p align="center"><input name="B1" value="Save Changes" type="button" onclick="fillBlank();document.config.submit();return true;"><input name="B2" value="Soft Reset pyTivo" type="button"></p>
+        <p align="center"><input name="B1" value="Save Changes" type="button" onclick="fillBlank();document.config.submit();return true;">
+        <input name="B2" value="Soft Reset pyTivo" type="button" onclick="resetpyTivo();"></p>
 
       </form>
 
