@@ -37,12 +37,12 @@ var divs = document.getElementsByTagName('div');
 for(i=0;i<divs.length;i++){
 if(divs[i].id == pass){
 if (document.getElementById)
-divs[i].style.visibility="visible";
+divs[i].style.visibility="";
 else
 if (document.layers) // Netscape 4
-document.layers[divs[i]].display = 'visible';
+document.layers[divs[i]].display = '';
 else // IE 4
-document.all.hideshow.divs[i].visibility = 'visible';
+document.all.hideshow.divs[i].visibility = '';
 }
 }
 }
@@ -103,10 +103,10 @@ View Raw File </div>
 #end if
 <td>
 #if $key in $server_data
-        <p>$key :</td><td><input size="20" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+        $key :</td><td><input size="20" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 
 #else
-        <p>$key :</td><td><input size="20" name="Server.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+        $key :</td><td><input size="20" name="Server.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 
 #end if
 </td></tr>
@@ -121,13 +121,13 @@ View Raw File </div>
 		#else
 			<tr>
 		#end if
-		<td>        <p> $key :</td><td>
-	        <input size="20" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+		<td>         $key :</td><td>
+	        <input size="20" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 		</td></tr>
 	#end if 
 #end for 
 	</table>
-	<div style="position: relative;">
+	<div style="width: 280px; position: relative;">
 		<div id="add-server-button" style="width: 280px; position: absolute; position: absolute; left: 0px; top: 0px;">
 			<br>
 			<center>
@@ -159,10 +159,10 @@ View Raw File </div>
 			<tr>
 		#end if
 		#if $key in $data
-			<td><p>$key :</td><td><input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<td>$key :</td><td><input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#else
-			<td><p>$key : </td><td><input size="20" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<td>$key : </td><td><input size="20" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#end if
 		</tr>
@@ -178,12 +178,26 @@ View Raw File </div>
 			#else
 				<tr>
 			#end if
-			<td><p> $key : </td><td>
-			<input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<td> $key : </td><td>
+			<input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td></tr>
 		#end if 
 	#end for
 	</table>
+		<div style="position: relative;">
+			<div id="add-$name-button" style="width: 280px; position: absolute; position: absolute; left: 0px; top: 0px;">
+				<br>
+				<center>
+				<input type="button" value="Add Setting" onclick="switchDiv('add-$name-field', 'add-$name-');return true;">
+				</center>
+			</div>
+			<div id="add-$name-field" style="position: absolute; position: absolute; left: 0px; top: 0px; visibility: hidden;">
+				<table style="width: 265px;">
+				<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">Add a Setting</td></tr>
+				<tr><td><input size="16" name="$(section_number).new__setting" type="text" value=""></td><td><input size="16" type="text" name="$(section_number).new__value" value=""></td></tr>
+				</table>
+			</div>
+		</div>
 	</div>
 #end for
 
@@ -202,10 +216,10 @@ View Raw File </div>
 			<tr>
 		#end if
 		#if $key in $data
-			<td><p>$key :</td><td><input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<td>$key :</td><td><input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#else
-			<td><p>$key :</td><td><input size="20" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<td>$key :</td><td><input size="20" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#end if
 		</tr>
@@ -221,8 +235,8 @@ View Raw File </div>
 			#else
 				<tr>
 			#end if
-			<td><p> $key :</td><td> 
-			<input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<td> $key :</td><td> 
+			<input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td></tr>
 		#end if 
 	#end for
