@@ -23,8 +23,14 @@ class Admin(Plugin):
     def Restart(self, handler, query):
         config.reset()
         handler.server.reset()
+        
+        subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
         handler.send_response(200)
         handler.end_headers()
+        t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
+        t.container = cname
+        handler.wfile.write(t)
     
     def Admin(self, handler, query):
         #Read config file new each time in case there was any outside edits
