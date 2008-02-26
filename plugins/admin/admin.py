@@ -30,6 +30,14 @@ class Admin(Plugin):
         #Read config file new each time in case there was any outside edits
         config = ConfigParser.ConfigParser()
         config.read(config_file_path)
+
+        shares_data = []
+        for section in config.sections():
+            if not(section.startswith('_tivo_') or section.startswith('Server')):
+                if not(config.has_option(section,'type')):
+                    shares_data.append((section, dict(config.items(section, raw=True))))
+                elif config.get(section,'type').lower() != 'admin':
+                    shares_data.append((section, dict(config.items(section, raw=True))))
         
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
@@ -41,12 +49,7 @@ class Admin(Plugin):
         t.server_known = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", \
                           "optres", "audio_br", "video_br", "max_video_br", "width",\
                           "height", "ffmpeg_prams", "bufsize"]
-        t.shares_data = shares_data = [ (section, dict(config.items(section, raw=True))) \
-                                        for section in config.sections() \
-                                        if not(section.startswith('_tivo_') \
-                                        or section.startswith('Server')) and \
-                                        (config.has_option(section,'type') and \
-                                         config.get(section,'type').lower() != 'admin')]
+        t.shares_data = shares_data
         t.shares_known = ["type", "path", "auto_subshares"]
         t.tivos_data = [ (section, dict(config.items(section, raw=True))) for section in config.sections() \
                          if section.startswith('_tivo_')]
@@ -166,11 +169,8 @@ class Admin(Plugin):
                         config.set(query[ID][0], option, query[key][0])
             if not(new_setting == ' ' and new_value == ' '):
                 config.set(query[ID][0], new_setting, new_value)
-        if query['new_Share'][0] != " ":
-            config.add_section(query['new_Share'][0])
-            config.set(query['new_Share'][0], 'type', 'video')
-        if query['new_TiVo'][0] != " ":
-            config.add_section(query['new_TiVo'][0])
+        if query['new_Section'][0] != " ":
+            config.add_section(query['new_Section'][0])
         f = open(config_file_path, "w")
         config.write(f)
         f.close()
