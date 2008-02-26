@@ -6,7 +6,11 @@ BLACKLIST_169 = ('540', '649')
 
 config = ConfigParser.ConfigParser()
 p = os.path.dirname(__file__)
-config.read(os.path.join(p, 'pyTivo.conf'))
+config_file = os.path.join(p, 'pyTivo.conf')
+config.read(config_file)
+
+def reset():
+    config.read(config_file)
 
 def getGUID():
     if config.has_option('Server', 'GUID'):

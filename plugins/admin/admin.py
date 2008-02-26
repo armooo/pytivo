@@ -1,4 +1,4 @@
-import os, socket, re, sys, ConfigParser
+import os, socket, re, sys, ConfigParser, config
 from ConfigParser import NoOptionError
 from Cheetah.Template import Template
 from plugin import Plugin
@@ -18,8 +18,14 @@ p = os.path.sep.join(p)
 config_file_path = os.path.join(p, 'pyTivo.conf')
 
 class Admin(Plugin):
-    
     CONTENT_TYPE = 'text/html'
+
+    def Restart(self, handler, query):
+        config.reset()
+        handler.server.reset()
+        handler.send_response(200)
+        handler.end_headers()
+    
     def Admin(self, handler, query):
         #Read config file new each time in case there was any outside edits
         config = ConfigParser.ConfigParser()

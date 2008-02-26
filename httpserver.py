@@ -39,6 +39,11 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         except KeyError:
             print 'Unable to add container', name
 
+    def reset(self):
+        self.containers.clear()
+        for section, settings in config.getShares():
+            self.add_container(section, settings)
+
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def address_string(self):
