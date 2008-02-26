@@ -55,7 +55,7 @@ document.all.hideshow.divs[i].visibility = 'visible';
 <p align="center"><font size="6">pyTivo Web
 Configuration</font> <a href="#">help</a></p>
 <center>
-<table style="background-color: rgb(255, 255, 255);text-align: left; margin-left: auto; margin-right: auto;" border="0" cellpadding="0" cellspacing="4">
+<table style="border: 1px solid rgb(220, 220, 220);background-color: rgb(255, 255, 255);text-align: left; margin-left: auto; margin-right: auto;" border="0" cellpadding="0" cellspacing="4">
 
   <tbody>
 
@@ -91,7 +91,6 @@ View Raw File </div>
       <form method="post">
         <div id="set-server" style="width: 280px; text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;"><b>Global
 Server Settings</b><br>
-
         <hr style="width: 100%; height: 2px;"> 
         <table align="center">
 #set $i = 0
@@ -104,10 +103,10 @@ Server Settings</b><br>
 #end if
 <td>
 #if $key in $server_data
-        <p>$key :</td><td><input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+        <p>$key :</td><td><input size="20" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 #else
-        <p>$key :</td><td><input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+        <p>$key :</td><td><input size="20" name="Server.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 
 #end if
 </td></tr>
@@ -123,14 +122,18 @@ Server Settings</b><br>
 			<tr>
 		#end if
 		<td>        <p> $key :</td><td>
-	        <input size="20" name="$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+	        <input size="20" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 		</td></tr>
 	#end if 
 #end for 
 	</table> </div>
-
+#set $section_count = 0
+#set $section_map = ''
 #for $name, $data in $shares_data
-	<div id="set-share-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="title" value="$name">]<br>
+	#set $section_count += 1
+	#set $section_number = 'section-' + str($section_count)
+	#set $section_map += $section_number + ':' + $name + '/'
+	<div id="set-share-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="$section_number" value="$name">]<br>
 	<hr style="width: 100%; height: 2px;"><table align="center">
 	#set $i = 0
 	#for $key in $shares_known
@@ -141,10 +144,10 @@ Server Settings</b><br>
 			<tr>
 		#end if
 		#if $key in $data
-			<td><p>$key :</td><td><input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<td><p>$key :</td><td><input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 			</td>
 		#else
-			<td><p>$key : </td><td><input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<td><p>$key : </td><td><input size="20" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 			</td>
 		#end if
 		</tr>
@@ -161,7 +164,7 @@ Server Settings</b><br>
 				<tr>
 			#end if
 			<td><p> $key : </td><td>
-			<input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 			</td></tr>
 		#end if 
 	#end for
@@ -170,7 +173,10 @@ Server Settings</b><br>
 #end for
 
 #for $name, $data in $tivos_data
-	<div id="set-tivo-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="title" value="$name">]<br>
+	#set $section_count += 1
+	#set $section_number = 'section-' + str($section_count)
+	#set $section_map += $section_number + ':' + $name + '/'
+	<div id="set-tivo-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="$section_number" value="$name">]<br>
 	<hr style="width: 100%; height: 2px;"><table align="center">
 	#set $i = 0
 	#for $key in $tivos_known
@@ -181,10 +187,10 @@ Server Settings</b><br>
 			<tr>
 		#end if
 		#if $key in $data
-			<td><p>$key :</td><td><input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<td><p>$key :</td><td><input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 			</td>
 		#else
-			<td><p>$key :</td><td><input size="20" name="$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<td><p>$key :</td><td><input size="20" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 			</td>
 		#end if
 		</tr>
@@ -201,7 +207,7 @@ Server Settings</b><br>
 				<tr>
 			#end if
 			<td><p> $key :</td><td> 
-			<input size="20" name="$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
+			<input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text"></p>
 			</td></tr>
 		#end if 
 	#end for
@@ -209,6 +215,7 @@ Server Settings</b><br>
 	</div>
 #end for
 
+<input type="hidden" name="Section_Map" value="$section_map">
       </form>
 
       </div>
