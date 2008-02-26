@@ -54,11 +54,13 @@ document.all.hideshow.divs[i].visibility = '';
 }
 }
 function deleteSection(id){
-var answer = confirm("Are you sure you wish to delete the '" + select_section.section.options[id].text + "' Section?")
+var name = select_section.section.options[id].text;
+var answer = confirm("Are you sure you wish to delete the '" + name + "' Section?")
 if (answer){
 	switchDiv('set-delete', 'set-');
 	select_section.section.options[id] = null;
-	// add stuff here to populate title with 'Delete_Me'
+	var field = document.getElementById(name).value;
+	document.getElementById(field).value = 'Delete_Me';
 	return true;
 }
 else{
@@ -171,8 +173,10 @@ View Raw File </div>
 #for $name, $data in $shares_data
 	#set $section_count += 1
 	#set $section_number = 'section-' + str($section_count)
+	<input type="hidden" id="$name" value="$section_number">
 	#set $section_map += $section_number + ':' + $name + '/'
-	<div id="set-share-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="$section_number" value="$name">]<br>
+	<div id="set-share-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
+	[<input size="20" id="$section_number" name="$section_number" value="$name">]<br>
 	<hr style="width: 100%; height: 2px;"><table align="center">
 	#set $i = 0
 	#for $key in $shares_known
@@ -229,8 +233,10 @@ View Raw File </div>
 #for $name, $data in $tivos_data
 	#set $section_count += 1
 	#set $section_number = 'section-' + str($section_count)
+	<input type="hidden" id="$name" value="$section_number">
 	#set $section_map += $section_number + ':' + $name + '/'
-	<div id="set-tivo-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">[<input size="20" name="$section_number" value="$name">]<br>
+	<div id="set-tivo-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
+	[<input size="20" id="$section_number" name="$section_number" value="$name">]<br>
 	<hr style="width: 100%; height: 2px;"><table align="center">
 	#set $i = 0
 	#for $key in $tivos_known
@@ -291,6 +297,7 @@ View Raw File </div>
 	<td> Section Name :</td><td> 
 		<input size="20" name="new_Section" value="" onfocus="switchDiv('help-add', 'help-');return true;">
 	</td></tr></table>
+	The new section name will be added to the pyTivo.conf file when you click <b>Save Changes</b>.
 </div>
 <div id="set-delete" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
 	Delete a Section
