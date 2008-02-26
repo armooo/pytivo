@@ -81,7 +81,9 @@ Configuration</font> <a href="#">help</a></p>
 #end for
         </select>
 
-        <input name="B3" value="Edit Section" type="button" onclick="switchDiv(select_section.section.options[select_section.section.selectedIndex].value, 'set-');return true;"> <input name="B1" value="Delete Section" type="button"><input name="B2" value="Add Section" type="button"></form>
+        <input name="B3" value="Edit Section" type="button" onclick="switchDiv(select_section.section.options[select_section.section.selectedIndex].value, 'set-');return true;"> 
+        <input name="B1" value="Delete Section" type="button">
+        <input name="B2" value="Add Section" type="button"onfocus="switchDiv('set-add', 'set-');return true;"></form>
 
       <hr>Administration
       <form method="post">
@@ -269,7 +271,15 @@ View Raw File </div>
 		</div>
 	</div>
 #end for
-
+<div id="set-add" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
+	Add a New Section
+	<hr>
+	<table>
+	<tr>
+	<td> Section Name :</td><td> 
+		<input size="20" name="new_Section" value="" onfocus="switchDiv('help-add', 'help-');return true;">
+	</td></tr></table>
+</div>
 <input type="hidden" name="Section_Map" value="$section_map">
       </form>
 
@@ -285,6 +295,18 @@ View Raw File </div>
 
 Instructions and sample settings will appear here when you click on the
 settings boxes</div>
+
+	<div id="help-add" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <p align="center"><strong>Add a New Section</strong> </p>
+
+      <p> Add the name of a new section.<br>
+
+      Remember if you want to add TiVo section remember it must start with _tivo_<br>
+
+      You must save your settings before the new section will be editable.<br>
+	</p>
+
+      </div>
 
       <div id="help-port" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>port</strong> </p>
