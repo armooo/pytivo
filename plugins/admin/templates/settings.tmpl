@@ -13,8 +13,8 @@ for (var i_tem = 0; i_tem < texts.length; i_tem++)
 if (texts[i_tem].value=='')
 texts[i_tem].value=' '
 }
-
-function switchDiv(pass, type){ hideallids(type);
+function switchDiv(pass, type){ 
+hideallids(type);
 showDiv(pass);
 }
 function hideallids(type){
@@ -76,7 +76,42 @@ else{
 	//Don't reset
 }
 }
-  </script>
+function showData(form) {
+	var section = ""
+	var setting = ""
+	re=/^[0-9a-zA-Z\_\+\- \.\\:]*$/;
+	inputs = form.getElementsByTagName("input");
+	for (i = 0; i < inputs.length; i++){
+		if (inputs[i].type == 'text' && !re.exec(inputs[i].value)){	
+			setting = inputs[i].name;
+			break;
+		}
+	}
+	if (setting != ""){
+		var map = document.getElementById('Section_Map').value.split(']');
+		map.pop();
+		splitSetting = setting.split('.');
+		for(i=0;i<map.length;i++){
+			key = map[i].split('|');
+			//buffer += key[0] + "---" + key[1] + "===" + splitSetting[0] + "\n";
+			if (splitSetting[0] == 'Server'){
+				section = 'Server';
+				break;
+			}
+			if (key[0] == splitSetting[0]){
+				section = key[1];
+				break;
+			}
+		}
+		alert("Invalid Entry:\nSorry these are not allowed \n!@#$%^&*()|}{\][?></.,:;\" '=`~");
+		switchDiv('set-' + section, 'set-');
+		document.getElementById(setting).select();
+		return false;
+	}
+	fillBlank();
+	document.config.submit();
+}
+</script>
 </head>
 
 
@@ -97,20 +132,20 @@ Configuration</font> <a href="#">help</a></p>
         <select name="section" size="7">
         <option value="set-server">Global Server Settings</option>
 #for $name, $data in $shares_data
-	<option value="set-share-$name">$name</option>
+	<option value="set-$name">$name</option>
 #end for
 #for $name, $data in $tivos_data
-	<option value="set-tivo-$name">$name</option>
+	<option value="set-$name">$name</option>
 #end for
         </select>
 
         <input name="B3" value="Edit Section" type="button" onclick="switchDiv(select_section.section.options[select_section.section.selectedIndex].value, 'set-');return true;"> 
         <input name="B1" value="Delete Section" type="button" onclick="deleteSection(select_section.section.selectedIndex)">
-        <input name="B2" value="Add Section" type="button"onfocus="switchDiv('set-add', 'set-');return true;"></form>
+        <input name="B2" value="Add Section" type="button" onclick="switchDiv('set-add', 'set-');return true;"></form>
 
       <hr>Administration
       <form method="post">
-        <p align="center"><input name="B1" value="Save Changes" type="button" onclick="fillBlank();document.config.submit();return true;">
+        <p align="center"><input name="B1" value="Save Changes" type="button" onclick="showData(document.config);return true;">
         <input name="B2" value="Soft Reset pyTivo" type="button" onclick="resetpyTivo();"></p>
 
       </form>
@@ -121,7 +156,7 @@ View Raw File </div>
 
       <td style="vertical-align: top;">
       <div id="settings" style="width: 300px; overflow: scroll; height: 450px; position: relative;">
-      <form name="config" method="GET" action="TiVoConnect" onsubmit="fillBlank()">
+      <form name="config" method="GET" action="TiVoConnect" onsubmit="fillBlank();showData(this);">
       <input type="hidden" name="Command" value="UpdateSettings">
       <input type="hidden" name="Container" value="$container">
 <div id="set-server" style="width: 280px; text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
@@ -138,10 +173,10 @@ View Raw File </div>
 #end if
 <td>
 #if $key in $server_data
-        $key :</td><td><input size="20" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+        $key :</td><td><input size="20" id="Server.$key" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 
 #else
-        $key :</td><td><input size="20" name="Server.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+        $key :</td><td><input size="20" id="Server.$key" name="Server.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 
 #end if
 </td></tr>
@@ -157,7 +192,7 @@ View Raw File </div>
 			<tr>
 		#end if
 		<td>         $key :</td><td>
-	        <input size="20" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+	        <input size="20" id="Server.$key" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 		</td></tr>
 	#end if 
 #end for 
@@ -173,7 +208,7 @@ View Raw File </div>
 			<table style="width: 265px;">
 			<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">Add a Setting</td></tr>
 			<tr><td>Setting Name:</td><td>Setting Value:</td></tr>
-			<tr><td><input size="16" name="Server.new__setting" type="text" value=""></td><td><input size="16" type="text" name="Server.new__value" value=""></td></tr>
+			<tr><td><input size="16" id="Server.new_settting" name="Server.new__setting" type="text" value=""></td><td><input size="16" type="text" id="Server.new_value"  name="Server.new__value" value=""></td></tr>
 			</table>
 		</div>
 	</div>
@@ -183,9 +218,9 @@ View Raw File </div>
 #for $name, $data in $shares_data
 	#set $section_count += 1
 	#set $section_number = 'section-' + str($section_count)
-	<input type="hidden" id="$name" value="$section_number">
-	#set $section_map += $section_number + ':' + $name + '/'
-	<div id="set-share-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
+	<input type="hidden" name="$name" id="$name" value="$section_number">
+	#set $section_map += $section_number + '|' + $name + ']'
+	<div id="set-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
 	[<input size="20" id="$section_number" name="$section_number" value="$name">]<br>
 	<hr style="width: 100%; height: 2px;"><table align="center">
 	#set $i = 0
@@ -197,10 +232,10 @@ View Raw File </div>
 			<tr>
 		#end if
 		#if $key in $data
-			<td>$key :</td><td><input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<td>$key :</td><td><input size="20" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#else
-			<td>$key : </td><td><input size="20" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<td>$key : </td><td><input size="20" id="$section_number.$key" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#end if
 		</tr>
@@ -217,7 +252,7 @@ View Raw File </div>
 				<tr>
 			#end if
 			<td> $key : </td><td>
-			<input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<input size="20" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td></tr>
 		#end if 
 	#end for
@@ -233,7 +268,7 @@ View Raw File </div>
 				<table style="width: 265px;">
 				<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">Add a Setting</td></tr>
 				<tr><td>Setting Name:</td><td>Setting Value:</td></tr>
-				<tr><td><input size="16" name="$(section_number).new__setting" type="text" value=""></td><td><input size="16" type="text" name="$(section_number).new__value" value=""></td></tr>
+				<tr><td><input size="16" id="$(section_number).new__setting" name="$(section_number).new__setting" type="text" value=""></td><td><input size="16" type="text" id="$(section_number).new__value" name="$(section_number).new__value" value=""></td></tr>
 				</table>
 			</div>
 		</div>
@@ -243,9 +278,9 @@ View Raw File </div>
 #for $name, $data in $tivos_data
 	#set $section_count += 1
 	#set $section_number = 'section-' + str($section_count)
-	<input type="hidden" id="$name" value="$section_number">
-	#set $section_map += $section_number + ':' + $name + '/'
-	<div id="set-tivo-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
+	<input type="hidden" name="$name" id="$name" value="$section_number">
+	#set $section_map += $section_number + '|' + $name + ']'
+	<div id="set-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
 	[<input size="20" id="$section_number" name="$section_number" value="$name">]<br>
 	<hr style="width: 100%; height: 2px;"><table align="center">
 	#set $i = 0
@@ -257,10 +292,10 @@ View Raw File </div>
 			<tr>
 		#end if
 		#if $key in $data
-			<td>$key :</td><td><input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<td>$key :</td><td><input size="20" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#else
-			<td>$key :</td><td><input size="20" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<td>$key :</td><td><input size="20" id="$section_number.$key" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#end if
 		</tr>
@@ -277,7 +312,7 @@ View Raw File </div>
 				<tr>
 			#end if
 			<td> $key :</td><td> 
-			<input size="20" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<input size="20" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td></tr>
 		#end if 
 	#end for
@@ -293,7 +328,7 @@ View Raw File </div>
 				<table style="width: 265px;">
 				<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">Add a Setting</td></tr>
 				<tr><td>Setting Name:</td><td>Setting Value:</td></tr>
-				<tr><td><input size="16" name="$(section_number).new__setting" type="text" value=""></td><td><input size="16" type="text" name="$(section_number).new__value" value=""></td></tr>
+				<tr><td><input size="16" id="$(section_number).new__setting" name="$(section_number).new__setting" type="text" value=""></td><td><input size="16" type="text" id="$(section_number).new__value" name="$(section_number).new__value" value=""></td></tr>
 				</table>
 			</div>
 		</div>
@@ -305,7 +340,7 @@ View Raw File </div>
 	<table>
 	<tr>
 	<td> Section Name :</td><td> 
-		<input size="20" name="new_Section" value="" onfocus="switchDiv('help-add', 'help-');return true;">
+		<input type="text" size="20" name="new_Section" value="" onfocus="switchDiv('help-add', 'help-');return true;">
 	</td></tr></table>
 	The new section name will be added to the pyTivo.conf file when you click <b>Save Changes</b>.
 </div>
@@ -315,7 +350,7 @@ View Raw File </div>
 	<br>
 	The Section has been marked for deletion. However it will not be actually deleted until you click the <b>Save Changes</b> button.
 </div>
-<input type="hidden" name="Section_Map" value="$section_map">
+<input type="hidden" id="Section_Map" name="Section_Map" value="$section_map">
       </form>
 
       </div>

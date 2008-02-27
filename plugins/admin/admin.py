@@ -104,7 +104,7 @@ class Admin(Plugin):
             settings = ["type", "path", "auto_subshares"]
             shares += build_inputs(settings, data, "section-" + str(section_count))
             shares += '<tr><td colspan="2" align="center">Mark this share for deletion <input type="button" value="Delete" onclick="deleteme(\'section_' + str(section_count) + '\')"></td></tr>'
-            section_map += "section-" + str(section_count) + ":" + name + "/"
+            section_map += "section-" + str(section_count) + "|" + name + "]"
             section_count += 1
 
         tivos_data = [ (section, dict(config.items(section))) for section in config.sections() if section.startswith('_tivo_')]
@@ -116,7 +116,7 @@ class Admin(Plugin):
             settings = ["aspect169", "audio_br", "video_br", "width", "height", "ffmpeg_prams"]
             tivos += build_inputs(settings, data, "section-" + str(section_count))
             tivos += '<tr><td colspan="2" align="center">Mark this TiVo for deletion <input type="button" value="Delete" onclick="deleteme(\'section_' + str(section_count) + '\')"></td></tr>'
-            section_map += "section-" + str(section_count) + ":" + name + "/"
+            section_map += "section-" + str(section_count) + "|" + name + "]"
             section_count += 1
 
         subcname = query['Container'][0]
@@ -151,10 +151,10 @@ class Admin(Plugin):
         if not(new_setting == ' ' and new_value == ' '):
             config.set('Server', new_setting, new_value)
            
-        sections = query['Section_Map'][0].split('/')
+        sections = query['Section_Map'][0].split(']')
         sections.pop() #last item is junk
         for section in sections:
-            ID, name = section.split(':')
+            ID, name = section.split('|')
             if query[ID][0] == "Delete_Me":
                 config.remove_section(name)
                 continue
