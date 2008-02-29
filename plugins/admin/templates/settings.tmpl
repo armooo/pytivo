@@ -54,6 +54,10 @@ document.all.hideshow.divs[i].visibility = '';
 }
 }
 function deleteSection(id){
+if (select_section.section.options[id].text == 'Global Server Settings'){
+	alert('Delete Error:\n\nSorry the Global Server Settings Section is required for pyTivo to run and cannot be deleted');
+	return true;
+}
 var name = select_section.section.options[id].text;
 var answer = confirm("Are you sure you wish to delete the '" + name + "' Section?")
 if (answer){
