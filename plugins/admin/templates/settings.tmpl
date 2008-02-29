@@ -61,6 +61,7 @@ if (answer){
 	select_section.section.options[id] = null;
 	var field = document.getElementById(name).value;
 	document.getElementById(field).value = 'Delete_Me';
+	saveNotify();
 	return true;
 }
 else{
@@ -111,6 +112,10 @@ function showData(form) {
 	fillBlank();
 	document.config.submit();
 }
+function saveNotify(){
+	document.getElementById('B1').style.fontWeight= 'bold';
+	document.getElementById('B2').disabled = true;
+}
 </script>
 </head>
 
@@ -140,13 +145,13 @@ Configuration</font> <a href="#">help</a></p>
         </select>
 
         <input name="B3" value="Edit Section" type="button" onclick="switchDiv(select_section.section.options[select_section.section.selectedIndex].value, 'set-');return true;"> 
-        <input name="B1" value="Delete Section" type="button" onclick="deleteSection(select_section.section.selectedIndex)">
-        <input name="B2" value="Add Section" type="button" onclick="switchDiv('set-add', 'set-');return true;"></form>
+        <input name="B4" value="Delete Section" type="button" onclick="deleteSection(select_section.section.selectedIndex)">
+        <input name="B5" value="Add Section" type="button" onclick="switchDiv('set-add', 'set-');return true;"></form>
 
       <hr>Administration
       <form method="post">
-        <p align="center"><input name="B1" value="Save Changes" type="button" onclick="showData(document.config);return true;">
-        <input name="B2" value="Soft Reset pyTivo" type="button" onclick="resetpyTivo();"></p>
+        <p align="center"><input name="B1" id="B1" value="Save Changes" type="button" onclick="showData(document.config);return true;">
+        <input id="B2" name="B2" value="Soft Reset pyTivo" type="button" onclick="resetpyTivo();"></p>
 
       </form>
 
@@ -173,10 +178,10 @@ View Raw File </div>
 #end if
 <td>
 #if $key in $server_data
-        $key :</td><td><input size="20" id="Server.$key" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+        $key :</td><td><input size="20" id="Server.$key" name="Server.$key" value="$server_data[$key]" onChange="saveNotify();" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 
 #else
-        $key :</td><td><input size="20" id="Server.$key" name="Server.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+        $key :</td><td><input size="20" id="Server.$key" name="Server.$key" value="" onChange="saveNotify();" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 
 #end if
 </td></tr>
@@ -192,7 +197,7 @@ View Raw File </div>
 			<tr>
 		#end if
 		<td>         $key :</td><td>
-	        <input size="20" id="Server.$key" name="Server.$key" value="$server_data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+	        <input size="20" id="Server.$key" name="Server.$key" value="$server_data[$key]" onChange="saveNotify();" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 		</td></tr>
 	#end if 
 #end for 
@@ -208,7 +213,7 @@ View Raw File </div>
 			<table style="width: 265px;">
 			<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">Add a Setting</td></tr>
 			<tr><td>Setting Name:</td><td>Setting Value:</td></tr>
-			<tr><td><input size="16" id="Server.new_settting" name="Server.new__setting" type="text" value=""></td><td><input size="16" type="text" id="Server.new_value"  name="Server.new__value" value=""></td></tr>
+			<tr><td><input size="16" id="Server.new_settting" name="Server.new__setting" onChange="saveNotify();" type="text" value=""></td><td><input size="16" type="text" onChange="saveNotify();" id="Server.new_value"  name="Server.new__value" value=""></td></tr>
 			</table>
 		</div>
 	</div>
@@ -221,7 +226,7 @@ View Raw File </div>
 	<input type="hidden" name="$name" id="$name" value="$section_number">
 	#set $section_map += $section_number + '|' + $name + ']'
 	<div id="set-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
-	[<input size="20" id="$section_number" name="$section_number" value="$name">]<br>
+	[<input size="20" onChange="saveNotify();" id="$section_number" name="$section_number" value="$name">]<br>
 	<hr style="width: 100%; height: 2px;"><table align="center">
 	#set $i = 0
 	#for $key in $shares_known
@@ -232,10 +237,10 @@ View Raw File </div>
 			<tr>
 		#end if
 		#if $key in $data
-			<td>$key :</td><td><input size="20" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<td>$key :</td><td><input onChange="saveNotify();" size="20" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#else
-			<td>$key : </td><td><input size="20" id="$section_number.$key" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<td>$key : </td><td><input onChange="saveNotify();" size="20" id="$section_number.$key" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#end if
 		</tr>
@@ -252,7 +257,7 @@ View Raw File </div>
 				<tr>
 			#end if
 			<td> $key : </td><td>
-			<input size="20" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<input size="20" onChange="saveNotify();" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td></tr>
 		#end if 
 	#end for
@@ -268,7 +273,7 @@ View Raw File </div>
 				<table style="width: 265px;">
 				<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">Add a Setting</td></tr>
 				<tr><td>Setting Name:</td><td>Setting Value:</td></tr>
-				<tr><td><input size="16" id="$(section_number).new__setting" name="$(section_number).new__setting" type="text" value=""></td><td><input size="16" type="text" id="$(section_number).new__value" name="$(section_number).new__value" value=""></td></tr>
+				<tr><td><input onChange="saveNotify();" size="16" id="$(section_number).new__setting" name="$(section_number).new__setting" type="text" value=""></td><td><input onChange="saveNotify();" size="16" type="text" id="$(section_number).new__value" name="$(section_number).new__value" value=""></td></tr>
 				</table>
 			</div>
 		</div>
@@ -281,7 +286,7 @@ View Raw File </div>
 	<input type="hidden" name="$name" id="$name" value="$section_number">
 	#set $section_map += $section_number + '|' + $name + ']'
 	<div id="set-$name" style="text-align: center;position: absolute; left: 0px; top: 0px; visibility: hidden;">
-	[<input size="20" id="$section_number" name="$section_number" value="$name">]<br>
+	[<input size="20" onChange="saveNotify();" id="$section_number" name="$section_number" value="$name">]<br>
 	<hr style="width: 100%; height: 2px;"><table align="center">
 	#set $i = 0
 	#for $key in $tivos_known
@@ -292,10 +297,10 @@ View Raw File </div>
 			<tr>
 		#end if
 		#if $key in $data
-			<td>$key :</td><td><input size="20" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<td>$key :</td><td><input onChange="saveNotify();" size="20" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#else
-			<td>$key :</td><td><input size="20" id="$section_number.$key" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<td>$key :</td><td><input onChange="saveNotify();" size="20" id="$section_number.$key" name="$section_number.$key" value="" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td>
 		#end if
 		</tr>
@@ -312,7 +317,7 @@ View Raw File </div>
 				<tr>
 			#end if
 			<td> $key :</td><td> 
-			<input size="20" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
+			<input size="20" onChange="saveNotify();" id="$section_number.$key" name="$section_number.$key" value="$data[$key]" onfocus="switchDiv('help-$key', 'help-');return true;" type="text">
 			</td></tr>
 		#end if 
 	#end for
@@ -328,7 +333,7 @@ View Raw File </div>
 				<table style="width: 265px;">
 				<tr><td colspan="2" align="center" style="border-bottom: 1px solid rgb(153, 153, 153);">Add a Setting</td></tr>
 				<tr><td>Setting Name:</td><td>Setting Value:</td></tr>
-				<tr><td><input size="16" id="$(section_number).new__setting" name="$(section_number).new__setting" type="text" value=""></td><td><input size="16" type="text" id="$(section_number).new__value" name="$(section_number).new__value" value=""></td></tr>
+				<tr><td><input onChange="saveNotify();" size="16" id="$(section_number).new__setting" name="$(section_number).new__setting" type="text" value=""></td><td><input onChange="saveNotify();" size="16" type="text" id="$(section_number).new__value" name="$(section_number).new__value" value=""></td></tr>
 				</table>
 			</div>
 		</div>
@@ -340,7 +345,7 @@ View Raw File </div>
 	<table>
 	<tr>
 	<td> Section Name :</td><td> 
-		<input type="text" size="20" name="new_Section" value="" onfocus="switchDiv('help-add', 'help-');return true;">
+		<input onChange="saveNotify();" type="text" size="20" name="new_Section" value="" onfocus="switchDiv('help-add', 'help-');return true;">
 	</td></tr></table>
 	The new section name will be added to the pyTivo.conf file when you click <b>Save Changes</b>.
 </div>
