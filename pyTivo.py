@@ -33,6 +33,8 @@ b.start()
 if 'listen' in config.getBeaconAddresses():
     b.listen()
 
+if config.getDebug():
+    config.print_conf()
 print 'pyTivo is ready.'
 try:
     httpd.serve_forever()
