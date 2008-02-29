@@ -127,7 +127,7 @@ function saveNotify(){
 <body style="background-color: rgb(250, 250, 250);">
 
 <p align="center"><font size="6">pyTivo Web
-Configuration</font> <a href="#">help</a></p>
+Configuration</font> <a href="javascript:switchDiv('help-instructions', 'help-');">help</a></p>
 <center>
 <table style="border: 1px solid rgb(220, 220, 220);background-color: rgb(255, 255, 255);text-align: left; margin-left: auto; margin-right: auto;" border="0" cellpadding="0" cellspacing="4">
 
@@ -159,7 +159,7 @@ Configuration</font> <a href="#">help</a></p>
 
       </form>
 
-View Raw File </div>
+<a href="javascript:alert('This feature is not available yet');">View Raw File</a> </div>
 
       </td>
 
@@ -368,12 +368,38 @@ View Raw File </div>
 
       <td style="border-left: 1px dotted rgb(153, 153, 153); vertical-align: top;">
       <div id="sidesections" style="width: 400px; position: relative;"><!-- HELP SECTIONS -->
-      <div id="help-instructions" style="position: absolute; left: 0px; top: 0px; visibility: visible;">
+      <div id="help-instructions" style="visibility: visible; width: 400px; overflow: scroll; height: 450px; position: absolute; left: 0px; top: 0px;">
       <p align="center"><strong>Instructions</strong>
       </p>
-
-Instructions and sample settings will appear here when you click on the
-settings boxes</div>
+      <b>To Edit a Share:</b><br>
+      Select the share in the left hand menu and click edit.<br><br>
+      
+      <b>To Delete a Share</b><br>
+      Select the share in the left hand menu and click delete.<br><br>
+      
+      <b>To Add a Section</b><br>
+      Click the add share button.  Then provide the name of the share or TiVo. You must save your 
+      changes before you can edit settings in the new share.<br><br>
+      
+      <b>To Add a Setting</b><br>
+      Select you share first.  If the setting is a known setting simply add the value to the appropriate setting.
+      If the setting is not listed you can add a "User Defined Setting".  Simple click add setting and provide
+      the name and value of this new setting.<br><br>
+      
+      <b>To Delete a Setting</b><br>
+      Delete the value of the setting so that it is blank.  If this is a known share the name will remain after a save.
+      If the setting is a user defined setting the name will be deleted after the save.<br><br>
+      
+      <b>Save Settings</b><br>
+      Clicking Save Settings will write your changes to the pyTivo.conf file.  These settings will not have an effect on
+      your pyTivo server until it is Soft Reset or restarted.<br><br>
+      
+      <b>Soft Reset</b><br>
+      Soft Reset allows your new settings to take effect without manually restarting the TiVo.  The Soft Reset will cause
+      a re-read of the pyTivo.conf file so your changes must be saved to the file before the reset.  <b>Note:</b> The only
+      setting that will not take effect until a hard restart is the Port setting.  Changing the Port setting requires a full
+      restart.      
+      </div>
 
 	<div id="help-add" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>Add a New Section</strong> </p>
