@@ -126,8 +126,7 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         t.admin = ''
         for section, settings in config.getShares():
             if 'type' in settings and settings['type'] == 'admin':
-                t.admin += '<a href="http://localhost:' + config.getPort()\
-                           + '/TiVoConnect?Command=Admin&Container=' + section\
+                t.admin += '<a href="/TiVoConnect?Command=Admin&Container=' + section\
                            + '">pyTivo Web Configuration</a><br>'
         self.wfile.write(t)
         self.end_headers()
