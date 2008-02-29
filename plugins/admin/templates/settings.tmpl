@@ -79,10 +79,10 @@ else{
 function showData(form) {
 	var section = ""
 	var setting = ""
-	re=/^[0-9a-zA-Z\_\+\- \.\\:]*$/;
+	re=/[\[\]<>|]/;
 	inputs = form.getElementsByTagName("input");
 	for (i = 0; i < inputs.length; i++){
-		if (inputs[i].type == 'text' && !re.exec(inputs[i].value)){	
+		if (inputs[i].type == 'text' && re.exec(inputs[i].value)){
 			setting = inputs[i].name;
 			break;
 		}
@@ -95,7 +95,7 @@ function showData(form) {
 			key = map[i].split('|');
 			//buffer += key[0] + "---" + key[1] + "===" + splitSetting[0] + "\n";
 			if (splitSetting[0] == 'Server'){
-				section = 'Server';
+				section = 'server';
 				break;
 			}
 			if (key[0] == splitSetting[0]){
