@@ -123,6 +123,12 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR, 'templates',
                                        'info_page.tmpl'))
+        t.admin = ''
+        for section, settings in config.getShares():
+            if 'type' in settings and settings['type'] == 'admin':
+                t.admin += '<a href="http://localhost:' + config.getPort()\
+                           + '/TiVoConnect?Command=Admin&Container=' + section\
+                           + '">pyTivo Web Configuration</a><br>'
         self.wfile.write(t)
         self.end_headers()
 
