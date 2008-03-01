@@ -23,7 +23,7 @@ except:
 hack83 = config.getHack83()
 
 if hack83:
-    debug_write(__name__, fn_attr(), ['Hack83 is enabled.\n'])
+    debug_write(__name__, fn_attr(), ['Hack83 is enabled.'])
 
 class Video(Plugin):
 
@@ -46,8 +46,8 @@ class Video(Plugin):
             return transcode.supported_format(full_path)
 
     def hack(self, handler, query, subcname):
-        debug_write(__name__, fn_attr(), ['new request ------------------------\n'])
-        debug_write(__name__, fn_attr(), ['TiVo request is: \n', query, '\n'])
+        debug_write(__name__, fn_attr(), ['new request ------------------------'])
+        debug_write(__name__, fn_attr(), ['TiVo request is: \n', query])
         queryAnchor = ''
         rightAnchor = ''
         leftAnchor = ''
@@ -56,7 +56,7 @@ class Video(Plugin):
         # not a tivo
         if not tsn:
             debug_write(__name__, fn_attr(), ['this was not a TiVo request.',
-                         'Using default tsn.\n'])
+                         'Using default tsn.'])
             tsn = '123456789'
 
         # this breaks up the anchor item request into seperate parts
@@ -71,12 +71,12 @@ class Video(Plugin):
             leftAnchor, rightAnchor = queryAnchor.rsplit('/', 1)
             debug_write(__name__, fn_attr(), ['queryAnchor: ', queryAnchor,
                          ' leftAnchor: ', leftAnchor,
-                         ' rightAnchor: ', rightAnchor, '\n'])
+                         ' rightAnchor: ', rightAnchor])
         try:
             path, state = self.request_history[tsn]
         except KeyError:
             # Never seen this tsn, starting new history
-            debug_write(__name__, fn_attr(), ['New TSN.\n'])
+            debug_write(__name__, fn_attr(), ['New TSN.'])
             path = []
             state = {}
             self.request_history[tsn] = (path, state)
@@ -84,7 +84,7 @@ class Video(Plugin):
             state['page'] = ''
             state['time'] = int(time.time()) + 1000
 
-        debug_write(__name__, fn_attr(), ['our saved request is: \n', state['query'], '\n'])
+        debug_write(__name__, fn_attr(), ['our saved request is: \n', state['query']])
 
         current_folder = subcname.split('/')[-1]
 
@@ -94,7 +94,7 @@ class Video(Plugin):
         # 1. at the root - This request is always accurate
         if len(subcname.split('/')) == 1:
             debug_write(__name__, fn_attr(), ['we are at the root.',
-                         'Saving query, Clearing state[page].\n'])
+                         'Saving query, Clearing state[page].'])
             path[:] = [current_folder]
             state['query'] = query
             state['page'] = ''
@@ -105,7 +105,7 @@ class Video(Plugin):
         # entering a new folder.
         if 'AnchorItem' not in query:
             debug_write(__name__, fn_attr(), ['we are entering a new folder.',
-                         'Saving query, setting time, setting state[page].\n'])
+                         'Saving query, setting time, setting state[page].'])
             path[:] = subcname.split('/')
             state['query'] = query
             state['time'] = int(time.time())
@@ -121,12 +121,12 @@ class Video(Plugin):
         # we know this is the proper page
         if ''.join(query['AnchorItem']) == 'Hack8.3':
             debug_write(__name__, fn_attr(), ['requested page from 302 code.',
-                         'Returning saved query,\n'])
+                         'Returning saved query.'])
             return state['query'], path
 
         # 4. this is a request for a file
         if 'ItemCount' in query and int(''.join(query['ItemCount'])) == 1:
-            debug_write(__name__, fn_attr(), ['requested a file', '\n'])
+            debug_write(__name__, fn_attr(), ['requested a file'])
             # Everything in this request is right except the container
             query['Container'] = ['/'.join(path)]
             state['page'] = ''
@@ -138,7 +138,7 @@ class Video(Plugin):
 
         # Sleep just in case the erroneous request came first this 
         # allows a proper request to be processed first
-        debug_write(__name__, fn_attr(), ['maybe erroneous request, sleeping.\n'])
+        debug_write(__name__, fn_attr(), ['maybe erroneous request, sleeping.'])
         time.sleep(.25)
 
         # 5. scrolling in a folder
@@ -147,18 +147,18 @@ class Video(Plugin):
         # First we have to figure out if we are scrolling
         if 'AnchorOffset' in query:
             debug_write(__name__, fn_attr(), ['Anchor offset was in query.',
-                         'leftAnchor needs to match ', '/'.join(path), '\n'])
+                         'leftAnchor needs to match ', '/'.join(path)])
             if leftAnchor == str('/'.join(path)):
-                debug_write(__name__, fn_attr(), ['leftAnchor matched.', '\n'])
+                debug_write(__name__, fn_attr(), ['leftAnchor matched.'])
                 query['Container'] = ['/'.join(path)]
                 files, total, start = self.get_files(handler, query, 
                                                      self.video_file_filter)
                 debug_write(__name__, fn_attr(), ['saved page is= ', state['page'],
-                             ' top returned file is= ', files[0], '\n'])
+                             ' top returned file is= ', files[0]])
                 # If the first file returned equals the top of the page
                 # then we haven't scrolled pages
                 if files[0] != str(state['page']):
-                    debug_write(__name__, fn_attr(), ['this is scrolling within a folder.\n'])
+                    debug_write(__name__, fn_attr(), ['this is scrolling within a folder.'])
                     state['page'] = files[0]
                     return query, path               
 
@@ -169,14 +169,14 @@ class Video(Plugin):
         # this came within a second of a valid request; just use that 
         # request.
         if (int(time.time()) - state['time']) <= 1:
-            debug_write(__name__, fn_attr(), ['erroneous request, send a 302 error', '\n'])
+            debug_write(__name__, fn_attr(), ['erroneous request, send a 302 error'])
             return None, path
 
         # 7. this is a request to exit a folder
         # this request came by itself; it must be to exit a folder
         else:
             debug_write(__name__, fn_attr(), ['over 1 second,',
-                         'must be request to exit folder\n'])
+                         'must be request to exit folder'])
             path.pop()
             state['query'] = {'Command': query['Command'],
                               'SortOrder': query['SortOrder'],
@@ -187,7 +187,7 @@ class Video(Plugin):
 
         # just in case we missed something.
         debug_write(__name__, fn_attr(), ['ERROR, should not have made it here. ',
-                     'Trying to recover.\n'])
+                     'Trying to recover.'])
         return state['query'], path
 
     def send_file(self, handler, container, name):
@@ -334,11 +334,11 @@ class Video(Plugin):
             hackPath = '/'.join(hackPath)
             print 'Tivo said:', subcname, '|| Hack said:', hackPath
             debug_write(__name__, fn_attr(), ['Tivo said: ', subcname, ' || Hack said: ',
-                         hackPath, '\n'])
+                         hackPath])
             subcname = hackPath
 
             if not query:
-                debug_write(__name__, fn_attr(), ['sending 302 redirect page', '\n'])
+                debug_write(__name__, fn_attr(), ['sending 302 redirect page'])
                 handler.send_response(302)
                 handler.send_header('Location ', 'http://' +
                                     handler.headers.getheader('host') +

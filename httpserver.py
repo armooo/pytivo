@@ -114,14 +114,14 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def unsupported(self, query):
         if hack83 and 'Command' in query and 'Filter' in query:
             debug_write(__name__, fn_attr(), ['Unsupported request,',
-                         'checking to see if it is video.\n'])
+                         'checking to see if it is video.'])
             command = query['Command'][0]
             plugin = GetPlugin('video')
             if ''.join(query['Filter']).find('video') >= 0 and \
                hasattr(plugin, command):
                 debug_write(__name__, fn_attr(), ['Unsupported request,',
                              'yup it is video',
-                             'send to video plugin for it to sort out.\n'])
+                             'send to video plugin for it to sort out.'])
                 method = getattr(plugin, command)
                 method(self, query)
                 return
