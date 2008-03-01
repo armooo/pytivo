@@ -251,25 +251,3 @@ def strtod(value):
     if byte == 'B': # B == Byte, b == bit
         value *= 8;
     return value
-
-def debug_write(data):
-    if getDebug():
-        debug_out = []
-        for x in data:
-            debug_out.append(str(x))
-        fdebug = open('debug.txt', 'a')
-        fdebug.write(' '.join(debug_out))
-        fdebug.close()
-
-def print_conf():
-    print '----- begin pyTivo.conf -----:'
-    debug_write(['----- begin pyTivo.conf -----\n'])
-    conf = open(os.path.join(p, 'pyTivo.conf'))
-    for line in conf.readlines():
-        if line.strip().startswith('#'):
-            continue
-        if len(line.strip()) != 0:
-            print line.strip()
-            debug_write([line.strip(), '\n'])
-    print '------- end pyTivo.conf -----:'
-    debug_write(['------- end pyTivo.conf -----\n'])

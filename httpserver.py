@@ -6,21 +6,11 @@ from Cheetah.Template import Template
 from plugin import GetPlugin
 import config
 from xml.sax.saxutils import escape
+from debug import debug_write, fn_attr
 
 SCRIPTDIR = os.path.dirname(__file__)
 
-debug = config.getDebug()
 hack83 = config.getHack83()
-
-def debug_write(data):
-    if debug:
-        debug_out = []
-        debug_out.append('httpserver.py - ')
-        for x in data:
-            debug_out.append(str(x))
-        fdebug = open('debug.txt', 'a')
-        fdebug.write(' '.join(debug_out))
-        fdebug.close()
 
 class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     containers = {}
@@ -123,13 +113,13 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def unsupported(self, query):
         if hack83 and 'Command' in query and 'Filter' in query:
-            debug_write(['Unsupported request,',
+            debug_write(__name__, fn_attr(), ['Unsupported request,',
                          'checking to see if it is video.\n'])
             command = query['Command'][0]
             plugin = GetPlugin('video')
             if ''.join(query['Filter']).find('video') >= 0 and \
                hasattr(plugin, command):
-                debug_write(['Unsupported request,',
+                debug_write(__name__, fn_attr(), ['Unsupported request,',
                              'yup it is video',
                              'send to video plugin for it to sort out.\n'])
                 method = getattr(plugin, command)

@@ -8,6 +8,7 @@ from UserDict import DictMixin
 from datetime import datetime, timedelta
 import config
 import time
+from debug import debug_write, fn_attr
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -19,21 +20,10 @@ try:
 except:
     extensions = None
 
-debug = config.getDebug()
 hack83 = config.getHack83()
 
-def debug_write(data):
-    if debug:
-        debug_out = []
-        debug_out.append('Video.py - ')
-        for x in data:
-            debug_out.append(str(x))
-        fdebug = open('debug.txt', 'a')
-        fdebug.write(' '.join(debug_out))
-        fdebug.close()
-
 if hack83:
-    debug_write(['Hack83 is enabled.\n'])
+    debug_write(__name__, fn_attr(), ['Hack83 is enabled.\n'])
 
 class Video(Plugin):
 
@@ -56,8 +46,8 @@ class Video(Plugin):
             return transcode.supported_format(full_path)
 
     def hack(self, handler, query, subcname):
-        debug_write(['Hack new request ------------------------\n'])
-        debug_write(['Hack TiVo request is: \n', query, '\n'])
+        debug_write(__name__, fn_attr(), ['new request ------------------------\n'])
+        debug_write(__name__, fn_attr(), ['TiVo request is: \n', query, '\n'])
         queryAnchor = ''
         rightAnchor = ''
         leftAnchor = ''
@@ -65,7 +55,7 @@ class Video(Plugin):
 
         # not a tivo
         if not tsn:
-            debug_write(['Hack this was not a TiVo request.',
+            debug_write(__name__, fn_attr(), ['this was not a TiVo request.',
                          'Using default tsn.\n'])
             tsn = '123456789'
 
@@ -79,14 +69,14 @@ class Video(Plugin):
                 # This is a file
                 queryAnchor = queryAnchor.split('/', 1)[-1]
             leftAnchor, rightAnchor = queryAnchor.rsplit('/', 1)
-            debug_write(['Hack queryAnchor: ', queryAnchor,
+            debug_write(__name__, fn_attr(), ['queryAnchor: ', queryAnchor,
                          ' leftAnchor: ', leftAnchor,
                          ' rightAnchor: ', rightAnchor, '\n'])
         try:
             path, state = self.request_history[tsn]
         except KeyError:
             # Never seen this tsn, starting new history
-            debug_write(['New TSN.\n'])
+            debug_write(__name__, fn_attr(), ['New TSN.\n'])
             path = []
             state = {}
             self.request_history[tsn] = (path, state)
@@ -94,7 +84,7 @@ class Video(Plugin):
             state['page'] = ''
             state['time'] = int(time.time()) + 1000
 
-        debug_write(['Hack our saved request is: \n', state['query'], '\n'])
+        debug_write(__name__, fn_attr(), ['our saved request is: \n', state['query'], '\n'])
 
         current_folder = subcname.split('/')[-1]
 
@@ -103,7 +93,7 @@ class Video(Plugin):
 
         # 1. at the root - This request is always accurate
         if len(subcname.split('/')) == 1:
-            debug_write(['Hack we are at the root.',
+            debug_write(__name__, fn_attr(), ['we are at the root.',
                          'Saving query, Clearing state[page].\n'])
             path[:] = [current_folder]
             state['query'] = query
@@ -114,7 +104,7 @@ class Video(Plugin):
         # If there is no AnchorItem in the request then we must be 
         # entering a new folder.
         if 'AnchorItem' not in query:
-            debug_write(['Hack we are entering a new folder.',
+            debug_write(__name__, fn_attr(), ['we are entering a new folder.',
                          'Saving query, setting time, setting state[page].\n'])
             path[:] = subcname.split('/')
             state['query'] = query
@@ -130,13 +120,13 @@ class Video(Plugin):
         # 3. Request a page after pyTivo sent a 302 code
         # we know this is the proper page
         if ''.join(query['AnchorItem']) == 'Hack8.3':
-            debug_write(['Hack requested page from 302 code.',
+            debug_write(__name__, fn_attr(), ['requested page from 302 code.',
                          'Returning saved query,\n'])
             return state['query'], path
 
         # 4. this is a request for a file
         if 'ItemCount' in query and int(''.join(query['ItemCount'])) == 1:
-            debug_write(['Hack requested a file', '\n'])
+            debug_write(__name__, fn_attr(), ['requested a file', '\n'])
             # Everything in this request is right except the container
             query['Container'] = ['/'.join(path)]
             state['page'] = ''
@@ -148,7 +138,7 @@ class Video(Plugin):
 
         # Sleep just in case the erroneous request came first this 
         # allows a proper request to be processed first
-        debug_write(['Hack maybe erroneous request, sleeping.\n'])
+        debug_write(__name__, fn_attr(), ['maybe erroneous request, sleeping.\n'])
         time.sleep(.25)
 
         # 5. scrolling in a folder
@@ -156,19 +146,19 @@ class Video(Plugin):
         # within the folder
         # First we have to figure out if we are scrolling
         if 'AnchorOffset' in query:
-            debug_write(['Hack Anchor offset was in query.',
+            debug_write(__name__, fn_attr(), ['Anchor offset was in query.',
                          'leftAnchor needs to match ', '/'.join(path), '\n'])
             if leftAnchor == str('/'.join(path)):
-                debug_write(['Hack leftAnchor matched.', '\n'])
+                debug_write(__name__, fn_attr(), ['leftAnchor matched.', '\n'])
                 query['Container'] = ['/'.join(path)]
                 files, total, start = self.get_files(handler, query, 
                                                      self.video_file_filter)
-                debug_write(['Hack saved page is= ', state['page'],
+                debug_write(__name__, fn_attr(), ['saved page is= ', state['page'],
                              ' top returned file is= ', files[0], '\n'])
                 # If the first file returned equals the top of the page
                 # then we haven't scrolled pages
                 if files[0] != str(state['page']):
-                    debug_write(['Hack this is scrolling within a folder.\n'])
+                    debug_write(__name__, fn_attr(), ['this is scrolling within a folder.\n'])
                     state['page'] = files[0]
                     return query, path               
 
@@ -179,13 +169,13 @@ class Video(Plugin):
         # this came within a second of a valid request; just use that 
         # request.
         if (int(time.time()) - state['time']) <= 1:
-            debug_write(['Hack erroneous request, send a 302 error', '\n'])
+            debug_write(__name__, fn_attr(), ['erroneous request, send a 302 error', '\n'])
             return None, path
 
         # 7. this is a request to exit a folder
         # this request came by itself; it must be to exit a folder
         else:
-            debug_write(['Hack over 1 second,',
+            debug_write(__name__, fn_attr(), ['over 1 second,',
                          'must be request to exit folder\n'])
             path.pop()
             state['query'] = {'Command': query['Command'],
@@ -196,7 +186,7 @@ class Video(Plugin):
             return None, path
 
         # just in case we missed something.
-        debug_write(['Hack ERROR, should not have made it here. ',
+        debug_write(__name__, fn_attr(), ['ERROR, should not have made it here. ',
                      'Trying to recover.\n'])
         return state['query'], path
 
@@ -343,12 +333,12 @@ class Video(Plugin):
             query, hackPath = self.hack(handler, query, subcname)
             hackPath = '/'.join(hackPath)
             print 'Tivo said:', subcname, '|| Hack said:', hackPath
-            debug_write(['Hack Tivo said: ', subcname, ' || Hack said: ',
+            debug_write(__name__, fn_attr(), ['Tivo said: ', subcname, ' || Hack said: ',
                          hackPath, '\n'])
             subcname = hackPath
 
             if not query:
-                debug_write(['Hack sending 302 redirect page', '\n'])
+                debug_write(__name__, fn_attr(), ['sending 302 redirect page', '\n'])
                 handler.send_response(302)
                 handler.send_header('Location ', 'http://' +
                                     handler.headers.getheader('host') +
