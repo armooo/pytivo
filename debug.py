@@ -11,6 +11,7 @@ def debug_write(srcMod, fnAttr, data):
             debug_out.append(str(x))
         fdebug = open('debug.txt', 'a')
         fdebug.write(' '.join(debug_out))
+        print ' '.join(debug_out)
         fdebug.close()
 
 def fn_attr():
@@ -19,15 +20,12 @@ def fn_attr():
 
 def print_conf(srcMod, fnAttr):
     if config.getDebug():
-        print '----- begin pyTivo.conf -----:'
         debug_write(srcMod, fnAttr, ['----- begin pyTivo.conf -----\n'])
         conf = open(os.path.join(p, 'pyTivo.conf'))
         for line in conf.readlines():
             if line.strip().startswith('#'):
                 continue
             if len(line.strip()) != 0:
-                print line.strip()
                 debug_write(srcMod, fnAttr, [line.strip(), '\n'])
-        print '------- end pyTivo.conf -----:'
         conf.close()
         debug_write(srcMod, fnAttr, ['------- end pyTivo.conf -----\n'])
