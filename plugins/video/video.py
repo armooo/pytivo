@@ -19,11 +19,8 @@ try:
 except:
     extensions = None
 
-debug = config.getDebug()
-hack83 = config.getHack83()
-
 def debug_write(data):
-    if debug:
+    if config.getDebug():
         debug_out = []
         debug_out.append('Video.py - ')
         for x in data:
@@ -31,9 +28,6 @@ def debug_write(data):
         fdebug = open('debug.txt', 'a')
         fdebug.write(' '.join(debug_out))
         fdebug.close()
-
-if hack83:
-    debug_write(['Hack83 is enabled.\n'])
 
 class Video(Plugin):
 
@@ -338,8 +332,7 @@ class Video(Plugin):
 
         # If you are running 8.3 software you want to enable hack83
         # in the config file
-
-        if hack83:
+        if config.getHack83():
             print '=' * 73
             query, hackPath = self.hack(handler, query, subcname)
             hackPath = '/'.join(hackPath)

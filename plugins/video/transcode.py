@@ -3,13 +3,13 @@ import config
 
 info_cache = lrucache.LRUCache(1000)
 
-debug = config.getDebug()
-BUFF_SIZE = config.getBuffSize()
-FFMPEG = config.get('Server', 'ffmpeg')
+def ffmpeg_path():
+    return config.get('Server', 'ffmpeg')
+
 videotest = os.path.join(os.path.dirname(__file__), 'videotest.mpg')
 
 def debug_write(data):
-    if debug:
+    if config.getDebug():
         debug_out = []
         for x in data:
             debug_out.append(str(x))
@@ -49,12 +49,12 @@ def transcode(inFile, outFile, tsn=''):
     settings['audio_fr'] = select_audiofr(inFile)
     settings['video_br'] = config.getVideoBR(tsn)
     settings['max_video_br'] = config.getMaxVideoBR()
-    settings['buff_size'] = BUFF_SIZE
+    settings['buff_size'] = config.getBuffSize()
     settings['aspect_ratio'] = ' '.join(select_aspect(inFile, tsn))
 
     cmd_string = config.getFFMPEGTemplate(tsn) % settings
 
-    cmd = [FFMPEG, '-i', inFile] + cmd_string.split()
+    cmd = [ffmpeg_path(), '-i', inFile] + cmd_string.split()
     print cmd
     debug_write(['transcode: ffmpeg command is ', ' '.join(cmd), '\n'])
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
@@ -294,7 +294,7 @@ def video_info(inFile):
         debug_write(['video_info: ', inFile, ' ends in .tivo.\n'])
         return True, True, True, True, True, True, True, True, True
 
-    cmd = [FFMPEG, '-i', inFile ] 
+    cmd = [ffmpeg_path(), '-i', inFile ] 
     ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
 
     # wait 10 sec if ffmpeg is not back give up
@@ -403,7 +403,7 @@ def video_info(inFile):
     return codec, width, height, fps, millisecs, kbps, akbps, acodec, afreq
 
 def video_check(inFile, cmd_string):
-    cmd = [FFMPEG, '-i', inFile] + cmd_string.split()
+    cmd = [ffmpeg_path(), '-i', inFile] + cmd_string.split()
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
         shutil.copyfileobj(ffmpeg.stdout, open(videotest, 'wb'))
