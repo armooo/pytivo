@@ -206,7 +206,7 @@ class Photo(Plugin):
         oldw, oldh = pic.size
 
         if not width: width = oldw
-        if not height: width = oldh
+        if not height: height = oldh
 
         # Correct aspect ratio
         if 'PixelShape' in opts:

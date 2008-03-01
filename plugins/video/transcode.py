@@ -67,14 +67,14 @@ def select_audiocodec(inFile, tsn = ''):
     # Default, compatible with all TiVo's
     codec = '-acodec mp2 -ac 2'
     type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(inFile)
-    if akbps == None and acodec in ('liba52', 'mp2'):
+    if akbps == None and acodec in ('ac3', 'liba52', 'mp2'):
         cmd_string = '-y -vcodec mpeg2video -r 29.97 -b 1000k -acodec copy -t 00:00:01 -f vob -'
         if video_check(inFile, cmd_string):
             type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(videotest)
     if config.isHDtivo(tsn):
         # Is HD Tivo, use ac3
         codec = '-acodec ac3'
-        if acodec == 'liba52' and not akbps == None and \
+        if acodec in ('ac3', 'liba52') and not akbps == None and \
             int(akbps) <= config.getMaxAudioBR(tsn):
             # compatible codec and bitrate, do not reencode audio
             codec = '-acodec copy'
