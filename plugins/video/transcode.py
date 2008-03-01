@@ -237,39 +237,39 @@ def tivo_compatable(inFile, tsn = ''):
     #print type, width, height, fps, millisecs, kbps, akbps, acodec
 
     if (inFile[-5:]).lower() == '.tivo':
-        debug_write(__name__, fn_attr(), ['True, ends with .tivo', inFile])
+        debug_write(__name__, fn_attr(), ['TRUE, ends with .tivo.', inFile])
         return True
 
     if not type == 'mpeg2video':
         #print 'Not Tivo Codec'
-        debug_write(__name__, fn_attr(), ['False, type', type, 'not mpeg2video', inFile])
+        debug_write(__name__, fn_attr(), ['FALSE, type', type, 'not mpeg2video.', inFile])
         return False
 
     if (inFile[-3:]).lower() == '.ts':
-        debug_write(__name__, fn_attr(), ['False, transport stream not supported', inFile])
+        debug_write(__name__, fn_attr(), ['FALSE, transport stream not supported.', inFile])
         return False
 
     if not akbps or int(akbps) > config.getMaxAudioBR(tsn):
-        debug_write(__name__, fn_attr(), ['False,', akbps, 'kbps exceeds max audio bitrate', inFile])
+        debug_write(__name__, fn_attr(), ['FALSE,', akbps, 'kbps exceeds max audio bitrate.', inFile])
         return False
 
     if not kbps or int(kbps)-int(akbps) > config.strtod(config.getMaxVideoBR())/1000:
-        debug_write(__name__, fn_attr(), ['False,', kbps, 'kbps exceeds max video bitrate', inFile])
+        debug_write(__name__, fn_attr(), ['FALSE,', kbps, 'kbps exceeds max video bitrate.', inFile])
         return False
 
     if config.isHDtivo(tsn):
-        debug_write(__name__, fn_attr(), ['True, , HD Tivo detected', inFile])
+        debug_write(__name__, fn_attr(), ['TRUE, HD Tivo detected, skipping remaining tests', inFile])
         return True
 
     if not fps == '29.97':
         #print 'Not Tivo fps'
-        debug_write(__name__, fn_attr(), ['False, ', fps, 'fps, should be 29.97', inFile])
+        debug_write(__name__, fn_attr(), ['FALSE,', fps, 'fps, should be 29.97.', inFile])
         return False
 
     for mode in supportedModes:
         if (mode[0], mode[1]) == (width, height):
             #print 'Is TiVo!'
-            debug_write(__name__, fn_attr(), ['True, ', width, 'x', height, 'is valid', inFile])
+            debug_write(__name__, fn_attr(), ['TRUE,', width, 'x', height, 'is valid.', inFile])
             return True
         #print 'Not Tivo dimensions'
     return False
@@ -278,12 +278,12 @@ def video_info(inFile):
     mtime = os.stat(inFile).st_mtime
     if inFile != videotest:
         if inFile in info_cache and info_cache[inFile][0] == mtime:
-            debug_write(__name__, fn_attr(), [inFile, ' cache hit!'])
+            debug_write(__name__, fn_attr(), ['CACHE HIT!', inFile])
             return info_cache[inFile][1]
 
     if (inFile[-5:]).lower() == '.tivo':
         info_cache[inFile] = (mtime, (True, True, True, True, True, True, True, True, True))
-        debug_write(__name__, fn_attr(), [inFile, ' ends in .tivo.'])
+        debug_write(__name__, fn_attr(), ['VALID, ends in .tivo.', inFile])
         return True, True, True, True, True, True, True, True, True
 
     cmd = [FFMPEG, '-i', inFile ] 
@@ -309,7 +309,7 @@ def video_info(inFile):
         codec = x.group(1)
     else:
         info_cache[inFile] = (mtime, (None, None, None, None, None, None, None, None, None))
-        debug_write(__name__, fn_attr(), ['failed at codec'])
+        debug_write(__name__, fn_attr(), ['failed at video codec'])
         return None, None, None, None, None, None, None, None, None
 
     rezre = re.compile(r'.*Video: .+, (\d+)x(\d+)[, ].*')
@@ -408,7 +408,7 @@ def supported_format(inFile):
     if video_info(inFile)[0]:
         return True
     else:
-        debug_write(__name__, fn_attr(), [inFile, ' is not supported'])
+        debug_write(__name__, fn_attr(), ['FALSE, file not supported', inFile])
         return False
 
 def kill(pid):
