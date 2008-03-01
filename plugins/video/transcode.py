@@ -237,39 +237,39 @@ def tivo_compatable(inFile, tsn = ''):
     #print type, width, height, fps, millisecs, kbps, akbps, acodec
 
     if (inFile[-5:]).lower() == '.tivo':
-        debug_write(__name__, fn_attr(), ['True, ', inFile, ' ends with .tivo'])
+        debug_write(__name__, fn_attr(), ['True, ends with .tivo', inFile])
         return True
 
     if not type == 'mpeg2video':
         #print 'Not Tivo Codec'
-        debug_write(__name__, fn_attr(), ['False, ', inFile, ' is not mpeg2video it is ', type])
+        debug_write(__name__, fn_attr(), ['False, type', type, 'not mpeg2video', inFile])
         return False
 
     if (inFile[-3:]).lower() == '.ts':
-        debug_write(__name__, fn_attr(), ['False, ', inFile, ' transport stream not supported'])
+        debug_write(__name__, fn_attr(), ['False, transport stream not supported', inFile])
         return False
 
     if not akbps or int(akbps) > config.getMaxAudioBR(tsn):
-        debug_write(__name__, fn_attr(), ['False, ', inFile, ' max audio bitrate exceeded it is ', akbps])
+        debug_write(__name__, fn_attr(), ['False,', akbps, 'kbps exceeds max audio bitrate', inFile])
         return False
 
     if not kbps or int(kbps)-int(akbps) > config.strtod(config.getMaxVideoBR())/1000:
-        debug_write(__name__, fn_attr(), ['False, ', inFile, ' max video bitrate exceeded it is ', kbps])
+        debug_write(__name__, fn_attr(), ['False,', kbps, 'kbps exceeds max video bitrate', inFile])
         return False
 
     if config.isHDtivo(tsn):
-        debug_write(__name__, fn_attr(), ['True, ', inFile, ' you have a S3 skiping the rest of the tests'])
+        debug_write(__name__, fn_attr(), ['True, , HD Tivo detected', inFile])
         return True
 
     if not fps == '29.97':
         #print 'Not Tivo fps'
-        debug_write(__name__, fn_attr(), ['False, ', inFile, ' is not correct fps it is ', fps])
+        debug_write(__name__, fn_attr(), ['False, ', fps, 'fps, should be 29.97', inFile])
         return False
 
     for mode in supportedModes:
         if (mode[0], mode[1]) == (width, height):
             #print 'Is TiVo!'
-            debug_write(__name__, fn_attr(), ['True, ', inFile, ' has correct width of ', width, ' and height of ', height])
+            debug_write(__name__, fn_attr(), ['True, ', width, 'x', height, 'is valid', inFile])
             return True
         #print 'Not Tivo dimensions'
     return False
