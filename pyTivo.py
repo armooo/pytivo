@@ -2,6 +2,7 @@
 
 import beacon, httpserver, os, sys
 import config
+from debug import print_conf, fn_attr
 from plugin import GetPlugin
 
 port = config.getPort()
@@ -33,6 +34,7 @@ b.start()
 if 'listen' in config.getBeaconAddresses():
     b.listen()
 
+print_conf(__name__, fn_attr())
 print 'pyTivo is ready.'
 try:
     httpd.serve_forever()
