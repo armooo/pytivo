@@ -5,7 +5,8 @@ p = os.path.dirname(__file__)
 def debug_write(srcMod, fnAttr, data):
     if config.getDebug():
         debug_out = []
-        debug_out.append(srcMod+'.'+fnAttr[1]+' ['+fnAttr[0]+'] ')
+        modname=srcMod.split('.')[-1]
+        debug_out.append(modname+'.'+fnAttr[1]+' ['+fnAttr[0]+'] ')
         for x in data:
             debug_out.append(str(x))
         fdebug = open('debug.txt', 'a')
