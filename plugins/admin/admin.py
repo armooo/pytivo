@@ -55,83 +55,14 @@ class Admin(Plugin):
         t.server_data = dict(config.items('Server', raw=True))
         t.server_known = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", \
                           "optres", "audio_br", "video_br", "max_video_br", "width",\
-                          "height", "ffmpeg_prams", "bufsize"]
+                          "height", "ffmpeg_prams", "bufsize", "precache"]
         t.shares_data = shares_data
         t.shares_known = ["type", "path", "auto_subshares"]
         t.tivos_data = [ (section, dict(config.items(section, raw=True))) for section in config.sections() \
                          if section.startswith('_tivo_')]
-        t.tivos_known = ["aspect169", "audio_br", "video_br", "width", "height", "ffmpeg_prams"]
+        t.tivos_known = ["aspect169", "audio_br", "video_br", "width", "height", "ffmpeg_prams", "shares"]
         handler.wfile.write(t)
        
-    def QueryContainer(self, handler, query):
-        #Read config file new each time in case there was any outside edits
-        config = ConfigParser.ConfigParser()
-        config.read(config_file_path)
-        
-        def build_inputs(settings, data, section):
-            output = ''
-            for key in settings:
-                try:
-                    output += "<tr><td>" + key + ": </td><td><input type='text' name='" + section + "." + key + "' value='" + data[key] +"'></td></tr>"
-                    del data[key]
-                except:
-                    output += "<tr><td>" + key + ": </td><td><input type='text' name='" + section + "." + key + "' value=''></td></tr>"
-            #print remaining miscellaneous settings
-            if len(data) > 0:
-                output += '<tr><td colspan="2" align="center">User Defined Settings</td></tr>'
-                for item in data:
-                    output += "<tr><td>" + item + ": </td><td><input type='text' name='" + section + "." + item + "' value='" + data[item] +"'></td></tr>"
-            output += '<tr><td colspan="2" align="center">Add a User Defined Setting to this Share</td></tr>'
-            output += "<tr><td><input type='text' name='" + section + ".new__setting' value=''></td><td><input type='text' name='" + section + ".new__value' value=''></td></tr>"
-            return output
-            
-        server_data = dict(config.items('Server'))
-        server = ''
-        #build an array with configuration settings to use
-        settings = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", "optres", "audio_br", "video_br", "max_video_br", "width", "height", "ffmpeg_prams", "bufsize"]
-        server += build_inputs(settings, server_data, 'Server')
-
-        #Keep track of the different sections
-        section_map = ''
-        section_count = 1
-        
-        shares_data = [ (section, dict(config.items(section))) for section in config.sections() if not(section.startswith('_tivo_') or section.startswith('Server')) and (config.has_option(section,'type') and config.get(section,'type').lower() != 'admin')]
-        shares =''
-        for name, data in shares_data:
-            shares += '<tr><td colspan="2" align="center">----------------------------------</td></tr>'
-            shares += '<tr><td colspan="2" align="center">[<input type="text" id="section_' + str(section_count) + '" name="section-' + str(section_count) + '" value="' + name + '">]</td></tr>'
-            #build an array with configuration settings to use
-            settings = ["type", "path", "auto_subshares"]
-            shares += build_inputs(settings, data, "section-" + str(section_count))
-            shares += '<tr><td colspan="2" align="center">Mark this share for deletion <input type="button" value="Delete" onclick="deleteme(\'section_' + str(section_count) + '\')"></td></tr>'
-            section_map += "section-" + str(section_count) + "|" + name + "]"
-            section_count += 1
-
-        tivos_data = [ (section, dict(config.items(section))) for section in config.sections() if section.startswith('_tivo_')]
-        tivos =''
-        for name, data in tivos_data:
-            tivos += '<tr><td colspan="2" align="center">----------------------------------</td></tr>'
-            tivos += '<tr><td colspan="2" align="center">[<input type="text" id="section_' + str(section_count) + '" name="section-' + str(section_count) + '" value="' + name + '">]</td></tr>'
-            #build an array with configuration settings to use
-            settings = ["aspect169", "audio_br", "video_br", "width", "height", "ffmpeg_prams"]
-            tivos += build_inputs(settings, data, "section-" + str(section_count))
-            tivos += '<tr><td colspan="2" align="center">Mark this TiVo for deletion <input type="button" value="Delete" onclick="deleteme(\'section_' + str(section_count) + '\')"></td></tr>'
-            section_map += "section-" + str(section_count) + "|" + name + "]"
-            section_count += 1
-
-        subcname = query['Container'][0]
-        cname = subcname.split('/')[0]
-        handler.send_response(200)
-        handler.end_headers()
-        t = Template(file=os.path.join(SCRIPTDIR,'templates', 'admin.tmpl'))
-        t.container = cname
-        t.server = server
-        t.shares = shares
-        t.tivos = tivos
-        t.section_map = section_map
-        handler.wfile.write(t)
-        config.read(config_file_path + '.dist')
-
     def UpdateSettings(self, handler, query):
         config = ConfigParser.ConfigParser()
         config.read(config_file_path)
