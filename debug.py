@@ -11,7 +11,7 @@ def debug_write(srcMod, fnAttr, data):
             debug_out.append(str(x))
         fdebug = open('debug.txt', 'a')
         fdebug.write(' '.join(debug_out)+'\n')
-        print ' '.join(debug_out)
+        print '___'+' '.join(debug_out)
         fdebug.close()
 
 def fn_attr():
