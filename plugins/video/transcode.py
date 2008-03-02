@@ -48,7 +48,7 @@ def transcode(inFile, outFile, tsn=''):
 
     cmd = [FFMPEG, '-i', inFile] + cmd_string.split()
     print 'transcoding to tivo model '+tsn[:3]+' using ffmpeg command:'
-    print cmd
+    print ' '.join(cmd)
     debug_write(__name__, fn_attr(), ['ffmpeg command is ', ' '.join(cmd)])
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
