@@ -20,9 +20,7 @@ try:
 except:
     extensions = None
 
-hack83 = config.getHack83()
-
-if hack83:
+if config.getHack83():
     debug_write(__name__, fn_attr(), ['Hack83 is enabled.'])
 
 class Video(Plugin):
@@ -327,8 +325,7 @@ class Video(Plugin):
 
         # If you are running 8.3 software you want to enable hack83
         # in the config file
-
-        if hack83:
+        if config.getHack83():
             print '=' * 73
             query, hackPath = self.hack(handler, query, subcname)
             hackPath = '/'.join(hackPath)

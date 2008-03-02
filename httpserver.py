@@ -29,6 +29,11 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         except KeyError:
             print 'Unable to add container', name
 
+    def reset(self):
+        self.containers.clear()
+        for section, settings in config.getShares():
+            self.add_container(section, settings)
+
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def address_string(self):
@@ -108,6 +113,11 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR, 'templates',
                                        'info_page.tmpl'))
+        t.admin = ''
+        for section, settings in config.getShares():
+            if 'type' in settings and settings['type'] == 'admin':
+                t.admin += '<a href="/TiVoConnect?Command=Admin&Container=' + section\
+                           + '">pyTivo Web Configuration</a><br>'
         self.wfile.write(t)
         self.end_headers()
 

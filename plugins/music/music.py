@@ -10,7 +10,8 @@ import eyeD3
 
 SCRIPTDIR = os.path.dirname(__file__)
 
-FFMPEG = config.get('Server', 'ffmpeg')
+def ffmpeg_path():
+    return config.get('Server', 'ffmpeg')
 
 CLASS_NAME = 'Music'
 
@@ -119,7 +120,7 @@ class Music(Plugin):
         if needs_transcode:
             if mswindows:
                 fname = fname.encode('iso8859-1')
-            cmd = [FFMPEG, '-i', fname, '-acodec', 'libmp3lame', '-ab', 
+            cmd = [ffmpeg_path(), '-i', fname, '-acodec', 'libmp3lame', '-ab', 
                    '320k', '-ar', '44100', '-f', 'mp3', '-']
             if seek:
                 cmd[-1:] = ['-ss', '%.3f' % (seek / 1000.0), '-']
@@ -202,7 +203,7 @@ class Music(Plugin):
                 fname = unicode(f.name, 'utf-8')
                 if mswindows:
                     fname = fname.encode('iso8859-1')
-                cmd = [FFMPEG, '-i', fname]
+                cmd = [ffmpeg_path(), '-i', fname]
                 ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE,
                                                stdout=subprocess.PIPE, 
                                                stdin=subprocess.PIPE)
