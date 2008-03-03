@@ -1,5 +1,7 @@
 import ConfigParser, os, re, sys
 import config
+import datetime 
+
 p = os.path.dirname(__file__)
 
 def debug_write(srcMod, fnAttr, data):
@@ -20,6 +22,9 @@ def fn_attr():
 
 def print_conf(srcMod, fnAttr):
     if config.getDebug():
+        debug_write(srcMod, fnAttr, ['********************************************************']) 
+        debug_write(srcMod, fnAttr, ['**  Begin pyTivo Session:', datetime.datetime.today(), ' **']) 
+        debug_write(srcMod, fnAttr, ['********************************************************']) 
         debug_write(srcMod, fnAttr, ['----- begin pyTivo.conf -----'])
         conf = open(os.path.join(p, 'pyTivo.conf'))
         for line in conf.readlines():
