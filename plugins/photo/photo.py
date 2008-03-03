@@ -331,15 +331,18 @@ class Photo(Plugin):
         def build_recursive_list(path, recurse=True):
             files = []
             path = unicode(path, 'utf-8')
-            for f in os.listdir(path):
-                f = os.path.join(path, f)
-                isdir = os.path.isdir(f)
-                f = f.encode('utf-8')
-                if recurse and isdir:
-                    files.extend(build_recursive_list(f))
-                else:
-                   if isdir or filterFunction(f):
-                       files.append(FileData(f, isdir))
+            try:
+                for f in os.listdir(path):
+                    f = os.path.join(path, f)
+                    isdir = os.path.isdir(f)
+                    f = f.encode('utf-8')
+                    if recurse and isdir:
+                        files.extend(build_recursive_list(f))
+                    else:
+                       if isdir or filterFunction(f):
+                           files.append(FileData(f, isdir))
+            except:
+                pass
 
             return files
 

@@ -388,18 +388,21 @@ class Music(Plugin):
         def build_recursive_list(path, recurse=True):
             files = []
             path = unicode(path, 'utf-8')
-            for f in os.listdir(path):
-                f = os.path.join(path, f)
-                isdir = os.path.isdir(f)
-                f = f.encode('utf-8')
-                if recurse and isdir:
-                    files.extend(build_recursive_list(f))
-                else:
-                   fd = FileData(f, isdir)
-                   if recurse and fd.isplay:
-                       files.extend(self.parse_playlist(f, recurse))
-                   elif isdir or filterFunction(f, file_type):
-                       files.append(fd)
+            try:
+                for f in os.listdir(path):
+                    f = os.path.join(path, f)
+                    isdir = os.path.isdir(f)
+                    f = f.encode('utf-8')
+                    if recurse and isdir:
+                        files.extend(build_recursive_list(f))
+                    else:
+                       fd = FileData(f, isdir)
+                       if recurse and fd.isplay:
+                           files.extend(self.parse_playlist(f, recurse))
+                       elif isdir or filterFunction(f, file_type):
+                           files.append(fd)
+            except:
+                pass
             return files
 
         def dir_sort(x, y):
