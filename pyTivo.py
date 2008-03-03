@@ -18,12 +18,15 @@ for section, settings in config.getShares():
             pre_cache_filter = getattr(plugin, 'pre_cache')
 
             def build_recursive_list(path):
-                for f in os.listdir(path):
-                    f = os.path.join(path, f)
-                    if os.path.isdir(f):
-                        build_recursive_list(f)
-                    else:
-                        pre_cache_filter(f)
+                try:
+                    for f in os.listdir(path):
+                        f = os.path.join(path, f)
+                        if os.path.isdir(f):
+                            build_recursive_list(f)
+                        else:
+                            pre_cache_filter(f)
+                except:
+                    pass
 
             build_recursive_list(settings.get('path'))
 

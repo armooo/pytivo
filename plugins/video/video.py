@@ -216,18 +216,21 @@ class Video(Plugin):
 
     def __total_items(self, full_path):
         count = 0
-        for file in os.listdir(full_path):
-            if file.startswith('.'):
-                continue
-            file = os.path.join(full_path, file)
-            if os.path.isdir(file):
-                count += 1
-            elif extensions:
-                if os.path.splitext(file)[1].lower() in extensions:
+        try:
+            for file in os.listdir(full_path):
+                if file.startswith('.'):
+                    continue
+                file = os.path.join(full_path, file)
+                if os.path.isdir(file):
                     count += 1
-            elif file in transcode.info_cache:
-                if transcode.supported_format(file):
-                    count += 1
+                elif extensions:
+                    if os.path.splitext(file)[1].lower() in extensions:
+                        count += 1
+                elif file in transcode.info_cache:
+                    if transcode.supported_format(file):
+                        count += 1
+        except:
+            pass
         return count
 
     def __est_size(self, full_path, tsn = ''):
