@@ -9,7 +9,7 @@ def debug_write(srcMod, fnAttr, data):
         debug_out.append(modname+'.'+fnAttr[1]+' ['+fnAttr[0]+'] ')
         for x in data:
             debug_out.append(str(x))
-        fdebug = open('debug.txt', 'a')
+        fdebug = open(os.path.join(p, 'debug.txt'), 'a')
         fdebug.write(' '.join(debug_out)+'\n')
         print '___'+' '.join(debug_out)
         fdebug.close()
