@@ -38,6 +38,7 @@ def transcode(inFile, outFile, tsn=''):
     settings['audio_br'] = config.getAudioBR(tsn)
     settings['audio_codec'] = select_audiocodec(inFile, tsn)
     settings['audio_fr'] = select_audiofr(inFile)
+    settings['video_fps'] = select_videofps(inFile)
     settings['video_br'] = config.getVideoBR(tsn)
     settings['max_video_br'] = config.getMaxVideoBR()
     settings['buff_size'] = config.getBuffSize()
@@ -47,7 +48,7 @@ def transcode(inFile, outFile, tsn=''):
 
     cmd = [ffmpeg_path(), '-i', inFile] + cmd_string.split()
     print 'transcoding to tivo model '+tsn[:3]+' using ffmpeg command:'
-    print cmd
+    print ' '.join(cmd)
     debug_write(__name__, fn_attr(), ['ffmpeg command is ', ' '.join(cmd)])
     ffmpeg = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     try:
@@ -83,6 +84,12 @@ def select_audiofr(inFile):
         # compatible frequency
         freq = '-ar ' + afreq
     return freq
+
+def select_videofps(inFile):
+    vfps = '-r 29.97'  #default
+    if config.isHDtivo:
+        vfps = ' '
+    return vfps
 
 def select_aspect(inFile, tsn = ''):
     TIVO_WIDTH = config.getTivoWidth(tsn)

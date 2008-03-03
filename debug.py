@@ -29,3 +29,5 @@ def print_conf(srcMod, fnAttr):
                 debug_write(srcMod, fnAttr, [line.strip()])
         conf.close()
         debug_write(srcMod, fnAttr, ['------- end pyTivo.conf -----'])
+
+print_conf(__name__, fn_attr())
