@@ -108,7 +108,7 @@ function showData(form) {
 				break;
 			}
 		}
-		alert("Invalid Entry:\nSorry these are not allowed \n!@#$%^&*()|}{\][?></.,:;\" '=`~");
+		alert("Invalid Entry:\nSorry these are not allowed \n[]<>|");
 		switchDiv('set-' + section, 'set-');
 		document.getElementById(setting).select();
 		return false;
@@ -727,7 +727,7 @@ longer to transfer over the network.<br>
 
       </div>
 
-      <div id="help-ffmpeg_prams" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-ffmpeg_prams" style="position: absolute; overflow: scroll; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>ffmpeg_prams</strong>
       </p>
 
@@ -845,7 +845,7 @@ setting which enables the <a class="wiki" href="/wiki/SubFoldersBranch">SubFolde
 
       </div>
 
-      <div id="help-precache" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-precache" style="position: absolute; overflow: scroll; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>precache</strong>
       </p>
 
@@ -938,7 +938,6 @@ all shares will be visible on this TiVo.<br>
       </p>
 
       </div>
-
 <!-- END HELP SECTIONS --> </div>
 
       </td>
