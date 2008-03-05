@@ -85,11 +85,13 @@ def getShares(tsn=''):
 
     return shares
 
-def getDebug():
-    try:
-        return config.getboolean('Server', 'debug')
-    except NoOptionError, ValueError:
-        return False
+def getDebug(ref):
+    if config.has_option('Server', 'debug'):
+        try:
+            return str2tuple(config.get('Server', 'debug')+',,')[ref]
+        except NoOptionError:
+            pass
+    return str2tuple('False,,')[ref]
 
 def getHack83():
     try:
@@ -234,6 +236,11 @@ def getMaxAudioBR(tsn = None):
         return int(int(strtod(config.get('Server', 'max_audio_br'))/1000)/64)*64
     except NoOptionError: 
         return int(448) #default to 448
+
+def str2tuple(s):
+    items = s.split(',')
+    L = [x.strip() for x in items]
+    return tuple(L)
 
 # Parse a bitrate using the SI/IEEE suffix values as if by ffmpeg
 # For example, 2K==2000, 2Ki==2048, 2MB==16000000, 2MiB==16777216
