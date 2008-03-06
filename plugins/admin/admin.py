@@ -1,4 +1,6 @@
-import os, socket, re, sys, ConfigParser, config
+import os, socket, re, sys, ConfigParser, config, time
+import urllib2
+from xml.dom import minidom
 from ConfigParser import NoOptionError
 from Cheetah.Template import Template
 from plugin import Plugin
@@ -121,5 +123,64 @@ class Admin(Plugin):
         t.container = cname
         t.text = '<h3>Your Settings have been saved.</h3>  <br>You settings have been saved to the pyTivo.conf file.  However you will need to do a <b>Soft Reset</b> before these changes will take effect.'
         handler.wfile.write(t)
+        
+    def NPL(self, handler, query):
+        folder = '/NowPlaying'
+        if 'Folder' in query:
+            folder += '/' + str(query['Folder'][0])
+        theurl = 'https://192.168.1.150/TiVoConnect?Command=QueryContainer&Container=' + folder
 
+        password = '1586767899' #TiVo MAK
+
+        r=urllib2.Request(theurl)
+        auth_handler = urllib2.HTTPDigestAuthHandler()
+        auth_handler.add_password('TiVo DVR', '192.168.1.150', 'tivo', password)
+        opener = urllib2.build_opener(auth_handler)
+        urllib2.install_opener(opener)
+
+        try:
+            handle = urllib2.urlopen(r)
+        except IOError, e:
+            print "Possibly wrong Media Access Key, or IP address for your TiVo."
+            handler.send_response(404)
+            handler.end_headers()
+            return 
+        thepage = handle.read()
+
+        xmldoc = minidom.parseString(thepage)
+        items = xmldoc.getElementsByTagName('Item')
+
+        data = []
+        for item in items:
+            entry = {}
+            entry['Title'] = item.getElementsByTagName("Title")[0].firstChild.data
+            entry['ContentType'] = item.getElementsByTagName("ContentType")[0].firstChild.data
+            if (len(item.getElementsByTagName("UniqueId")) >= 1):
+                entry['UniqueId'] = item.getElementsByTagName("UniqueId")[0].firstChild.data
+            if entry['ContentType'] != 'x-tivo-container/folder':
+                link = item.getElementsByTagName("Links")[0]
+                if (len(link.getElementsByTagName("CustomIcon")) >= 1):
+                    entry['Icon'] = link.getElementsByTagName("CustomIcon")[0].getElementsByTagName("Url")[0].firstChild.data
+                keys = ['SourceSize', 'Duration', 'CaptureDate', 'EpisodeTitle', 'Description', 'SourceChannel', 'SourceStation']
+                for key in keys:
+                    try:
+                        entry[key] = item.getElementsByTagName(key)[0].firstChild.data
+                    except:
+                        entry[key] = ''
+                entry['SourceSize'] = "%.3f GB" % float(float(entry['SourceSize'])/(1024*1024*1024))
+                entry['Duration'] = str(int(entry['Duration'])/(60*60*1000)).zfill(2) + ':' \
+                                    + str((int(entry['Duration'])/60*1000)%60).zfill(2) + ':' \
+                                    + str((int(entry['Duration'])/1000)%60).zfill(2)
+                entry['CaptureDate'] = time.strftime("%b %d, %Y <br> %H:%M:%S", time.localtime(int(entry['CaptureDate'], 16)))
+                        
+            data.append(entry)
+
+        subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
+        handler.send_response(200)
+        handler.end_headers()
+        t = Template(file=os.path.join(SCRIPTDIR,'templates', 'npl.tmpl'))
+        t.container = cname
+        t.data = data
+        handler.wfile.write(t)
         
