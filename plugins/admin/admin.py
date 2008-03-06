@@ -130,7 +130,7 @@ class Admin(Plugin):
             folder += '/' + str(query['Folder'][0])
         theurl = 'https://192.168.1.150/TiVoConnect?Command=QueryContainer&Container=' + folder
 
-        password = '1586767899' #TiVo MAK
+        password = '' #TiVo MAK
 
         r=urllib2.Request(theurl)
         auth_handler = urllib2.HTTPDigestAuthHandler()
