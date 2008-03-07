@@ -1,129 +1,129 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <title>pyTivo Web Configuration</title>
-
-
-  <script language="javascript" type="text/javascript">
-function fillBlank(){
-var texts=document.getElementsByTagName('input')
-for (var i_tem = 0; i_tem < texts.length; i_tem++)
-if (texts[i_tem].value=='')
-texts[i_tem].value=' '
-}
-function switchDiv(pass, type){ 
-hideallids(type);
-showDiv(pass);
-}
-function hideallids(type){
-//loop through the array and hide each element by id
-var divs = document.getElementsByTagName('div');
-for (var i=0;i<divs.length;i++){
-if(divs[i].id.match(type)){
-hideDiv(divs[i].id);
-}
-} }
-function hideDiv(pass) {
-var divs = document.getElementsByTagName('div');
-for(i=0;i<divs.length;i++){
-if(divs[i].id.match(pass)){//if they are 'see' divs
-if (document.getElementById) // DOM3 = IE5, NS6
-divs[i].style.visibility="hidden";// show/hide
-else
-if (document.layers) // Netscape 4
-document.layers[divs[i]].display = 'hidden';
-else // IE 4
-document.all.hideshow.divs[i].visibility = 'hidden';
-}
-}
-}
-function showDiv(pass) {
-var divs = document.getElementsByTagName('div');
-for(i=0;i<divs.length;i++){
-if(divs[i].id == pass){
-if (document.getElementById)
-divs[i].style.visibility="";
-else
-if (document.layers) // Netscape 4
-document.layers[divs[i]].display = '';
-else // IE 4
-document.all.hideshow.divs[i].visibility = '';
-}
-}
-}
-function deleteSection(id){
-if (select_section.section.options[id].text == 'Global Server Settings'){
-	alert('Delete Error:\n\nSorry the Global Server Settings Section is required for pyTivo to run and cannot be deleted');
-	return true;
-}
-var name = select_section.section.options[id].text;
-var answer = confirm("Are you sure you wish to delete the '" + name + "' Section?")
-if (answer){
-	switchDiv('set-delete', 'set-');
-	select_section.section.options[id] = null;
-	var field = document.getElementById(name).value;
-	document.getElementById(field).value = 'Delete_Me';
-	saveNotify();
-	return true;
-}
-else{
-	//Don't delete
-}
-}
-function resetpyTivo(){
-var answer = confirm("Are you sure you wish to reset the pyTivo Server? Any unsaved changes will be lost!")
-if (answer){
-	window.location="/TiVoConnect?Command=Reset&Container=$container"
-}
-else{
-	//Don't reset
-}
-}
-function showData(form) {
-	var section = ""
-	var setting = ""
-	re=/[\[\]<>|]/;
-	inputs = form.getElementsByTagName("input");
-	for (i = 0; i < inputs.length; i++){
-		if (inputs[i].type == 'text' && re.exec(inputs[i].value)){
-			setting = inputs[i].name;
-			break;
-		}
-	}
-	if (setting != ""){
-		var map = document.getElementById('Section_Map').value.split(']');
-		map.pop();
-		splitSetting = setting.split('.');
-		for(i=0;i<map.length;i++){
-			key = map[i].split('|');
-			//buffer += key[0] + "---" + key[1] + "===" + splitSetting[0] + "\n";
-			if (splitSetting[0] == 'Server'){
-				section = 'server';
-				break;
-			}
-			if (key[0] == splitSetting[0]){
-				section = key[1];
-				break;
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<title>pyTivo Web Configuration</title>
+	<script language="javascript" type="text/javascript">
+		function fillBlank(){
+			var texts=document.getElementsByTagName('input');
+			for (var i_tem = 0; i_tem < texts.length; i_tem++){
+				if (texts[i_tem].value==''){
+					texts[i_tem].value=' ';
+				}
 			}
 		}
-		alert("Invalid Entry:\nSorry these are not allowed \n!@#$%^&*()|}{\][?></.,:;\" '=`~");
-		switchDiv('set-' + section, 'set-');
-		document.getElementById(setting).select();
-		return false;
-	}
-	fillBlank();
-	document.config.submit();
-}
-function saveNotify(){
-	document.getElementById('B1').style.fontWeight= 'bold';
-	document.getElementById('B2').disabled = true;
-}
-</script>
+		function switchDiv(pass, type){ 
+			hideallids(type);
+			showDiv(pass);
+		}
+		function hideallids(type){
+			//loop through the array and hide each element by id
+			var divs = document.getElementsByTagName('div');
+			for (var i=0;i<divs.length;i++){
+				if(divs[i].id.match(type)){
+					hideDiv(divs[i].id);
+				}
+			} 
+		}
+		function hideDiv(pass) {
+			var divs = document.getElementsByTagName('div');
+			for(i=0;i<divs.length;i++){
+				if(divs[i].id.match(pass)){//if they are 'see' divs
+					if (document.getElementById){// DOM3 = IE5, NS6
+						divs[i].style.visibility="hidden";// show/hide
+					}
+					else{
+						if (document.layers){ // Netscape 4
+							document.layers[divs[i]].display = 'hidden';
+						}
+						else{ // IE 4
+							document.all.hideshow.divs[i].visibility = 'hidden';
+						}
+					}
+				}
+			}
+		}
+		function showDiv(pass) {
+			var divs = document.getElementsByTagName('div');
+			for(i=0;i<divs.length;i++){
+				if(divs[i].id == pass){
+					if (document.getElementById){
+						divs[i].style.visibility="";
+					}
+					else {
+						if (document.layers){ // Netscape 4
+							document.layers[divs[i]].display = '';
+						}
+						else{ // IE 4
+							document.all.hideshow.divs[i].visibility = '';
+						}
+					}
+				}
+			}
+		}
+		function deleteSection(id){
+			if (select_section.section.options[id].text == 'Global Server Settings'){
+				alert('Delete Error:\n\nSorry the Global Server Settings Section is required for pyTivo to run and cannot be deleted');
+				return true;
+			}
+			var name = select_section.section.options[id].text;
+			var answer = confirm("Are you sure you wish to delete the '" + name + "' Section?")
+			if (answer){
+				switchDiv('set-delete', 'set-');
+				select_section.section.options[id] = null;
+				var field = document.getElementById(name).value;
+				document.getElementById(field).value = 'Delete_Me';
+				saveNotify();
+				return true;
+			}		
+		}
+		function resetpyTivo(){
+			var answer = confirm("Are you sure you wish to reset the pyTivo Server? Any unsaved changes will be lost!")
+			if (answer){
+				window.location="/TiVoConnect?Command=Reset&Container=$container"
+			}
+		}
+		function showData(form) {
+			var section = ""
+			var setting = ""
+			re=/[\[\]<>|]/;
+			inputs = form.getElementsByTagName("input");
+			for (i = 0; i < inputs.length; i++){
+				if (inputs[i].type == 'text' && re.exec(inputs[i].value)){
+					setting = inputs[i].name;
+					break;
+				}
+			}
+			if (setting != ""){
+				var map = document.getElementById('Section_Map').value.split(']');
+				map.pop();
+				splitSetting = setting.split('.');
+				for(i=0;i<map.length;i++){
+					key = map[i].split('|');
+					//buffer += key[0] + "---" + key[1] + "===" + splitSetting[0] + "\n";
+					if (splitSetting[0] == 'Server'){
+						section = 'server';
+						break;
+					}
+					if (key[0] == splitSetting[0]){
+						section = key[1];
+						break;
+					}
+				}
+				alert("Invalid Entry:\nSorry these are not allowed \n[]<>|");
+				switchDiv('set-' + section, 'set-');
+				document.getElementById(setting).select();
+				return false;
+			}
+			fillBlank();
+			document.config.submit();
+		}
+		function saveNotify(){
+			document.getElementById('B1').style.fontWeight= 'bold';
+			document.getElementById('B2').disabled = true;
+		}
+	</script>
 </head>
-
-
 <body style="background-color: rgb(250, 250, 250);">
 
 <p align="center"><font size="6">pyTivo Web
@@ -727,7 +727,7 @@ longer to transfer over the network.<br>
 
       </div>
 
-      <div id="help-ffmpeg_prams" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-ffmpeg_prams" style="position: absolute; overflow: scroll; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>ffmpeg_prams</strong>
       </p>
 
@@ -845,7 +845,7 @@ setting which enables the <a class="wiki" href="/wiki/SubFoldersBranch">SubFolde
 
       </div>
 
-      <div id="help-precache" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <div id="help-precache" style="position: absolute; overflow: scroll; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>precache</strong>
       </p>
 
@@ -938,7 +938,6 @@ all shares will be visible on this TiVo.<br>
       </p>
 
       </div>
-
 <!-- END HELP SECTIONS --> </div>
 
       </td>
