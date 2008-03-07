@@ -1,5 +1,6 @@
 import subprocess, os, random, re, shutil, socket, sys, urllib, time, cgi
 import config
+from plugins.video.transcode import kill
 from Cheetah.Template import Template
 from Cheetah.Filters import Filter
 from plugin import Plugin, quote, unquote
@@ -19,7 +20,7 @@ PLAYLISTS = ('.m3u', '.m3u8', '.ram', '.pls', '.b4s', '.wpl', '.asx',
              '.wax', '.wvx')
 
 TRANSCODE = ('.mp4', '.m4a', '.flc', '.ogg', '.wma', '.aac', '.wav',
-             '.aif', '.aiff', '.au')
+             '.aif', '.aiff', '.au', '.flac')
 
 # Search strings for different playlist types
 asxfile = re.compile('ref +href *= *"(.+)"', re.IGNORECASE).search
