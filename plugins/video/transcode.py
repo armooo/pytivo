@@ -35,16 +35,20 @@ def output_video(inFile, outFile, tsn=''):
 def transcode(inFile, outFile, tsn=''):
 
     settings = {}
-    settings['audio_br'] = config.getAudioBR(tsn)
-    settings['audio_codec'] = select_audiocodec(inFile, tsn)
-    settings['audio_fr'] = select_audiofr(inFile)
-    settings['video_fps'] = select_videofps(inFile)
-    settings['video_br'] = config.getVideoBR(tsn)
-    settings['max_video_br'] = config.getMaxVideoBR()
-    settings['buff_size'] = config.getBuffSize()
+    settings['video_codec'] = select_videocodec(tsn)
+    settings['video_br'] = select_videobr(tsn)
+    settings['video_fps'] = select_videofps(tsn)
+    settings['max_video_br'] = select_maxvideobr()
+    settings['buff_size'] = select_buffsize()
     settings['aspect_ratio'] = ' '.join(select_aspect(inFile, tsn))
+    settings['audio_br'] = select_audiobr(tsn)
+    settings['audio_fr'] = select_audiofr(inFile, tsn)
+    settings['audio_ch'] = select_audioch(tsn)
+    settings['audio_codec'] = select_audiocodec(inFile, tsn)
+    settings['ffmpeg_pram'] = select_ffmpegprams(tsn)
+    settings['format'] = select_format(tsn)
 
-    cmd_string = config.getFFMPEGTemplate(tsn) % settings
+    cmd_string = config.getFFmpegTemplate(tsn) % settings
 
     cmd = [ffmpeg_path(), '-i', inFile] + cmd_string.split()
     print 'transcoding to tivo model '+tsn[:3]+' using ffmpeg command:'
@@ -58,38 +62,81 @@ def transcode(inFile, outFile, tsn=''):
 
 def select_audiocodec(inFile, tsn = ''):
     # Default, compatible with all TiVo's
-    codec = '-acodec mp2 -ac 2'
-    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(inFile)
-    if akbps == None and acodec in ('ac3', 'liba52', 'mp2'):
-        cmd_string = '-y -vcodec mpeg2video -r 29.97 -b 1000k -acodec copy -t 00:00:01 -f vob -'
-        if video_check(inFile, cmd_string):
-            type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(videotest)
-    if config.isHDtivo(tsn):
-        # Is HD Tivo, use ac3
-        codec = '-acodec ac3'
-        if acodec in ('ac3', 'liba52') and not akbps == None and \
+    codec = 'mp2'
+    if config.getAudioCodec(tsn) == None:
+        type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(inFile)
+        if akbps == None and acodec in ('ac3', 'liba52', 'mp2'):
+            cmd_string = '-y -vcodec mpeg2video -r 29.97 -b 1000k -acodec copy -t 00:00:01 -f vob -'
+            if video_check(inFile, cmd_string):
+                type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(videotest)
+        if config.isHDtivo(tsn):
+            # Is HD Tivo, use ac3
+            codec = 'ac3'
+            if acodec in ('ac3', 'liba52') and not akbps == None and \
+                int(akbps) <= config.getMaxAudioBR(tsn):
+                # compatible codec and bitrate, do not reencode audio
+                codec = 'copy'
+        if acodec == 'mp2' and not akbps == None and \
             int(akbps) <= config.getMaxAudioBR(tsn):
             # compatible codec and bitrate, do not reencode audio
-            codec = '-acodec copy'
-    if acodec == 'mp2' and not akbps == None and \
-        int(akbps) <= config.getMaxAudioBR(tsn):
-        # compatible codec and bitrate, do not reencode audio
-        codec = '-acodec copy'
-    return codec
+            codec = 'copy'
+    else:
+        codec = config.getAudioCodec(tsn)
+    return '-acodec '+codec
 
-def select_audiofr(inFile):
-    freq = '-ar 48000'  #default
+def select_audiofr(inFile, tsn):
+    freq = '48000'  #default
     type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(inFile)
     if not afreq == None and afreq in ('44100', '48000'):
         # compatible frequency
-        freq = '-ar ' + afreq
-    return freq
+        freq = afreq
+    if config.getAudioFR(tsn) != None:
+        freq = config.getAudioFR(tsn)
+    return '-ar '+freq
 
-def select_videofps(inFile):
+def select_audioch(tsn):
+    if config.getAudioCH(tsn) != None:
+        return '-ac '+config.getAudioCH(tsn)
+    if not config.isHDtivo(tsn):
+        return '-ac 2'
+    return ''
+
+def select_videofps(tsn):
     vfps = '-r 29.97'  #default
-    if config.isHDtivo:
+    if config.isHDtivo(tsn):
         vfps = ' '
+    if config.getVideoFPS(tsn) != None:
+        vfps = '-r '+config.getVideoFPS(tsn)
     return vfps
+
+def select_videocodec(tsn):
+    vcodec = 'mpeg2video'  #default
+    if config.getVideoCodec(tsn) != None:
+        vcodec = config.getVideoCodec(tsn)
+    return '-vcodec '+vcodec
+
+def select_videobr(tsn):
+    return '-b '+config.getVideoBR(tsn)
+
+def select_audiobr(tsn):
+    return '-ab '+config.getAudioBR(tsn)
+
+def select_maxvideobr():
+    return '-maxrate '+config.getMaxVideoBR()
+
+def select_buffsize():
+    return '-bufsize '+config.getBuffSize()
+
+def select_ffmpegprams(tsn):
+    if config.getFFmpegPrams(tsn) != None:
+        return config.getFFmpegPrams(tsn)
+    return ''
+
+def select_format(tsn):
+    fmt = 'vob'
+    if config.getFormat(tsn) != None:
+        fmt = config.getFormat(tsn)
+    return '-f '+fmt+' -'
 
 def select_aspect(inFile, tsn = ''):
     TIVO_WIDTH = config.getTivoWidth(tsn)
