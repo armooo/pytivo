@@ -1,5 +1,5 @@
 import os, socket, re, sys, ConfigParser, config, time
-import urllib2
+import urllib2, cookielib, thread
 from xml.dom import minidom
 from ConfigParser import NoOptionError
 from Cheetah.Template import Template
@@ -18,6 +18,8 @@ p.pop()
 p.pop()
 p = os.path.sep.join(p)
 config_file_path = os.path.join(p, 'pyTivo.conf')
+
+status = {}
 
 class Admin(Plugin):
     CONTENT_TYPE = 'text/html'
@@ -157,7 +159,11 @@ class Admin(Plugin):
             entry['ContentType'] = item.getElementsByTagName("ContentType")[0].firstChild.data
             if (len(item.getElementsByTagName("UniqueId")) >= 1):
                 entry['UniqueId'] = item.getElementsByTagName("UniqueId")[0].firstChild.data
-            if entry['ContentType'] != 'x-tivo-container/folder':
+            if entry['ContentType'] == 'x-tivo-container/folder':
+                entry['TotalItems'] = item.getElementsByTagName("TotalItems")[0].firstChild.data
+                entry['LastChangeDate'] = item.getElementsByTagName("LastChangeDate")[0].firstChild.data
+                entry['LastChangeDate'] = time.strftime("%b %d, %Y", time.localtime(int(entry['LastChangeDate'], 16)))
+            else:
                 link = item.getElementsByTagName("Links")[0]
                 if (len(link.getElementsByTagName("CustomIcon")) >= 1):
                     entry['Icon'] = link.getElementsByTagName("CustomIcon")[0].getElementsByTagName("Url")[0].firstChild.data
@@ -171,7 +177,7 @@ class Admin(Plugin):
                 entry['Duration'] = str(int(entry['Duration'])/(60*60*1000)).zfill(2) + ':' \
                                     + str((int(entry['Duration'])/60*1000)%60).zfill(2) + ':' \
                                     + str((int(entry['Duration'])/1000)%60).zfill(2)
-                entry['CaptureDate'] = time.strftime("%b %d, %Y <br> %H:%M:%S", time.localtime(int(entry['CaptureDate'], 16)))
+                entry['CaptureDate'] = time.strftime("%b %d, %Y", time.localtime(int(entry['CaptureDate'], 16)))
                         
             data.append(entry)
 
@@ -180,7 +186,65 @@ class Admin(Plugin):
         handler.send_response(200)
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'npl.tmpl'))
+        t.subfolder = False
+        if folder != '/NowPlaying':
+            t.subfolder = True
         t.container = cname
         t.data = data
         handler.wfile.write(t)
-        
+
+    def ToGo(self, handler, query):
+        theurl = "http://192.168.1.150/download/Survivor%20Micronesia%20--%20Fans%20vs.%20Favorites.TiVo?Container=%2FNowPlaying&id=385244"
+        password = '' #TiVo MAK
+        tivoIP = '192.168.1.150'
+        outfile = "video.tivo"
+
+        status[theurl] = {'running':True, 'error':'', 'rate':''}
+
+        thread.start_new_thread(get_tivo_file, (theurl, password, tivoIP, outfile))
+
+
+    def get_tivo_file(url, mak, tivoIP, outfile):
+        global status
+        cj = cookielib.LWPCookieJar()
+
+        r=urllib2.Request(url)
+        auth_handler = urllib2.HTTPDigestAuthHandler()
+        auth_handler.add_password('TiVo DVR', tivoIP, 'tivo', mak)
+        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj), auth_handler)
+        urllib2.install_opener(opener)
+
+        try:
+            handle = urllib2.urlopen(r)
+        except IOError, e:
+            #If we get "Too many transfers error" try a second time.  For some reason
+            #urllib2 does not properly close connections when a transfer is canceled.
+            if e.code == 503:
+                try:
+                    handle = urllib2.urlopen(r)
+                except IOError, e:
+                    status[url]['running'] = False
+                    status[url]['error'] = e.code
+                    return
+            else:
+                status[url]['running'] = False
+                status[url]['error'] = e.code
+                return
+
+        f = open(outfile, 'wb')
+        kilobytes = 0
+        start_time = time.time()
+        output = handle.read(1024)
+        while status[url]['running'] and output != '':
+            kilobytes += 1
+            f.write(output)
+            if ((time.time() - start_time) >= 5):
+                status[url]['rate'] = int(kilobytes/(time.time() - start_time))
+                kilobytes = 0
+                start_time = time.time()
+            output = handle.read(1024)
+        status[url]['running'] = False
+        handle.close()
+        f.close()
+        return
+            

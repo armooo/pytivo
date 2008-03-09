@@ -4,8 +4,10 @@
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
   <title>pyTivo - TiVo ToGo</title>
 </head>
-<body>
-<table align=center style="text-align: left;" border="1" cellpadding="2" cellspacing="2">
+<body style="background-color: rgb(250, 250, 250);">
+
+<p align="center"><font size="6">pyTivo TiVo ToGo</font></p>
+<table style="border: 1px solid rgb(220, 220, 220);background-color: rgb(255, 255, 255);text-align: left; margin-left: auto; margin-right: auto;" border="0" cellpadding="0" cellspacing="4">
   <tbody>
     <tr>
       <td style="height: 48px; width: 483px;">
@@ -17,7 +19,11 @@
     </tr>
     <tr>
       <td>
+      <div style="visibility: visible; width: 800px; overflow: scroll; height: 450px; position: relative;">
       <table>
+      #if $subfolder == True
+      	<tr><td colspan=5><a href="/TiVoConnect?Command=NPL&Container=$container">Back to Now Playing List</a></td></tr>
+      #end if
       #set $i = 0
       #for $row in $data
 		  #set $i += 1
@@ -27,17 +33,19 @@
 		  	<tr>
 		  #end if
 		  #if $row['ContentType'] == 'x-tivo-container/folder'
-			<td width=8></td>
+			<td></td>
 			<td><a href='/TiVoConnect?Command=NPL&Container=$(container)&Folder=$(row["UniqueId"])'>$row['Title'] </a></td>
-			<td></td><td></td>
+			<td>$(row["TotalItems"]) Items</td>
+			<td>$row["LastChangeDate"]</td>
+			<td></td>
 		  #else
 			#if 'Icon' in $row
 				#if $row['Icon'] == 'urn:tivo:image:expires-soon-recording'
-					<td width=8 bgcolor='yellow'> </td>
+					<td><table><tr><td height=18 width=8 bgcolor='yellow'> </td></tr></table></td>
 				#else if $row['Icon'] == 'urn:tivo:image:expired-recording'
-					<td width=8 bgcolor='yellow'><b> ! </b></td>
+					<td><table><tr><td height=18 width=8 bgcolor='yellow'><b> ! </b></td></tr></table></td>
 				#else if $row['Icon'] == 'urn:tivo:image:save-until-i-delete-recording'
-					<td width=8 bgcolor='green'></td>				
+					<td><table><tr><td height=18 width=8 bgcolor='green'></td></tr></table></td>				
 				#else
 					<td width=8></td>
 				#end if
@@ -52,11 +60,12 @@
 			<td>$row['SourceSize'] <br>
 			$row['Duration']
 			</td>
-			<td>$row['CaptureDate']</td>
+			<td>$row['CaptureDate']</td><td><a href="#">Transfer This.</a></td>
 		  #end if
 		  </tr>
       #end for
       </table>
+      </div>
       </td>
     </tr>
   </tbody>
