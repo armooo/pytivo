@@ -5,6 +5,7 @@ from plugin import Plugin
 from urllib import unquote_plus, quote, unquote
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
+import debug
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -32,6 +33,8 @@ class Admin(Plugin):
         t.container = cname
         t.text = '<h3>The pyTivo Server has been soft reset.</h3>  <br>pyTivo has reloaded the pyTivo.conf file and all changed should now be in effect.'
         handler.wfile.write(t)
+        debug.debug_write(__name__, debug.fn_attr(), ['The pyTivo Server has been soft reset.'])
+        debug.print_conf(__name__, debug.fn_attr())
     
     def Admin(self, handler, query):
         #Read config file new each time in case there was any outside edits
