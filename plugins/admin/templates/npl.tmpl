@@ -60,7 +60,25 @@
 			<td>$row['SourceSize'] <br>
 			$row['Duration']
 			</td>
-			<td>$row['CaptureDate']</td><td><a href="#">Transfer This.</a></td>
+			<td>$row['CaptureDate']</td>
+			#if 'Url' in $row
+				#if $unquote($row['Url']) in $status
+					#set $this_status = $status[$unquote($row['Url'])]
+					#if $this_status['running'] and $this_status['rate'] != ""
+						<td>Transfering - $this_status['rate'] KB/s</td>					
+					#elif $this_status['running'] and $this_status['rate'] == ""
+						<td>Initiating Transfer. Please Wait</td>
+					#elif $this_status['error']
+						<td>Error - $this_status['error']</td>
+					#else
+						<td>Transfer Complete</td>
+					#endif
+				#else
+					<td><a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$(TiVo)">Transfer This.</a></td>
+				#end if
+			#else
+				<td></td>
+			#end if
 		  #end if
 		  </tr>
       #end for

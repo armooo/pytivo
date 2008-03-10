@@ -5,6 +5,7 @@ from ConfigParser import NoOptionError
 from Cheetah.Template import Template
 from plugin import Plugin
 from urllib import unquote_plus, quote, unquote
+from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
 
@@ -127,16 +128,25 @@ class Admin(Plugin):
         handler.wfile.write(t)
         
     def NPL(self, handler, query):
+        subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
+        for name, data in config.getShares():
+            if cname == name:
+                if 'tivo_mak' in data:
+                    tivo_mak = data['tivo_mak']
+                else:
+                    tivo_mak = ""
         folder = '/NowPlaying'
         if 'Folder' in query:
             folder += '/' + str(query['Folder'][0])
-        theurl = 'https://192.168.1.150/TiVoConnect?Command=QueryContainer&Container=' + folder
+        tivoIP = tivo_mak.split(':')[0]
+        theurl = 'https://'+ tivoIP +'/TiVoConnect?Command=QueryContainer&Container=' + folder
 
-        password = '' #TiVo MAK
+        password = tivo_mak.split(':')[1] #TiVo MAK
 
         r=urllib2.Request(theurl)
         auth_handler = urllib2.HTTPDigestAuthHandler()
-        auth_handler.add_password('TiVo DVR', '192.168.1.150', 'tivo', password)
+        auth_handler.add_password('TiVo DVR', tivoIP, 'tivo', password)
         opener = urllib2.build_opener(auth_handler)
         urllib2.install_opener(opener)
 
@@ -167,6 +177,9 @@ class Admin(Plugin):
                 link = item.getElementsByTagName("Links")[0]
                 if (len(link.getElementsByTagName("CustomIcon")) >= 1):
                     entry['Icon'] = link.getElementsByTagName("CustomIcon")[0].getElementsByTagName("Url")[0].firstChild.data
+                if (len(link.getElementsByTagName("Content")) >= 1):
+                    entry['Url'] = quote(link.getElementsByTagName("Content")[0].getElementsByTagName("Url")[0].firstChild.data)
+                    print entry['Url']
                 keys = ['SourceSize', 'Duration', 'CaptureDate', 'EpisodeTitle', 'Description', 'SourceChannel', 'SourceStation']
                 for key in keys:
                     try:
@@ -175,7 +188,7 @@ class Admin(Plugin):
                         entry[key] = ''
                 entry['SourceSize'] = "%.3f GB" % float(float(entry['SourceSize'])/(1024*1024*1024))
                 entry['Duration'] = str(int(entry['Duration'])/(60*60*1000)).zfill(2) + ':' \
-                                    + str((int(entry['Duration'])/60*1000)%60).zfill(2) + ':' \
+                                    + str((int(entry['Duration'])%(60*60*1000))/(60*1000)).zfill(2) + ':' \
                                     + str((int(entry['Duration'])/1000)%60).zfill(2)
                 entry['CaptureDate'] = time.strftime("%b %d, %Y", time.localtime(int(entry['CaptureDate'], 16)))
                         
@@ -189,23 +202,14 @@ class Admin(Plugin):
         t.subfolder = False
         if folder != '/NowPlaying':
             t.subfolder = True
+        t.status = status
         t.container = cname
         t.data = data
+        t.unquote = unquote
         handler.wfile.write(t)
 
-    def ToGo(self, handler, query):
-        theurl = "http://192.168.1.150/download/Survivor%20Micronesia%20--%20Fans%20vs.%20Favorites.TiVo?Container=%2FNowPlaying&id=385244"
-        password = '' #TiVo MAK
-        tivoIP = '192.168.1.150'
-        outfile = "video.tivo"
-
-        status[theurl] = {'running':True, 'error':'', 'rate':''}
-
-        thread.start_new_thread(get_tivo_file, (theurl, password, tivoIP, outfile))
-
-
-    def get_tivo_file(url, mak, tivoIP, outfile):
-        global status
+    def get_tivo_file(self, url, mak, tivoIP, outfile):
+        #global status
         cj = cookielib.LWPCookieJar()
 
         r=urllib2.Request(url)
@@ -247,4 +251,44 @@ class Admin(Plugin):
         handle.close()
         f.close()
         return
+
+    def ToGo(self, handler, query):
+        subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
+        for name, data in config.getShares():
+            if cname == name:
+                if 'tivo_mak' in data:
+                    tivo_mak = data['tivo_mak']
+                else:
+                    tivo_mak = ""
+                if 'togo_path' in data:
+                    togo_path = data['togo_path']
+                else:
+                    togo_path = ""
+        if tivo_mak != "" and togo_path != "":
+            theurl = str(query['Url'][0])
+            print theurl
+            password = tivo_mak.split(':')[1] #TiVo MAK
+            tivoIP = str(query['TiVo'][0]) + ":80"
+            name = unquote(urlparse(theurl)[2])[10:300].split('.')
+            name.insert(-1," - " + unquote(urlparse(theurl)[4]).split("id=")[1] + ".")
+            outfile = os.path.join(togo_path, "".join(name))
+
+            status[theurl] = {'running':True, 'error':'', 'rate':''}
+
+            thread.start_new_thread(Admin.get_tivo_file, (self, theurl, password, tivoIP, outfile))
+            
+            handler.send_response(200)
+            handler.end_headers()
+            t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
+            t.container = cname
+            t.text = '<h3>Transfer Initiated.</h3>  <br>You selected transfer has been initiated.'
+            handler.wfile.write(t)
+        else:
+            handler.send_response(200)
+            handler.end_headers()
+            t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
+            t.container = cname
+            t.text = '<h3>Missing Data.</h3>  <br>You must set both "tivo_mak" and "togo_path" before using this function.'
+            handler.wfile.write(t)
             
