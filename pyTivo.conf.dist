@@ -5,6 +5,10 @@
 # you get pyTivo up and running.  You can access the tool by pointing your
 # browser to http://localhost:9032/
 
+# Web administration. enable this section to use the web configuration feature.
+#[Admin]
+#type=admin
+
 [Server]
 port=9032
 
