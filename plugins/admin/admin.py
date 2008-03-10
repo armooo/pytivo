@@ -178,7 +178,9 @@ class Admin(Plugin):
                 if (len(link.getElementsByTagName("CustomIcon")) >= 1):
                     entry['Icon'] = link.getElementsByTagName("CustomIcon")[0].getElementsByTagName("Url")[0].firstChild.data
                 if (len(link.getElementsByTagName("Content")) >= 1):
-                    entry['Url'] = quote(link.getElementsByTagName("Content")[0].getElementsByTagName("Url")[0].firstChild.data)
+                    entry['Url'] = link.getElementsByTagName("Content")[0].getElementsByTagName("Url")[0].firstChild.data
+                    parse_url = urlparse(entry['Url'])
+                    entry['Url'] = quote('http://' + parse_url[1].split(':')[0] + parse_url[2] + "?" + parse_url[4])
                     print entry['Url']
                 keys = ['SourceSize', 'Duration', 'CaptureDate', 'EpisodeTitle', 'Description', 'SourceChannel', 'SourceStation']
                 for key in keys:
@@ -266,12 +268,13 @@ class Admin(Plugin):
                 else:
                     togo_path = ""
         if tivo_mak != "" and togo_path != "":
-            theurl = str(query['Url'][0])
+            parse_url = urlparse(str(query['Url'][0]))
+            theurl = 'http://' + parse_url[1].split(':')[0] + parse_url[2] + "?" + parse_url[4]
             print theurl
             password = tivo_mak.split(':')[1] #TiVo MAK
-            tivoIP = str(query['TiVo'][0]) + ":80"
-            name = unquote(urlparse(theurl)[2])[10:300].split('.')
-            name.insert(-1," - " + unquote(urlparse(theurl)[4]).split("id=")[1] + ".")
+            tivoIP = str(tivo_mak.split(':')[0])
+            name = unquote(parse_url[2])[10:300].split('.')
+            name.insert(-1," - " + unquote(parse_url[4]).split("id=")[1] + ".")
             outfile = os.path.join(togo_path, "".join(name))
 
             status[theurl] = {'running':True, 'error':'', 'rate':''}
