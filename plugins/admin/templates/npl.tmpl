@@ -66,13 +66,19 @@
 				#if $unquote($row['Url']) in $status
 					#set $this_status = $status[$unquote($row['Url'])]
 					#if $this_status['running'] and $this_status['rate'] != ""
-						Transfering - $this_status['rate'] KB/s					
+						Transfering - $this_status['rate'] KB/s<br>
+						<a href="/TiVoConnect?Command=ToGoStop&Container=$(container)&Url=$(row['Url'])">Stop Transfer</a>
 					#elif $this_status['running'] and $this_status['rate'] == ""
-						Initiating Transfer. Please Wait
+						Initiating Transfer.<br>
+						Please Wait
 					#elif $this_status['error']
-						Error - $this_status['error']
+						Error - $this_status['error']<br>
+						<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])">Try Transfer Again.</a>
+					#elif $this_status['finished']
+						Transfer Complete!
 					#else
-						Transfer Complete
+						Transfer Stopped<br>
+						<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])">Try Transfer Again.</a>
 					#endif
 				#else
 					<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])">Transfer This.</a>

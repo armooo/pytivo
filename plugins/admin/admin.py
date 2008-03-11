@@ -277,7 +277,7 @@ class Admin(Plugin):
             name.insert(-1," - " + unquote(parse_url[4]).split("id=")[1] + ".")
             outfile = os.path.join(togo_path, "".join(name))
 
-            status[theurl] = {'running':True, 'error':'', 'rate':''}
+            status[theurl] = {'running':True, 'error':'', 'rate':'', 'finished':False}
 
             thread.start_new_thread(Admin.get_tivo_file, (self, theurl, password, tivoIP, outfile))
             
@@ -294,4 +294,18 @@ class Admin(Plugin):
             t.container = cname
             t.text = '<h3>Missing Data.</h3>  <br>You must set both "tivo_mak" and "togo_path" before using this function.'
             handler.wfile.write(t)
-            
+
+    def ToGoStop(self, handler, query):
+        parse_url = urlparse(str(query['Url'][0]))
+        theurl = 'http://' + parse_url[1].split(':')[0] + parse_url[2] + "?" + parse_url[4]
+        
+        status[theurl]['running'] = False
+        
+        subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
+        handler.send_response(200)
+        handler.end_headers()
+        t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
+        t.container = cname
+        t.text = '<h3>Transfer Stopped.</h3>  <br>Your transfer has been stopped.'
+        handler.wfile.write(t)
