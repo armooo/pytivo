@@ -20,7 +20,8 @@ p.pop()
 p = os.path.sep.join(p)
 config_file_path = os.path.join(p, 'pyTivo.conf')
 
-status = {}
+status = {} #Global variable to control download threads
+tivo_cache = {} #Cache of TiVo NPL
 
 class Admin(Plugin):
     CONTENT_TYPE = 'text/html'
@@ -35,7 +36,11 @@ class Admin(Plugin):
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
         t.container = cname
-        t.text = '<h3>The pyTivo Server has been soft reset.</h3>  <br>pyTivo has reloaded the pyTivo.conf file and all changed should now be in effect.'
+        t.time = '3'
+        t.url = '/TiVoConnect?Command=Admin&Container=' + cname
+        t.text = '<h3>The pyTivo Server has been soft reset.</h3>  <br>pyTivo has reloaded the pyTivo.conf'+\
+                 'file and all changed should now be in effect. <br> The'+ \
+                 '<a href="/TiVoConnect?Command=Admin&Container='+ cname +'"> Admin</a> page will reload in 3 seconds.'
         handler.wfile.write(t)
     
     def Admin(self, handler, query):
@@ -124,7 +129,11 @@ class Admin(Plugin):
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
         t.container = cname
-        t.text = '<h3>Your Settings have been saved.</h3>  <br>You settings have been saved to the pyTivo.conf file.  However you will need to do a <b>Soft Reset</b> before these changes will take effect.'
+        t.time = '10'
+        t.url = '/TiVoConnect?Command=Admin&Container=' + cname
+        t.text = '<h3>Your Settings have been saved.</h3>  <br>You settings have been saved to the pyTivo.conf file.'+\
+                 'However you will need to do a <b>Soft Reset</b> before these changes will take effect.'+\
+                 '<br> The <a href="/TiVoConnect?Command=Admin&Container='+ cname +'"> Admin</a> page will reload in 10 seconds.'
         handler.wfile.write(t)
         
     def NPL(self, handler, query):
@@ -150,16 +159,30 @@ class Admin(Plugin):
         opener = urllib2.build_opener(auth_handler)
         urllib2.install_opener(opener)
 
-        try:
-            handle = urllib2.urlopen(r)
-        except IOError, e:
-            print "Possibly wrong Media Access Key, or IP address for your TiVo."
-            handler.send_response(404)
-            handler.end_headers()
-            return 
-        thepage = handle.read()
+        if theurl in tivo_cache: #check to see if we have accessed this page before
+            if tivo_cache[theurl]['thepage'] == '' or (time.time() - tivo_cache[theurl]['thepage_time']) >= 60: #if page is empty or old then retreive it
+                try:
+                    handle = urllib2.urlopen(r)
+                except IOError, e:
+                    print "Possibly wrong Media Access Key, or IP address for your TiVo."
+                    handler.send_response(404)
+                    handler.end_headers()
+                    return 
+                tivo_cache[theurl]['thepage'] = handle.read()
+                tivo_cache[theurl]['thepage_time'] = time.time()
+        else: #not in cache
+            tivo_cache[theurl] = {}
+            try:
+                handle = urllib2.urlopen(r)
+            except IOError, e:
+                print "Possibly wrong Media Access Key, or IP address for your TiVo."
+                handler.send_response(404)
+                handler.end_headers()
+                return 
+            tivo_cache[theurl]['thepage'] = handle.read()
+            tivo_cache[theurl]['thepage_time'] = time.time()
 
-        xmldoc = minidom.parseString(thepage)
+        xmldoc = minidom.parseString(tivo_cache[theurl]['thepage'])
         items = xmldoc.getElementsByTagName('Item')
 
         data = []
@@ -285,14 +308,20 @@ class Admin(Plugin):
             handler.end_headers()
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
             t.container = cname
-            t.text = '<h3>Transfer Initiated.</h3>  <br>You selected transfer has been initiated.'
+            t.time = '3'
+            t.url = '/TiVoConnect?Command=NPL&Container=' + cname
+            t.text = '<h3>Transfer Initiated.</h3>  <br>You selected transfer has been initiated.'+\
+                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname +'"> ToGo</a> page will reload in 3 seconds.'
             handler.wfile.write(t)
         else:
             handler.send_response(200)
             handler.end_headers()
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
             t.container = cname
-            t.text = '<h3>Missing Data.</h3>  <br>You must set both "tivo_mak" and "togo_path" before using this function.'
+            t.time = '10'
+            t.url = '/TiVoConnect?Command=NPL&Container=' + cname
+            t.text = '<h3>Missing Data.</h3>  <br>You must set both "tivo_mak" and "togo_path" before using this function.'+\
+                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname +'"> ToGo</a> page will reload in 10 seconds.'
             handler.wfile.write(t)
 
     def ToGoStop(self, handler, query):
@@ -307,5 +336,8 @@ class Admin(Plugin):
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
         t.container = cname
-        t.text = '<h3>Transfer Stopped.</h3>  <br>Your transfer has been stopped.'
+        t.time = '3'
+        t.url = '/TiVoConnect?Command=NPL&Container=' + cname
+        t.text = '<h3>Transfer Stopped.</h3>  <br>Your transfer has been stopped.'+\
+                 '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname +'"> ToGo</a> page will reload in 3 seconds.'
         handler.wfile.write(t)
