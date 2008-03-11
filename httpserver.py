@@ -35,13 +35,17 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
             self.add_container(section, settings)
 
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    tivos ={}
 
     def address_string(self):
         host, port = self.client_address[:2]
         return host
 
     def do_GET(self):
-
+        tsn = self.headers.getheader('TiVo_TCD_ID', self.headers.getheader('tsn', ''))
+        ip = self.address_string()
+        self.tivos[tsn] = ip
+               
         basepath = unquote_plus(self.path).split('/')[1]
 
         ## Get File
