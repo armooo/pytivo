@@ -148,77 +148,81 @@ class Admin(Plugin):
         folder = '/NowPlaying'
         if 'Folder' in query:
             folder += '/' + str(query['Folder'][0])
-        tivoIP = tivo_mak.split(':')[0]
-        theurl = 'https://'+ tivoIP +'/TiVoConnect?Command=QueryContainer&Container=' + folder
+        if 'TiVo' in query:
+            tivoIP = query['TiVo'][0]
+            theurl = 'https://'+ tivoIP +'/TiVoConnect?Command=QueryContainer&Container=' + folder
 
-        password = tivo_mak.split(':')[1] #TiVo MAK
+            password = tivo_mak #TiVo MAK
 
-        r=urllib2.Request(theurl)
-        auth_handler = urllib2.HTTPDigestAuthHandler()
-        auth_handler.add_password('TiVo DVR', tivoIP, 'tivo', password)
-        opener = urllib2.build_opener(auth_handler)
-        urllib2.install_opener(opener)
+            r=urllib2.Request(theurl)
+            auth_handler = urllib2.HTTPDigestAuthHandler()
+            auth_handler.add_password('TiVo DVR', tivoIP, 'tivo', password)
+            opener = urllib2.build_opener(auth_handler)
+            urllib2.install_opener(opener)
 
-        if theurl in tivo_cache: #check to see if we have accessed this page before
-            if tivo_cache[theurl]['thepage'] == '' or (time.time() - tivo_cache[theurl]['thepage_time']) >= 60: #if page is empty or old then retreive it
+            if theurl in tivo_cache: #check to see if we have accessed this page before
+                if tivo_cache[theurl]['thepage'] == '' or (time.time() - tivo_cache[theurl]['thepage_time']) >= 60: #if page is empty or old then retreive it
+                    try:
+                        handle = urllib2.urlopen(r)
+                    except IOError, e:
+                        print "Possibly wrong Media Access Key, or IP address for your TiVo."
+                        handler.send_response(404)
+                        handler.end_headers()
+                        return 
+                    tivo_cache[theurl]['thepage'] = handle.read()
+                    tivo_cache[theurl]['thepage_time'] = time.time()
+            else: #not in cache
                 try:
                     handle = urllib2.urlopen(r)
                 except IOError, e:
                     print "Possibly wrong Media Access Key, or IP address for your TiVo."
                     handler.send_response(404)
                     handler.end_headers()
-                    return 
+                    return
+                tivo_cache[theurl] = {}
                 tivo_cache[theurl]['thepage'] = handle.read()
                 tivo_cache[theurl]['thepage_time'] = time.time()
-        else: #not in cache
-            tivo_cache[theurl] = {}
-            try:
-                handle = urllib2.urlopen(r)
-            except IOError, e:
-                print "Possibly wrong Media Access Key, or IP address for your TiVo."
-                handler.send_response(404)
-                handler.end_headers()
-                return 
-            tivo_cache[theurl]['thepage'] = handle.read()
-            tivo_cache[theurl]['thepage_time'] = time.time()
 
-        xmldoc = minidom.parseString(tivo_cache[theurl]['thepage'])
-        items = xmldoc.getElementsByTagName('Item')
+            xmldoc = minidom.parseString(tivo_cache[theurl]['thepage'])
+            items = xmldoc.getElementsByTagName('Item')
 
-        data = []
-        for item in items:
-            entry = {}
-            entry['Title'] = item.getElementsByTagName("Title")[0].firstChild.data
-            entry['ContentType'] = item.getElementsByTagName("ContentType")[0].firstChild.data
-            if (len(item.getElementsByTagName("UniqueId")) >= 1):
-                entry['UniqueId'] = item.getElementsByTagName("UniqueId")[0].firstChild.data
-            if entry['ContentType'] == 'x-tivo-container/folder':
-                entry['TotalItems'] = item.getElementsByTagName("TotalItems")[0].firstChild.data
-                entry['LastChangeDate'] = item.getElementsByTagName("LastChangeDate")[0].firstChild.data
-                entry['LastChangeDate'] = time.strftime("%b %d, %Y", time.localtime(int(entry['LastChangeDate'], 16)))
-            else:
-                link = item.getElementsByTagName("Links")[0]
-                if (len(link.getElementsByTagName("CustomIcon")) >= 1):
-                    entry['Icon'] = link.getElementsByTagName("CustomIcon")[0].getElementsByTagName("Url")[0].firstChild.data
-                if (len(link.getElementsByTagName("Content")) >= 1):
-                    entry['Url'] = link.getElementsByTagName("Content")[0].getElementsByTagName("Url")[0].firstChild.data
-                    parse_url = urlparse(entry['Url'])
-                    entry['Url'] = quote('http://' + parse_url[1].split(':')[0] + parse_url[2] + "?" + parse_url[4])
-                    print entry['Url']
-                keys = ['SourceSize', 'Duration', 'CaptureDate', 'EpisodeTitle', 'Description', 'SourceChannel', 'SourceStation']
-                for key in keys:
-                    try:
-                        entry[key] = item.getElementsByTagName(key)[0].firstChild.data
-                    except:
-                        entry[key] = ''
-                entry['SourceSize'] = "%.3f GB" % float(float(entry['SourceSize'])/(1024*1024*1024))
-                entry['Duration'] = str(int(entry['Duration'])/(60*60*1000)).zfill(2) + ':' \
-                                    + str((int(entry['Duration'])%(60*60*1000))/(60*1000)).zfill(2) + ':' \
-                                    + str((int(entry['Duration'])/1000)%60).zfill(2)
-                entry['CaptureDate'] = time.strftime("%b %d, %Y", time.localtime(int(entry['CaptureDate'], 16)))
-                        
-            data.append(entry)
+            data = []
+            for item in items:
+                entry = {}
+                entry['Title'] = item.getElementsByTagName("Title")[0].firstChild.data
+                entry['ContentType'] = item.getElementsByTagName("ContentType")[0].firstChild.data
+                if (len(item.getElementsByTagName("UniqueId")) >= 1):
+                    entry['UniqueId'] = item.getElementsByTagName("UniqueId")[0].firstChild.data
+                if entry['ContentType'] == 'x-tivo-container/folder':
+                    entry['TotalItems'] = item.getElementsByTagName("TotalItems")[0].firstChild.data
+                    entry['LastChangeDate'] = item.getElementsByTagName("LastChangeDate")[0].firstChild.data
+                    entry['LastChangeDate'] = time.strftime("%b %d, %Y", time.localtime(int(entry['LastChangeDate'], 16)))
+                else:
+                    link = item.getElementsByTagName("Links")[0]
+                    if (len(link.getElementsByTagName("CustomIcon")) >= 1):
+                        entry['Icon'] = link.getElementsByTagName("CustomIcon")[0].getElementsByTagName("Url")[0].firstChild.data
+                    if (len(link.getElementsByTagName("Content")) >= 1):
+                        entry['Url'] = link.getElementsByTagName("Content")[0].getElementsByTagName("Url")[0].firstChild.data
+                        parse_url = urlparse(entry['Url'])
+                        entry['Url'] = quote('http://' + parse_url[1].split(':')[0] + parse_url[2] + "?" + parse_url[4])
+                    keys = ['SourceSize', 'Duration', 'CaptureDate', 'EpisodeTitle', 'Description', 'SourceChannel', 'SourceStation']
+                    for key in keys:
+                        try:
+                            entry[key] = item.getElementsByTagName(key)[0].firstChild.data
+                        except:
+                            entry[key] = ''
+                    entry['SourceSize'] = "%.3f GB" % float(float(entry['SourceSize'])/(1024*1024*1024))
+                    entry['Duration'] = str(int(entry['Duration'])/(60*60*1000)).zfill(2) + ':' \
+                                        + str((int(entry['Duration'])%(60*60*1000))/(60*1000)).zfill(2) + ':' \
+                                        + str((int(entry['Duration'])/1000)%60).zfill(2)
+                    entry['CaptureDate'] = time.strftime("%b %d, %Y", time.localtime(int(entry['CaptureDate'], 16)))
+                            
+                data.append(entry)
+        else:
+            data = []
+            tivoIP = ''
 
+        print len(data)
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
         handler.send_response(200)
@@ -228,9 +232,13 @@ class Admin(Plugin):
         if folder != '/NowPlaying':
             t.subfolder = True
         t.status = status
+        print handler.tivos
+        t.tivos = handler.tivos
+        t.tivoIP = tivoIP
         t.container = cname
         t.data = data
         t.unquote = unquote
+        t.len = len
         handler.wfile.write(t)
 
     def get_tivo_file(self, url, mak, tivoIP, outfile):
@@ -293,9 +301,8 @@ class Admin(Plugin):
         if tivo_mak != "" and togo_path != "":
             parse_url = urlparse(str(query['Url'][0]))
             theurl = 'http://' + parse_url[1].split(':')[0] + parse_url[2] + "?" + parse_url[4]
-            print theurl
-            password = tivo_mak.split(':')[1] #TiVo MAK
-            tivoIP = str(tivo_mak.split(':')[0])
+            password = tivo_mak #TiVo MAK
+            tivoIP = query['TiVo'][0]
             name = unquote(parse_url[2])[10:300].split('.')
             name.insert(-1," - " + unquote(parse_url[4]).split("id=")[1] + ".")
             outfile = os.path.join(togo_path, "".join(name))
@@ -309,9 +316,9 @@ class Admin(Plugin):
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
             t.container = cname
             t.time = '3'
-            t.url = '/TiVoConnect?Command=NPL&Container=' + cname
+            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0]
             t.text = '<h3>Transfer Initiated.</h3>  <br>You selected transfer has been initiated.'+\
-                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname +'"> ToGo</a> page will reload in 3 seconds.'
+                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] +'"> ToGo</a> page will reload in 3 seconds.'
             handler.wfile.write(t)
         else:
             handler.send_response(200)
@@ -319,9 +326,9 @@ class Admin(Plugin):
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
             t.container = cname
             t.time = '10'
-            t.url = '/TiVoConnect?Command=NPL&Container=' + cname
+            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0]
             t.text = '<h3>Missing Data.</h3>  <br>You must set both "tivo_mak" and "togo_path" before using this function.'+\
-                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname +'"> ToGo</a> page will reload in 10 seconds.'
+                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] +'"> ToGo</a> page will reload in 10 seconds.'
             handler.wfile.write(t)
 
     def ToGoStop(self, handler, query):
@@ -337,7 +344,7 @@ class Admin(Plugin):
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
         t.container = cname
         t.time = '3'
-        t.url = '/TiVoConnect?Command=NPL&Container=' + cname
+        t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0]
         t.text = '<h3>Transfer Stopped.</h3>  <br>Your transfer has been stopped.'+\
-                 '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname +'"> ToGo</a> page will reload in 3 seconds.'
+                 '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] +'"> ToGo</a> page will reload in 3 seconds.'
         handler.wfile.write(t)
