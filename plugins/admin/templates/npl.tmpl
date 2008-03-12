@@ -27,7 +27,7 @@
       <td>
       <div style="visibility: visible; width: 920px; overflow: scroll; height: 410px; position: relative;">
       <table>
-      #if $subfolder == True
+      #if $folder != ''
       	<tr><td colspan=5><a href="/TiVoConnect?Command=NPL&Container=$container&TiVo=$tivoIP">Back to Now Playing List</a></td></tr>
       #end if
       #set $i = 0
@@ -73,21 +73,21 @@
 					#set $this_status = $status[$unquote($row['Url'])]
 					#if $this_status['running'] and $this_status['rate'] != ""
 						Transfering - $this_status['rate'] KB/s<br>
-						<a href="/TiVoConnect?Command=ToGoStop&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP">Stop Transfer</a>
+						<a href="/TiVoConnect?Command=ToGoStop&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Folder=$folder">Stop Transfer</a>
 					#elif $this_status['running'] and $this_status['rate'] == ""
 						Initiating Transfer.<br>
 						Please Wait
 					#elif $this_status['error']
 						Error - $this_status['error']<br>
-						<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP">Try Transfer Again.</a>
+						<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Folder=$folder">Try Transfer Again.</a>
 					#elif $this_status['finished']
 						Transfer Complete!
 					#else
 						Transfer Stopped<br>
-						<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP">Try Transfer Again.</a>
+						<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Folder=$folder">Try Transfer Again.</a>
 					#endif
 				#else
-					<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP">Transfer This.</a>
+					<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Folder=$folder">Transfer This.</a>
 				#end if
 				</td>
 			#else

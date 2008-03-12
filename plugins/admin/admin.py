@@ -139,18 +139,20 @@ class Admin(Plugin):
     def NPL(self, handler, query):
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
+        folder = ''
         for name, data in config.getShares():
             if cname == name:
                 if 'tivo_mak' in data:
                     tivo_mak = data['tivo_mak']
                 else:
                     tivo_mak = ""
-        folder = '/NowPlaying'
-        if 'Folder' in query:
-            folder += '/' + str(query['Folder'][0])
+
         if 'TiVo' in query:
             tivoIP = query['TiVo'][0]
-            theurl = 'https://'+ tivoIP +'/TiVoConnect?Command=QueryContainer&Container=' + folder
+            theurl = 'https://'+ tivoIP +'/TiVoConnect?Command=QueryContainer&Container=/NowPlaying'
+            if 'Folder' in query:
+                folder += str(query['Folder'][0])
+                theurl += '/' + folder
 
             password = tivo_mak #TiVo MAK
 
@@ -228,9 +230,7 @@ class Admin(Plugin):
         handler.send_response(200)
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'npl.tmpl'))
-        t.subfolder = False
-        if folder != '/NowPlaying':
-            t.subfolder = True
+        t.folder = folder
         t.status = status
         print handler.tivos
         t.tivos = handler.tivos
@@ -316,9 +316,9 @@ class Admin(Plugin):
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
             t.container = cname
             t.time = '3'
-            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0]
+            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0]
             t.text = '<h3>Transfer Initiated.</h3>  <br>You selected transfer has been initiated.'+\
-                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] +'"> ToGo</a> page will reload in 3 seconds.'
+                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0] +'"> ToGo</a> page will reload in 3 seconds.'
             handler.wfile.write(t)
         else:
             handler.send_response(200)
@@ -326,9 +326,9 @@ class Admin(Plugin):
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
             t.container = cname
             t.time = '10'
-            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0]
+            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0]
             t.text = '<h3>Missing Data.</h3>  <br>You must set both "tivo_mak" and "togo_path" before using this function.'+\
-                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] +'"> ToGo</a> page will reload in 10 seconds.'
+                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0] +'"> ToGo</a> page will reload in 10 seconds.'
             handler.wfile.write(t)
 
     def ToGoStop(self, handler, query):
@@ -344,7 +344,7 @@ class Admin(Plugin):
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
         t.container = cname
         t.time = '3'
-        t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0]
+        t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0]
         t.text = '<h3>Transfer Stopped.</h3>  <br>Your transfer has been stopped.'+\
-                 '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] +'"> ToGo</a> page will reload in 3 seconds.'
+                 '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0] +'"> ToGo</a> page will reload in 3 seconds.'
         handler.wfile.write(t)
