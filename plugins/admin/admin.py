@@ -64,7 +64,7 @@ class Admin(Plugin):
         t.shares_known = ["type", "path", "auto_subshares"]
         t.tivos_data = [ (section, dict(config.items(section, raw=True))) for section in config.sections() \
                          if section.startswith('_tivo_')]
-        t.tivos_known = ["aspect169", "audio_br", "video_br", "video_fps", "width",\
+        t.tivos_known = ["aspect169", "optres", "video_fps", "video_br", "width",\
                          "height", "audio_br", "max_audio_br", "audio_fr", "audio_ch",\
                          "audio_codec", "ffmpeg_pram", "shares"]
         handler.wfile.write(t)

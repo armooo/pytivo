@@ -103,7 +103,12 @@ def getHack83():
     except NoOptionError:
         return False
 
-def getOptres():
+def getOptres(tsn = None):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.getboolean('_tivo_' + tsn, 'optres')
+        except NoOptionError, ValueError:
+            pass
     try:
         return config.getboolean('Server', 'optres')
     except NoOptionError, ValueError:

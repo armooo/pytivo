@@ -150,7 +150,7 @@ def select_aspect(inFile, tsn = ''):
 
     debug_write(__name__, fn_attr(), ['aspect169:', aspect169])
 
-    optres = config.getOptres()
+    optres = config.getOptres(tsn)
 
     debug_write(__name__, fn_attr(), ['optres:', optres])
 
@@ -171,7 +171,7 @@ def select_aspect(inFile, tsn = ''):
     multiplier16by9 = (16.0 * TIVO_HEIGHT) / (9.0 * TIVO_WIDTH)
     multiplier4by3  =  (4.0 * TIVO_HEIGHT) / (3.0 * TIVO_WIDTH)
    
-    if config.isHDtivo(tsn) and height <= TIVO_HEIGHT and config.getOptres() == False:
+    if config.isHDtivo(tsn) and height <= TIVO_HEIGHT and not optres:
         return [] #pass all resolutions to S3/HD, except heights greater than conf height
 		# else, optres is enabled and resizes SD video to the "S2" standard on S3/HD.
     elif (rwidth, rheight) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
