@@ -325,7 +325,8 @@ def tivo_compatable(inFile, tsn = ''):
             #print 'Is TiVo!'
             debug_write(__name__, fn_attr(), ['TRUE,', width, 'x', height, 'is valid.', inFile])
             return True
-        #print 'Not Tivo dimensions'
+    #print 'Not Tivo dimensions'
+    debug_write(__name__, fn_attr(), ['FALSE,', width, 'x', height, 'not in supported modes.', inFile])
     return False
 
 def video_info(inFile):
