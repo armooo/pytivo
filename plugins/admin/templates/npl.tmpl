@@ -27,11 +27,15 @@
       <td>
       <div style="visibility: visible; width: 920px; overflow: scroll; height: 410px; position: relative;">
       #if $tivoIP != ''
+          <!-- If TiVoIP is present then we should display a NPL -->
 		  <table>
 		  #if $folder != ''
+		  	<!-- We are in a subfolder, offer the option to return to NPL -->
 			<tr><td colspan=5><a href="/TiVoConnect?Command=NPL&Container=$container&TiVo=$tivoIP">Back to Now Playing List</a></td></tr>
 		  #end if
 		  #set $i = 0
+		  <!-- i variable is used to alternate colors of row -->
+		  <!-- loop through passed data printing row for each show or folder -->
 		  #for $row in $data
 			  #set $i += 1
 			  #if $i%2
@@ -40,13 +44,16 @@
 				<tr>
 			  #end if
 			  #if $row['ContentType'] == 'x-tivo-container/folder'
+			    <!-- This is a folder -->
 				<td></td>
 				<td><a href='/TiVoConnect?Command=NPL&Container=$(container)&Folder=$(row["UniqueId"])&TiVo=$tivoIP'>$row['Title'] </a></td>
 				<td NOWRAP align="center">$(row["TotalItems"]) Items</td>
 				<td NOWRAP align="center">$row["LastChangeDate"]</td>
 				<td></td>
 			  #else
+			    <!-- This is a show -->
 				#if 'Icon' in $row
+				    <!-- Display small table with color similar to TiVo colored circles -->
 					#if $row['Icon'] == 'urn:tivo:image:expires-soon-recording'
 						<td><table><tr><td height=18 width=8 bgcolor='yellow'> </td></tr></table></td>
 					#else if $row['Icon'] == 'urn:tivo:image:expired-recording'
@@ -57,6 +64,7 @@
 						<td width=8></td>
 					#end if
 				#else
+				    <!-- No Icon listed in XML sheet -->
 					<td width=4></td>
 				#end if
 				<td width=*>
@@ -92,6 +100,7 @@
 					#end if
 					</td>
 				#else
+				    <!-- No URL was in links url in XML -->
 					<td></td>
 				#end if
 			  #end if
