@@ -109,6 +109,16 @@
 		  </table>
 	  #else
 	  	  <!-- No TiVo IP Provided so display instructions -->
+	  	  <form method="get" action="/TiVoConnect">
+	  	  <input type="hidden" name="Command" value="SaveNPL">
+	  	  <input type="hidden" name="Container" value="$container">
+	  	  <table align='right' style="border: 1px solid rgb(220, 220, 220);">
+		  <tr><td colspan=2 align='center'><b>ToGo Settings</b></td></tr>
+		  <tr><td>MAK:</td><td><input type='text' name="tivo_mak" value="$tivo_mak"></td></tr>
+		  <tr><td>Save Path:</td><td><input type='text' name="togo_path" value="$togo_path"></td></tr>
+		  <tr><td colspan=2 align="center"><input type="submit" value="Save Settings"></td></tr>
+	  	  </table></form>
+	  	  
 	  	  <h2>Instructions</h2>
 	  	  
 	  	  <b>Required Settings:</b><br>

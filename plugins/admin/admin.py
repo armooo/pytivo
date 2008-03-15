@@ -29,6 +29,10 @@ class Admin(Plugin):
     def Reset(self, handler, query):
         config.reset()
         handler.server.reset()
+        if 'last_page' in query:
+            last_page = query['last_page'][0]
+        else:
+            last_page = 'Admin'
         
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
@@ -37,10 +41,10 @@ class Admin(Plugin):
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
         t.container = cname
         t.time = '3'
-        t.url = '/TiVoConnect?Command=Admin&Container=' + cname
+        t.url = '/TiVoConnect?Command='+ last_page +'&Container=' + cname
         t.text = '<h3>The pyTivo Server has been soft reset.</h3>  <br>pyTivo has reloaded the pyTivo.conf'+\
                  'file and all changed should now be in effect. <br> The'+ \
-                 '<a href="/TiVoConnect?Command=Admin&Container='+ cname +'"> Admin</a> page will reload in 3 seconds.'
+                 '<a href="/TiVoConnect?Command='+ last_page +'&Container='+ cname +'"> previous</a> page will reload in 3 seconds.'
         handler.wfile.write(t)
     
     def Admin(self, handler, query):
@@ -146,6 +150,10 @@ class Admin(Plugin):
                     tivo_mak = data['tivo_mak']
                 else:
                     tivo_mak = ""
+                if 'togo_path' in data:
+                    togo_path = data['togo_path']
+                else:
+                    togo_path = ""
 
         if 'TiVo' in query:
             tivoIP = query['TiVo'][0]
@@ -224,7 +232,6 @@ class Admin(Plugin):
             data = []
             tivoIP = ''
 
-        print len(data)
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
         handler.send_response(200)
@@ -232,7 +239,8 @@ class Admin(Plugin):
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'npl.tmpl'))
         t.folder = folder
         t.status = status
-        print handler.tivos
+        t.tivo_mak = tivo_mak
+        t.togo_path = togo_path
         t.tivos = handler.tivos
         t.tivoIP = tivoIP
         t.container = cname
@@ -347,4 +355,29 @@ class Admin(Plugin):
         t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0]
         t.text = '<h3>Transfer Stopped.</h3>  <br>Your transfer has been stopped.'+\
                  '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0] +'"> ToGo</a> page will reload in 3 seconds.'
+        handler.wfile.write(t)
+
+
+    def SaveNPL(self, handler, query):
+        config = ConfigParser.ConfigParser()
+        config.read(config_file_path)
+        if 'tivo_mak' in query:
+            config.set(query['Container'][0], 'tivo_mak', query['tivo_mak'][0])
+        if 'togo_path' in query:
+            config.set(query['Container'][0], 'togo_path', query['togo_path'][0])                 
+        f = open(config_file_path, "w")
+        config.write(f)
+        f.close()
+
+        subcname = query['Container'][0]
+        cname = subcname.split('/')[0]
+        handler.send_response(200)
+        handler.end_headers()
+        t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
+        t.container = cname
+        t.time = '2'
+        t.url = '/TiVoConnect?last_page=NPL&Command=Reset&Container=' + cname
+        t.text = '<h3>Your Settings have been saved.</h3>  <br>You settings have been saved to the pyTivo.conf file.'+\
+                 'pyTivo will now do a <b>Soft Reset</b> to allow these changes to take effect.'+\
+                 '<br> The <a href="/TiVoConnect?last_page=NPL&Command=Reset&Container='+ cname +'"> Reset</a> will occur in 2 seconds.'
         handler.wfile.write(t)
