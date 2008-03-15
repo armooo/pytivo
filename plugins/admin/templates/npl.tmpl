@@ -16,7 +16,9 @@
       <input type="hidden" name="Container" value="$(container)">
       <select name="TiVo">
 	  #for $tsn in $tivos
-	         <option selected="selected" value="$tivos[$tsn]">$tsn</option>
+	  	  #if $tsn != ''
+	         <option value="$tivos[$tsn]">$tsn</option>
+	      #end if
 	  #end for
       </select>
 	  &nbsp;<input value="View Now Playing List" type="submit">
