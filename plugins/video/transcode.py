@@ -290,8 +290,9 @@ def tivo_compatable(inFile, tsn = ''):
         debug_write(__name__, fn_attr(), ['FALSE, type', type, 'not mpeg2video.', inFile])
         return False
 
-    if (inFile[-3:]).lower() == '.ts':
-        debug_write(__name__, fn_attr(), ['FALSE, transport stream not supported.', inFile])
+    if os.path.splitext(inFile)[-1].lower() in ('.ts', '.mpv'):
+        debug_write(__name__, fn_attr(), ['FALSE, ext', os.path.splitext(inFile)[-1],\
+                'not tivo compatible.', inFile])
         return False
 
     if acodec == 'dca':
