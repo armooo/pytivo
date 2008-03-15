@@ -298,12 +298,18 @@ def tivo_compatable(inFile, tsn = ''):
         debug_write(__name__, fn_attr(), ['FALSE, acodec', acodec, ', not supported.', inFile])
         return False
 
-    if not akbps or int(akbps) > config.getMaxAudioBR(tsn):
-        debug_write(__name__, fn_attr(), ['FALSE,', akbps, 'kbps exceeds max audio bitrate.', inFile])
-        return False
+    if acodec != None:
+        if not akbps or int(akbps) > config.getMaxAudioBR(tsn):
+            debug_write(__name__, fn_attr(), ['FALSE,', akbps, 'kbps exceeds max audio bitrate.', inFile])
+            return False
 
-    if not kbps or int(kbps)-int(akbps) > config.strtod(config.getMaxVideoBR())/1000:
-        debug_write(__name__, fn_attr(), ['FALSE,', kbps, 'kbps exceeds max video bitrate.', inFile])
+    if kbps != None:
+        abit = max('0', akbps)
+        if int(kbps)-int(abit) > config.strtod(config.getMaxVideoBR())/1000:
+            debug_write(__name__, fn_attr(), ['FALSE,', kbps, 'kbps exceeds max video bitrate.', inFile])
+            return False
+    else:
+        debug_write(__name__, fn_attr(), ['FALSE,', kbps, 'kbps not supported.', inFile])
         return False
 
     if config.isHDtivo(tsn):
