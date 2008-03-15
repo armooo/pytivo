@@ -62,24 +62,17 @@ def transcode(inFile, outFile, tsn=''):
 
 def select_audiocodec(inFile, tsn = ''):
     # Default, compatible with all TiVo's
-    codec = 'mp2'
+    codec = 'ac3'
     if config.getAudioCodec(tsn) == None:
         type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(inFile)
-        if akbps == None and acodec in ('ac3', 'liba52', 'mp2'):
-            cmd_string = '-y -vcodec mpeg2video -r 29.97 -b 1000k -acodec copy -t 00:00:01 -f vob -'
-            if video_check(inFile, cmd_string):
-                type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(videotest)
-        if config.isHDtivo(tsn):
-            # Is HD Tivo, use ac3
-            codec = 'ac3'
-            if acodec in ('ac3', 'liba52') and not akbps == None and \
-                int(akbps) <= config.getMaxAudioBR(tsn):
+        if acodec in ('ac3', 'liba52', 'mp2'):
+            if akbps == None:
+                cmd_string = '-y -vcodec mpeg2video -r 29.97 -b 1000k -acodec copy -t 00:00:01 -f vob -'
+                if video_check(inFile, cmd_string):
+                    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(videotest)
+            if not akbps == None and int(akbps) <= config.getMaxAudioBR(tsn):
                 # compatible codec and bitrate, do not reencode audio
                 codec = 'copy'
-        if acodec == 'mp2' and not akbps == None and \
-            int(akbps) <= config.getMaxAudioBR(tsn):
-            # compatible codec and bitrate, do not reencode audio
-            codec = 'copy'
     else:
         codec = config.getAudioCodec(tsn)
     return '-acodec '+codec
@@ -97,8 +90,6 @@ def select_audiofr(inFile, tsn):
 def select_audioch(tsn):
     if config.getAudioCH(tsn) != None:
         return '-ac '+config.getAudioCH(tsn)
-    if not config.isHDtivo(tsn):
-        return '-ac 2'
     return ''
 
 def select_videofps(tsn):
