@@ -241,7 +241,7 @@ class Video(Plugin):
             return int(os.stat(full_path).st_size)
         else:
             # Must be re-encoded
-            audioBPS = config.strtod(config.getAudioBR(tsn))
+            audioBPS = config.getMaxAudioBR(tsn)*1000
             videoBPS = config.strtod(config.getVideoBR(tsn))
             bitrate =  audioBPS + videoBPS
             return int((self.__duration(full_path) / 1000) *
