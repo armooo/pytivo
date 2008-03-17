@@ -211,11 +211,8 @@ def getAudioBR(tsn = None):
     try:
         audiobr = int(max(int(strtod(config.get('Server', 'audio_br'))/1000), 64)/64)*64
         return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
-    except NoOptionError: #defaults for S3/S2 TiVo
-        audiobr = 192
-        if isHDtivo(tsn):
-            audiobr = 384
-        return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
+    except NoOptionError:
+        return str(min(384, getMaxAudioBR(tsn))) + 'k'
 
 def getVideoBR(tsn = None):
     if tsn and config.has_section('_tivo_' + tsn):
