@@ -580,23 +580,20 @@ the resolution to an "S2 compatible" resolution.<br>
       <p align="center"><strong>audio_br</strong>
       </p>
 
-      <p> <strong>Default Setting:</strong> 192K for SD TiVo's,
-384K for HD TiVo's<br>
+      <p> <strong>Default Setting:</strong> 384K<br>
 
-      <strong>Valid Entries:</strong> Any valid Bit rate.
-Up to 384K for SD TiVos. Up to 448K for HD TiVos.<br>
+      <strong>Valid Entries:</strong> Any valid Bit rate up to 448k.<br>
 
       <strong>Required:</strong> No<br>
 
       <strong>Skill:</strong> Advanced<br>
 
       <strong>Description:</strong> This allows you to
-choose the default audio bit rate used in transcoding. The
-default is likely fine for most users. Users with HD units and high
-quality videos to transcode will want to use higher value. Higher
-values may slow down transcoding and will increase the file size.
-Increased file sizes take up more room on the <a class="wiki" href="/wiki/TiVo">TiVo</a> and take longer to transfer
-over the network.<br>
+choose the default audio bit rate used for transcoding. The
+default is likely fine for most users.  384k is the minimum
+recommended for ac3 audio. For S2 Tivos, you may want to lower
+this setting to 192k and set audio_ch=2 to slightly reduce the
+file size.  See audio_codec for more info.<br>
 
       <strong>Example Settings:</strong> 192K, 384K, 448K. </p>
 
@@ -982,8 +979,15 @@ it is 44100 or 48000. Otherwise 48000 is used.<br>
       <strong>Skill:</strong> Advanced<br>
 
       <strong>Description:</strong> Sets the number of audio channels
-used by ffmpeg.  The default setting should work fine for most transfers
-unless the default audio_codec is changed.<br>
+used by ffmpeg.  ffmpeg will retain the same number of
+channels as the source file by default.  The default setting should
+work fine for most transfers unless the default audio_codec is changed.
+Change this setting to 2 if you do not want to retain 5.1 audio.  A bug
+in ffmpeg will sometimes move the center audio channel to the left or
+right speaker.  Setting this option to 2, on an as needed basis, or
+permanently, will correct this at the loss of 5.1 audio.  But this
+should only be necessary on rare occasions where the source file is an
+mkv or xvid with ac3 5.1 audio bitrate above 448k.<br>
 
       <strong>Example Settings:</strong> 2, 6 </p>
 
@@ -1001,13 +1005,31 @@ unless the default audio_codec is changed.<br>
 
       <strong>Skill:</strong> Advanced<br>
 
-      <strong>Description:</strong> Sets the audio codec used by ffmpeg.
-pyTivo checks the audio codec and bitrate of the source and uses
--acodec copy if it is compatible. Otherwise the Default Setting is
-used.  Allowing pyTivo to select -acodec copy whenever possible
-will generally produce the best results.  This will also prevent the 
-center audio channel from being moved to the right front speaker
-by ffmpeg when transferring some mkv's and xvid's.<br>
+      <strong>Description:</strong> Sets the audio codec used by
+ffmpeg during transcoding.
+pyTivo defaults to ac3 in order to retain 5.1 audio should the
+source contain it.  pyTivo also checks the audio codec and bitrate
+of the source and uses '-acodec copy' if it is compatible. Otherwise
+the Default Setting is used.  Specifying an audio codec will disable
+these features and pyTivo will re-encode all audio using the codec
+specified.<br>
+  
+Allowing pyTivo to select '-acodec copy' whenever possible will 
+generally produce the best results. This is meant to eliminate 
+garbled audio during transcoding when the source contains audio
+glitches that cause ffmpeg to lose synchronization.  This will also 
+prevent the center audio channel from being moved to the right
+front speaker by ffmpeg when transferring mkv's and xvid's with audio
+bitrate of 448k or less.<br>
+  
+You may want to change this setting to mp2 if you only have an S2,
+or have specified a per tivo section for an S2, and do not wish to
+retain 5.1 audio for possible transfer to an S3 Tivo or back to the
+PC should the need arise.  This will slightly reduce the amount of
+disk space used and allow for more recordings on an S2 Tivo. 
+In this case, you will want to specify audio_codec=mp2, audio_ch=2,
+and audio_br=192k.  These are the settings normally used by the S2
+for recordings.<br>
 
       <strong>Example Settings:</strong> mp2, ac3 </p>
 
