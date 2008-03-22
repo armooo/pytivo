@@ -114,6 +114,14 @@ def getOptres(tsn = None):
     except NoOptionError, ValueError:
         return False
 
+def getPixelAR(ref):
+    if config.has_option('Server', 'par'):
+        try:
+            return (True, config.getfloat('Server', 'par'))[ref]
+        except NoOptionError, ValueError:
+            pass
+    return (False, 1.0)[ref]
+
 def get(section, key):
     return config.get(section, key)
 

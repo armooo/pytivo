@@ -1035,6 +1035,36 @@ for recordings.<br>
 
       </div>
 
+      <div id="help-par" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
+      <p align="center"><strong>par</strong>
+      </p>
+
+      <p> <strong>Default Setting:</strong> blank<br>
+
+      <strong>Valid Entries:</strong> any valid par<br>
+
+      <strong>Required:</strong> No<br>
+
+      <strong>Skill:</strong> Very Advanced<br>
+
+      <strong>Description:</strong> Set pixel aspect ratio.
+Applies to S3 Tivos only. OPTRES must be false to use PAR. For some
+videofiles (e.g., AVC files), ffmpeg cannot determine the pixel aspect
+ratio correctly and assumes 1:1 which leads to a distorted image
+on anamorphically encoded video files.  This setting allows you to 
+override this default. If you do not understand this setting, and you
+observe no distortions, you can ignore it.  Set par=1.0 to tell pyTivo
+to automatically adjust the pixel aspect ratio whenever possible.<br>
+par=1.18518519 (32:27, usually the correct setting for wide-screen
+anamorphically encoded DVD content)<br>
+par=0.88888889 (8:9, usually the correct setting for anamorphically
+encoded DVDs from TV shows)<br>
+
+      <strong>Example Settings:</strong> 1.0, 1.18518519, 0.88888889 </p>
+
+
+      </div>
+
       <div id="help-shares" style="position: absolute; left: 0px; top: 0px; visibility: hidden;">
       <p align="center"><strong>shares</strong>
       </p>

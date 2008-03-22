@@ -161,19 +161,24 @@ def select_aspect(inFile, tsn = ''):
 
     multiplier16by9 = (16.0 * TIVO_HEIGHT) / (9.0 * TIVO_WIDTH)
     multiplier4by3  =  (4.0 * TIVO_HEIGHT) / (3.0 * TIVO_WIDTH)
-   
-    if config.isHDtivo(tsn) and height <= TIVO_HEIGHT and not optres:
-        #pass all resolutions to S3, except heights greater than conf height
-        if not vpar == None:
+
+    if config.isHDtivo(tsn) and not optres:
+        if config.getPixelAR(0):
+            if vpar == None:
+                npar = config.getPixelAR(1)
+            else:
+                npar = vpar
             # adjust for pixel aspect ratio, if set, because TiVo expects square pixels
-            if vpar<1.0:
-                return ['-s', str(width) + 'x' + str(int(math.ceil(height/vpar)))]
-            elif vpar>1.0:
+            if npar<1.0:
+                return ['-s', str(width) + 'x' + str(int(math.ceil(height/npar)))]
+            elif npar>1.0:
                 # FFMPEG expects width to be a multiple of two
-                return ['-s', str(int(math.ceil(width*vpar/2.0)*2)) + 'x' + str(height)]
-        return []
-    # else, optres is enabled and resizes video to the "S2" standard.
-    elif (rwidth, rheight) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
+                return ['-s', str(int(math.ceil(width*npar/2.0)*2)) + 'x' + str(height)]
+        if height <= TIVO_HEIGHT:
+            # pass all resolutions to S3, except heights greater than conf height
+            return []
+        # else, resize video.
+    if (rwidth, rheight) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
         debug_write(__name__, fn_attr(), ['File is within 4:3 list.'])
         return ['-aspect', '4:3', '-s', str(TIVO_WIDTH) + 'x' + str(TIVO_HEIGHT)]
     elif ((rwidth, rheight) in [(16, 9), (20, 11), (40, 33), (118, 81), (59, 27)]) and aspect169:
@@ -322,6 +327,11 @@ def tivo_compatable(inFile, tsn = ''):
         return False
 
     if config.isHDtivo(tsn):
+        if vpar != 1.0:
+            if config.getPixelAR(0):
+                if vpar != None or config.getPixelAR(1) != 1.0:
+                    debug_write(__name__, fn_attr(), ['FALSE,', vpar, 'not correct PAR,', inFile])
+                    return False
         debug_write(__name__, fn_attr(), ['TRUE, HD Tivo detected, skipping remaining tests', inFile])
         return True
 

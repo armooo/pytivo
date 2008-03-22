@@ -57,9 +57,10 @@ class Admin(Plugin):
         t.container = cname
         t.server_data = dict(config.items('Server', raw=True))
         t.server_known = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", \
-                          "precache", "optres", "video_fps", "video_br", "max_video_br", \
-                          "bufsize", "width", "height", "audio_br", "max_audio_br", \
-                          "audio_fr", "audio_ch", "audio_codec", "ffmpeg_pram"]
+                          "precache", "optres", "par", "video_fps", "video_br", \
+                          "max_video_br", "bufsize", "width", "height", "audio_br", \
+                          "max_audio_br", "audio_fr", "audio_ch", "audio_codec", \
+                          "ffmpeg_pram"]
         t.shares_data = shares_data
         t.shares_known = ["type", "path", "auto_subshares"]
         t.tivos_data = [ (section, dict(config.items(section, raw=True))) for section in config.sections() \
