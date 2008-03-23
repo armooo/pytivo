@@ -175,9 +175,16 @@ class Admin(Plugin):
                     try:
                         handle = urllib2.urlopen(r)
                     except IOError, e:
-                        print "Possibly wrong Media Access Key, or IP address for your TiVo."
-                        handler.send_response(404)
+                        handler.send_response(200)
                         handler.end_headers()
+                        t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
+                        t.container = cname
+                        t.time = '20'
+                        t.url = '/TiVoConnect?Command=NPL&Container=' + cname
+                        t.text = '<h3>Unable to Connect to TiVo.</h3>  <br>pyTivo was unable to connect to the TiVo at ' + tivoIP +\
+                                 '<br>This most likely caused by an incorrect Media Access Key.  Please return to the ToGo page and double check your Media Access Key.' +\
+                                 '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '"> ToGo</a> page will reload in 20 seconds.'
+                        handler.wfile.write(t)
                         return 
                     tivo_cache[theurl]['thepage'] = handle.read()
                     tivo_cache[theurl]['thepage_time'] = time.time()
@@ -185,9 +192,16 @@ class Admin(Plugin):
                 try:
                     handle = urllib2.urlopen(r)
                 except IOError, e:
-                    print "Possibly wrong Media Access Key, or IP address for your TiVo."
-                    handler.send_response(404)
+                    handler.send_response(200)
                     handler.end_headers()
+                    t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
+                    t.container = cname
+                    t.time = '20'
+                    t.url = '/TiVoConnect?Command=NPL&Container=' + cname
+                    t.text = '<h3>Unable to Connect to TiVo.</h3>  <br>pyTivo was unable to connect to the TiVo at ' + tivoIP +\
+                             '<br>This most likely caused by an incorrect Media Access Key.  Please return to the ToGo page and double check your Media Access Key.' +\
+                             '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '"> ToGo</a> page will reload in 20 seconds.'
+                    handler.wfile.write(t)
                     return
                 tivo_cache[theurl] = {}
                 tivo_cache[theurl]['thepage'] = handle.read()
