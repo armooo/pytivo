@@ -327,6 +327,9 @@ class Admin(Plugin):
                     togo_path = data['togo_path']
                 else:
                     togo_path = ""
+        folder = ''
+        if 'Folder' in query:
+            folder += str(query['Folder'][0])
         if tivo_mak != "" and togo_path != "":
             parse_url = urlparse(str(query['Url'][0]))
             theurl = 'http://' + parse_url[1].split(':')[0] + parse_url[2] + "?" + parse_url[4]
@@ -345,9 +348,9 @@ class Admin(Plugin):
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
             t.container = cname
             t.time = '3'
-            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0]
+            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder
             t.text = '<h3>Transfer Initiated.</h3>  <br>You selected transfer has been initiated.'+\
-                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0] +'"> ToGo</a> page will reload in 3 seconds.'
+                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder +'"> ToGo</a> page will reload in 3 seconds.'
             handler.wfile.write(t)
         else:
             handler.send_response(200)
@@ -355,14 +358,17 @@ class Admin(Plugin):
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
             t.container = cname
             t.time = '10'
-            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0]
+            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder
             t.text = '<h3>Missing Data.</h3>  <br>You must set both "tivo_mak" and "togo_path" before using this function.'+\
-                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0] +'"> ToGo</a> page will reload in 10 seconds.'
+                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder +'"> ToGo</a> page will reload in 10 seconds.'
             handler.wfile.write(t)
 
     def ToGoStop(self, handler, query):
         parse_url = urlparse(str(query['Url'][0]))
         theurl = 'http://' + parse_url[1].split(':')[0] + parse_url[2] + "?" + parse_url[4]
+        folder = ''
+        if 'Folder' in query:
+            folder += str(query['Folder'][0])
         
         status[theurl]['running'] = False
         
@@ -373,9 +379,9 @@ class Admin(Plugin):
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
         t.container = cname
         t.time = '3'
-        t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0]
+        t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder
         t.text = '<h3>Transfer Stopped.</h3>  <br>Your transfer has been stopped.'+\
-                 '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + query['Folder'][0] +'"> ToGo</a> page will reload in 3 seconds.'
+                 '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder +'"> ToGo</a> page will reload in 3 seconds.'
         handler.wfile.write(t)
 
 
