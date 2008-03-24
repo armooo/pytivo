@@ -74,14 +74,14 @@ class Admin(Plugin):
                           "precache", "optres", "par", "video_fps", "video_br", \
                           "max_video_br", "bufsize", "width", "height", "audio_br", \
                           "max_audio_br", "audio_fr", "audio_ch", "audio_codec", \
-                          "ffmpeg_pram"]
+                          "ffmpeg_pram", "ffmpeg_tmpl"]
         t.shares_data = shares_data
         t.shares_known = ["type", "path", "auto_subshares"]
         t.tivos_data = [ (section, dict(config.items(section, raw=True))) for section in config.sections() \
                          if section.startswith('_tivo_')]
         t.tivos_known = ["aspect169", "optres", "video_fps", "video_br", "width",\
                          "height", "audio_br", "max_audio_br", "audio_fr", "audio_ch",\
-                         "audio_codec", "ffmpeg_pram", "shares"]
+                         "audio_codec", "ffmpeg_pram", "shares", "ffmpeg_tmpl"]
         handler.wfile.write(t)
        
     def UpdateSettings(self, handler, query):
