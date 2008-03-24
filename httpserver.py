@@ -35,13 +35,17 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
             self.add_container(section, settings)
 
 class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+    tivos ={}
 
     def address_string(self):
         host, port = self.client_address[:2]
         return host
 
     def do_GET(self):
-
+        tsn = self.headers.getheader('TiVo_TCD_ID', self.headers.getheader('tsn', ''))
+        ip = self.address_string()
+        self.tivos[tsn] = ip
+               
         basepath = unquote_plus(self.path).split('/')[1]
 
         ## Get File
@@ -117,7 +121,14 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         for section, settings in config.getShares():
             if 'type' in settings and settings['type'] == 'admin':
                 t.admin += '<a href="/TiVoConnect?Command=Admin&Container=' + section\
-                           + '">pyTivo Web Configuration</a><br>'
+                           + '">pyTivo Web Configuration</a><br>'\
+                           + '<a href="/TiVoConnect?Command=NPL&Container=' + section\
+                           + '">pyTivo ToGo</a><br>'
+        if t.admin == '':
+            t.admin = '<br><b>No Admin plugin installed in pyTivo.conf</b><br> If you wish to use'\
+                      + ' the admin plugin add the following lines to pyTivo.conf<br><br>'\
+                      + '[Admin]<br>type=admin'
+        
         self.wfile.write(t)
         self.end_headers()
 
