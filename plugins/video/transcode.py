@@ -1,4 +1,4 @@
-import subprocess, shutil, os, re, sys, ConfigParser, time, lrucache
+import subprocess, shutil, os, re, sys, ConfigParser, time, lrucache, math
 import config
 from debug import debug_write, fn_attr
 
@@ -35,16 +35,20 @@ def output_video(inFile, outFile, tsn=''):
 def transcode(inFile, outFile, tsn=''):
 
     settings = {}
-    settings['audio_br'] = config.getAudioBR(tsn)
-    settings['audio_codec'] = select_audiocodec(inFile, tsn)
-    settings['audio_fr'] = select_audiofr(inFile)
-    settings['video_fps'] = select_videofps(inFile)
-    settings['video_br'] = config.getVideoBR(tsn)
-    settings['max_video_br'] = config.getMaxVideoBR()
-    settings['buff_size'] = config.getBuffSize()
+    settings['video_codec'] = select_videocodec(tsn)
+    settings['video_br'] = select_videobr(tsn)
+    settings['video_fps'] = select_videofps(tsn)
+    settings['max_video_br'] = select_maxvideobr()
+    settings['buff_size'] = select_buffsize()
     settings['aspect_ratio'] = ' '.join(select_aspect(inFile, tsn))
+    settings['audio_br'] = select_audiobr(tsn)
+    settings['audio_fr'] = select_audiofr(inFile, tsn)
+    settings['audio_ch'] = select_audioch(tsn)
+    settings['audio_codec'] = select_audiocodec(inFile, tsn)
+    settings['ffmpeg_pram'] = select_ffmpegprams(tsn)
+    settings['format'] = select_format(tsn)
 
-    cmd_string = config.getFFMPEGTemplate(tsn) % settings
+    cmd_string = config.getFFmpegTemplate(tsn) % settings
 
     cmd = [ffmpeg_path(), '-i', inFile] + cmd_string.split()
     print 'transcoding to tivo model '+tsn[:3]+' using ffmpeg command:'
@@ -58,44 +62,78 @@ def transcode(inFile, outFile, tsn=''):
 
 def select_audiocodec(inFile, tsn = ''):
     # Default, compatible with all TiVo's
-    codec = '-acodec mp2 -ac 2'
-    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(inFile)
-    if akbps == None and acodec in ('ac3', 'liba52', 'mp2'):
-        cmd_string = '-y -vcodec mpeg2video -r 29.97 -b 1000k -acodec copy -t 00:00:01 -f vob -'
-        if video_check(inFile, cmd_string):
-            type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(videotest)
-    if config.isHDtivo(tsn):
-        # Is HD Tivo, use ac3
-        codec = '-acodec ac3'
-        if acodec in ('ac3', 'liba52') and not akbps == None and \
-            int(akbps) <= config.getMaxAudioBR(tsn):
-            # compatible codec and bitrate, do not reencode audio
-            codec = '-acodec copy'
-    if acodec == 'mp2' and not akbps == None and \
-        int(akbps) <= config.getMaxAudioBR(tsn):
-        # compatible codec and bitrate, do not reencode audio
-        codec = '-acodec copy'
-    return codec
+    codec = 'ac3'
+    if config.getAudioCodec(tsn) == None:
+        type, width, height, fps, millisecs, kbps, akbps, acodec, afreq, vpar =  video_info(inFile)
+        if acodec in ('ac3', 'liba52', 'mp2'):
+            if akbps == None:
+                cmd_string = '-y -vcodec mpeg2video -r 29.97 -b 1000k -acodec copy -t 00:00:01 -f vob -'
+                if video_check(inFile, cmd_string):
+                    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq, vpar =  video_info(videotest)
+            if not akbps == None and int(akbps) <= config.getMaxAudioBR(tsn):
+                # compatible codec and bitrate, do not reencode audio
+                codec = 'copy'
+    else:
+        codec = config.getAudioCodec(tsn)
+    return '-acodec '+codec
 
-def select_audiofr(inFile):
-    freq = '-ar 48000'  #default
-    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(inFile)
+def select_audiofr(inFile, tsn):
+    freq = '48000'  #default
+    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq, vpar =  video_info(inFile)
     if not afreq == None and afreq in ('44100', '48000'):
         # compatible frequency
-        freq = '-ar ' + afreq
-    return freq
+        freq = afreq
+    if config.getAudioFR(tsn) != None:
+        freq = config.getAudioFR(tsn)
+    return '-ar '+freq
 
-def select_videofps(inFile):
+def select_audioch(tsn):
+    if config.getAudioCH(tsn) != None:
+        return '-ac '+config.getAudioCH(tsn)
+    return ''
+
+def select_videofps(tsn):
     vfps = '-r 29.97'  #default
-    if config.isHDtivo:
+    if config.isHDtivo(tsn):
         vfps = ' '
+    if config.getVideoFPS(tsn) != None:
+        vfps = '-r '+config.getVideoFPS(tsn)
     return vfps
+
+def select_videocodec(tsn):
+    vcodec = 'mpeg2video'  #default
+    if config.getVideoCodec(tsn) != None:
+        vcodec = config.getVideoCodec(tsn)
+    return '-vcodec '+vcodec
+
+def select_videobr(tsn):
+    return '-b '+config.getVideoBR(tsn)
+
+def select_audiobr(tsn):
+    return '-ab '+config.getAudioBR(tsn)
+
+def select_maxvideobr():
+    return '-maxrate '+config.getMaxVideoBR()
+
+def select_buffsize():
+    return '-bufsize '+config.getBuffSize()
+
+def select_ffmpegprams(tsn):
+    if config.getFFmpegPrams(tsn) != None:
+        return config.getFFmpegPrams(tsn)
+    return ''
+
+def select_format(tsn):
+    fmt = 'vob'
+    if config.getFormat(tsn) != None:
+        fmt = config.getFormat(tsn)
+    return '-f '+fmt+' -'
 
 def select_aspect(inFile, tsn = ''):
     TIVO_WIDTH = config.getTivoWidth(tsn)
     TIVO_HEIGHT = config.getTivoHeight(tsn)
 
-    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(inFile)
+    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq, vpar =  video_info(inFile)
 
     debug_write(__name__, fn_attr(), ['tsn:', tsn])
 
@@ -103,7 +141,7 @@ def select_aspect(inFile, tsn = ''):
 
     debug_write(__name__, fn_attr(), ['aspect169:', aspect169])
 
-    optres = config.getOptres()
+    optres = config.getOptres(tsn)
 
     debug_write(__name__, fn_attr(), ['optres:', optres])
 
@@ -123,11 +161,24 @@ def select_aspect(inFile, tsn = ''):
 
     multiplier16by9 = (16.0 * TIVO_HEIGHT) / (9.0 * TIVO_WIDTH)
     multiplier4by3  =  (4.0 * TIVO_HEIGHT) / (3.0 * TIVO_WIDTH)
-   
-    if config.isHDtivo(tsn) and height <= TIVO_HEIGHT and config.getOptres() == False:
-        return [] #pass all resolutions to S3/HD, except heights greater than conf height
-		# else, optres is enabled and resizes SD video to the "S2" standard on S3/HD.
-    elif (rwidth, rheight) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
+
+    if config.isHDtivo(tsn) and not optres:
+        if config.getPixelAR(0):
+            if vpar == None:
+                npar = config.getPixelAR(1)
+            else:
+                npar = vpar
+            # adjust for pixel aspect ratio, if set, because TiVo expects square pixels
+            if npar<1.0:
+                return ['-s', str(width) + 'x' + str(int(math.ceil(height/npar)))]
+            elif npar>1.0:
+                # FFMPEG expects width to be a multiple of two
+                return ['-s', str(int(math.ceil(width*npar/2.0)*2)) + 'x' + str(height)]
+        if height <= TIVO_HEIGHT:
+            # pass all resolutions to S3, except heights greater than conf height
+            return []
+        # else, resize video.
+    if (rwidth, rheight) in [(4, 3), (10, 11), (15, 11), (59, 54), (59, 72), (59, 36), (59, 54)]:
         debug_write(__name__, fn_attr(), ['File is within 4:3 list.'])
         return ['-aspect', '4:3', '-s', str(TIVO_WIDTH) + 'x' + str(TIVO_HEIGHT)]
     elif ((rwidth, rheight) in [(16, 9), (20, 11), (40, 33), (118, 81), (59, 27)]) and aspect169:
@@ -240,7 +291,7 @@ def select_aspect(inFile, tsn = ''):
 
 def tivo_compatable(inFile, tsn = ''):
     supportedModes = [[720, 480], [704, 480], [544, 480], [480, 480], [352, 480]]
-    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq =  video_info(inFile)
+    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq, vpar =  video_info(inFile)
     #print type, width, height, fps, millisecs, kbps, akbps, acodec
 
     if (inFile[-5:]).lower() == '.tivo':
@@ -252,19 +303,35 @@ def tivo_compatable(inFile, tsn = ''):
         debug_write(__name__, fn_attr(), ['FALSE, type', type, 'not mpeg2video.', inFile])
         return False
 
-    if (inFile[-3:]).lower() == '.ts':
-        debug_write(__name__, fn_attr(), ['FALSE, transport stream not supported.', inFile])
+    if os.path.splitext(inFile)[-1].lower() in ('.ts', '.mpv'):
+        debug_write(__name__, fn_attr(), ['FALSE, ext', os.path.splitext(inFile)[-1],\
+                'not tivo compatible.', inFile])
         return False
 
-    if not akbps or int(akbps) > config.getMaxAudioBR(tsn):
-        debug_write(__name__, fn_attr(), ['FALSE,', akbps, 'kbps exceeds max audio bitrate.', inFile])
+    if acodec == 'dca':
+        debug_write(__name__, fn_attr(), ['FALSE, acodec', acodec, ', not supported.', inFile])
         return False
 
-    if not kbps or int(kbps)-int(akbps) > config.strtod(config.getMaxVideoBR())/1000:
-        debug_write(__name__, fn_attr(), ['FALSE,', kbps, 'kbps exceeds max video bitrate.', inFile])
+    if acodec != None:
+        if not akbps or int(akbps) > config.getMaxAudioBR(tsn):
+            debug_write(__name__, fn_attr(), ['FALSE,', akbps, 'kbps exceeds max audio bitrate.', inFile])
+            return False
+
+    if kbps != None:
+        abit = max('0', akbps)
+        if int(kbps)-int(abit) > config.strtod(config.getMaxVideoBR())/1000:
+            debug_write(__name__, fn_attr(), ['FALSE,', kbps, 'kbps exceeds max video bitrate.', inFile])
+            return False
+    else:
+        debug_write(__name__, fn_attr(), ['FALSE,', kbps, 'kbps not supported.', inFile])
         return False
 
     if config.isHDtivo(tsn):
+        if vpar != 1.0:
+            if config.getPixelAR(0):
+                if vpar != None or config.getPixelAR(1) != 1.0:
+                    debug_write(__name__, fn_attr(), ['FALSE,', vpar, 'not correct PAR,', inFile])
+                    return False
         debug_write(__name__, fn_attr(), ['TRUE, HD Tivo detected, skipping remaining tests', inFile])
         return True
 
@@ -278,7 +345,8 @@ def tivo_compatable(inFile, tsn = ''):
             #print 'Is TiVo!'
             debug_write(__name__, fn_attr(), ['TRUE,', width, 'x', height, 'is valid.', inFile])
             return True
-        #print 'Not Tivo dimensions'
+    #print 'Not Tivo dimensions'
+    debug_write(__name__, fn_attr(), ['FALSE,', width, 'x', height, 'not in supported modes.', inFile])
     return False
 
 def video_info(inFile):
@@ -289,9 +357,9 @@ def video_info(inFile):
             return info_cache[inFile][1]
 
     if (inFile[-5:]).lower() == '.tivo':
-        info_cache[inFile] = (mtime, (True, True, True, True, True, True, True, True, True))
+        info_cache[inFile] = (mtime, (True, True, True, True, True, True, True, True, True, True))
         debug_write(__name__, fn_attr(), ['VALID, ends in .tivo.', inFile])
-        return True, True, True, True, True, True, True, True, True
+        return True, True, True, True, True, True, True, True, True, True
 
     cmd = [ffmpeg_path(), '-i', inFile ] 
     ffmpeg = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
@@ -304,8 +372,8 @@ def video_info(inFile):
     
     if ffmpeg.poll() == None:
         kill(ffmpeg.pid)
-        info_cache[inFile] = (mtime, (None, None, None, None, None, None, None, None, None))
-        return None, None, None, None, None, None, None, None, None
+        info_cache[inFile] = (mtime, (None, None, None, None, None, None, None, None, None, None))
+        return None, None, None, None, None, None, None, None, None, None
 
     output = ffmpeg.stderr.read()
     debug_write(__name__, fn_attr(), ['ffmpeg output=', output])
@@ -315,9 +383,9 @@ def video_info(inFile):
     if x:
         codec = x.group(1)
     else:
-        info_cache[inFile] = (mtime, (None, None, None, None, None, None, None, None, None))
+        info_cache[inFile] = (mtime, (None, None, None, None, None, None, None, None, None, None))
         debug_write(__name__, fn_attr(), ['failed at video codec'])
-        return None, None, None, None, None, None, None, None, None
+        return None, None, None, None, None, None, None, None, None, None
 
     rezre = re.compile(r'.*Video: .+, (\d+)x(\d+)[, ].*')
     x = rezre.search(output)
@@ -325,18 +393,18 @@ def video_info(inFile):
         width = int(x.group(1))
         height = int(x.group(2))
     else:
-        info_cache[inFile] = (mtime, (None, None, None, None, None, None, None, None, None))
+        info_cache[inFile] = (mtime, (None, None, None, None, None, None, None, None, None, None))
         debug_write(__name__, fn_attr(), ['failed at width/height'])
-        return None, None, None, None, None, None, None, None, None
+        return None, None, None, None, None, None, None, None, None, None
 
     rezre = re.compile(r'.*Video: .+, (.+) (?:fps|tb).*')
     x = rezre.search(output)
     if x:
         fps = x.group(1)
     else:
-        info_cache[inFile] = (mtime, (None, None, None, None, None, None, None, None, None))
+        info_cache[inFile] = (mtime, (None, None, None, None, None, None, None, None, None, None))
         debug_write(__name__, fn_attr(), ['failed at fps'])
-        return None, None, None, None, None, None, None, None, None
+        return None, None, None, None, None, None, None, None, None, None
 
     # Allow override only if it is mpeg2 and frame rate was doubled to 59.94
     if (not fps == '29.97') and (codec == 'mpeg2video'):
@@ -397,9 +465,17 @@ def video_info(inFile):
         afreq = None
         debug_write(__name__, fn_attr(), ['failed at afreq'])
 
-    info_cache[inFile] = (mtime, (codec, width, height, fps, millisecs, kbps, akbps, acodec, afreq))
-    debug_write(__name__, fn_attr(), ['Codec=', codec, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, ' kbps=', kbps, ' akbps=', akbps, ' acodec=', acodec, ' afreq=', afreq])
-    return codec, width, height, fps, millisecs, kbps, akbps, acodec, afreq
+    #get par.
+    rezre = re.compile(r'.*Video: .+PAR ([0-9]+):([0-9]+) DAR [0-9:]+.*')
+    x = rezre.search(output)
+    if x and x.group(1)!="0" and x.group(2)!="0":
+        vpar = float(x.group(1))/float(x.group(2))
+    else:
+        vpar = None
+ 
+    info_cache[inFile] = (mtime, (codec, width, height, fps, millisecs, kbps, akbps, acodec, afreq, vpar))
+    debug_write(__name__, fn_attr(), ['Codec=', codec, ' width=', width, ' height=', height, ' fps=', fps, ' millisecs=', millisecs, ' kbps=', kbps, ' akbps=', akbps, ' acodec=', acodec, ' afreq=', afreq, ' par=', vpar])
+    return codec, width, height, fps, millisecs, kbps, akbps, acodec, afreq, vpar
 
 def video_check(inFile, cmd_string):
     cmd = [ffmpeg_path(), '-i', inFile] + cmd_string.split()

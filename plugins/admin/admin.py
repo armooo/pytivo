@@ -8,6 +8,7 @@ from urllib import unquote_plus, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
+import debug
 
 SCRIPTDIR = os.path.dirname(__file__)
 
@@ -46,6 +47,8 @@ class Admin(Plugin):
                  'file and all changed should now be in effect. <br> The'+ \
                  '<a href="/TiVoConnect?Command='+ last_page +'&Container='+ cname +'"> previous</a> page will reload in 3 seconds.'
         handler.wfile.write(t)
+        debug.debug_write(__name__, debug.fn_attr(), ['The pyTivo Server has been soft reset.'])
+        debug.print_conf(__name__, debug.fn_attr())
     
     def Admin(self, handler, query):
         #Read config file new each time in case there was any outside edits
@@ -68,13 +71,17 @@ class Admin(Plugin):
         t.container = cname
         t.server_data = dict(config.items('Server', raw=True))
         t.server_known = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", \
-                          "optres", "audio_br", "video_br", "max_video_br", "width",\
-                          "height", "ffmpeg_prams", "bufsize", "precache"]
+                          "precache", "optres", "par", "video_fps", "video_br", \
+                          "max_video_br", "bufsize", "width", "height", "audio_br", \
+                          "max_audio_br", "audio_fr", "audio_ch", "audio_codec", \
+                          "ffmpeg_pram"]
         t.shares_data = shares_data
         t.shares_known = ["type", "path", "auto_subshares"]
         t.tivos_data = [ (section, dict(config.items(section, raw=True))) for section in config.sections() \
                          if section.startswith('_tivo_')]
-        t.tivos_known = ["aspect169", "audio_br", "video_br", "width", "height", "ffmpeg_prams", "shares"]
+        t.tivos_known = ["aspect169", "optres", "video_fps", "video_br", "width",\
+                         "height", "audio_br", "max_audio_br", "audio_fr", "audio_ch",\
+                         "audio_codec", "ffmpeg_pram", "shares"]
         handler.wfile.write(t)
        
     def UpdateSettings(self, handler, query):

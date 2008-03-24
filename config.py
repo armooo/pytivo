@@ -103,25 +103,51 @@ def getHack83():
     except NoOptionError:
         return False
 
-def getOptres():
+def getOptres(tsn = None):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.getboolean('_tivo_' + tsn, 'optres')
+        except NoOptionError, ValueError:
+            pass
     try:
         return config.getboolean('Server', 'optres')
     except NoOptionError, ValueError:
         return False
 
+def getPixelAR(ref):
+    if config.has_option('Server', 'par'):
+        try:
+            return (True, config.getfloat('Server', 'par'))[ref]
+        except NoOptionError, ValueError:
+            pass
+    return (False, 1.0)[ref]
+
 def get(section, key):
     return config.get(section, key)
 
-def getFFMPEGTemplate(tsn):
+def getFFmpegTemplate(tsn):
     if tsn and config.has_section('_tivo_' + tsn):
         try:
-            return config.get('_tivo_' + tsn, 'ffmpeg_prams', raw=True)
+            return config.get('_tivo_' + tsn, 'ffmpeg_tmpl', raw=True)
         except NoOptionError:
             pass
     try:
-        return config.get('Server', 'ffmpeg_prams', raw=True)
+        return config.get('Server', 'ffmpeg_tmpl', raw=True)
     except NoOptionError: #default
-        return '-vcodec mpeg2video %(video_fps)s -b %(video_br)s -maxrate %(max_video_br)s -bufsize %(buff_size)s %(aspect_ratio)s -comment pyTivo.py -ab %(audio_br)s %(audio_fr)s %(audio_codec)s -f vob -'
+        return '%(video_codec)s %(video_fps)s %(video_br)s %(max_video_br)s \
+                %(buff_size)s %(aspect_ratio)s -comment pyTivo.py %(audio_br)s \
+                %(audio_fr)s %(audio_ch)s %(audio_codec)s %(ffmpeg_pram)s %(format)s'
+
+def getFFmpegPrams(tsn):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'ffmpeg_pram', raw=True)
+        except NoOptionError:
+            pass
+    try:
+        return config.get('Server', 'ffmpeg_pram', raw=True)
+    except NoOptionError:
+        return None
 
 def isHDtivo(tsn):  # tsn's of High Definition Tivo's
     return tsn != '' and tsn[:3] in ['648', '652']
@@ -193,11 +219,8 @@ def getAudioBR(tsn = None):
     try:
         audiobr = int(max(int(strtod(config.get('Server', 'audio_br'))/1000), 64)/64)*64
         return str(min(audiobr, getMaxAudioBR(tsn))) + 'k'
-    except NoOptionError: #defaults for S3/S2 TiVo
-        if isHDtivo(tsn):
-            return '384k'
-        else:
-            return '192k'
+    except NoOptionError:
+        return str(min(384, getMaxAudioBR(tsn))) + 'k'
 
 def getVideoBR(tsn = None):
     if tsn and config.has_section('_tivo_' + tsn):
@@ -236,6 +259,72 @@ def getMaxAudioBR(tsn = None):
         return int(int(strtod(config.get('Server', 'max_audio_br'))/1000)/64)*64
     except NoOptionError: 
         return int(448) #default to 448
+
+def getAudioCodec(tsn = None):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'audio_codec')
+        except NoOptionError:
+            pass
+    try:
+        return config.get('Server', 'audio_codec')
+    except NoOptionError:
+        return None
+
+def getAudioCH(tsn = None):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'audio_ch')
+        except NoOptionError:
+            pass
+    try:
+        return config.get('Server', 'audio_ch')
+    except NoOptionError:
+        return None
+
+def getAudioFR(tsn = None):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'audio_fr')
+        except NoOptionError:
+            pass
+    try:
+        return config.get('Server', 'audio_fr')
+    except NoOptionError:
+        return None
+
+def getVideoFPS(tsn = None):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'video_fps')
+        except NoOptionError:
+            pass
+    try:
+        return config.get('Server', 'video_fps')
+    except NoOptionError:
+        return None
+    
+def getVideoCodec(tsn = None):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'video_codec')
+        except NoOptionError:
+            pass
+    try:
+        return config.get('Server', 'video_codec')
+    except NoOptionError:
+        return None
+
+def getFormat(tsn = None):
+    if tsn and config.has_section('_tivo_' + tsn):
+        try:
+            return config.get('_tivo_' + tsn, 'force_format')
+        except NoOptionError:
+            pass
+    try:
+        return config.get('Server', 'force_format')
+    except NoOptionError:
+        return None
 
 def str2tuple(s):
     items = s.split(',')
