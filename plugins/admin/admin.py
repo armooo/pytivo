@@ -1,5 +1,5 @@
 import os, socket, re, sys, ConfigParser, config, time
-import urllib2, cookielib, thread
+import urllib2, cookielib, thread, buildhelp
 from xml.dom import minidom
 from ConfigParser import NoOptionError
 from Cheetah.Template import Template
@@ -70,20 +70,15 @@ class Admin(Plugin):
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'settings.tmpl'))
         t.container = cname
         t.server_data = dict(config.items('Server', raw=True))
-        t.server_known = ["port", "guid", "ffmpeg", "beacon", "hack83", "debug", \
-                          "precache", "optres", "par", "video_fps", "video_br", \
-                          "max_video_br", "bufsize", "width", "height", "audio_br", \
-                          "max_audio_br", "audio_fr", "audio_ch", "audio_codec", \
-                          "ffmpeg_pram", "ffmpeg_tmpl"]
+        t.server_known = buildhelp.getknown('server')
         t.shares_data = shares_data
-        t.shares_known = ["type", "path", "auto_subshares"]
+        t.shares_known = buildhelp.getknown('shares')
         t.tivos_data = [ (section, dict(config.items(section, raw=True))) for section in config.sections() \
                          if section.startswith('_tivo_')]
-        t.tivos_known = ["aspect169", "optres", "video_fps", "video_br", "width",\
-                         "height", "audio_br", "max_audio_br", "audio_fr", "audio_ch",\
-                         "audio_codec", "ffmpeg_pram", "shares", "ffmpeg_tmpl"]
+        t.tivos_known = buildhelp.getknown('tivos')
+        t.help_list = buildhelp.gethelp()
         handler.wfile.write(t)
-       
+
     def UpdateSettings(self, handler, query):
         config = ConfigParser.ConfigParser()
         config.read(config_file_path)
