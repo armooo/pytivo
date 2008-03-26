@@ -30,6 +30,13 @@
       <div style="visibility: visible; width: 920px; overflow: scroll; height: 410px; position: relative;">
       #if $tivoIP != ''
           <!-- If TiVoIP is present then we should display a NPL -->
+		  #if $ItemStart > 0
+		        #set $Offset = -($ItemStart + 1)
+		        #if $Offset < -($shows_per_page+1)
+		           #set $Offset = -($shows_per_page+1)
+		        #end if
+		        <a href="/TiVoConnect?Command=NPL&Container=$container&TiVo=$tivoIP&AnchorItem=$FirstAnchor&AnchorOffset=$Offset&Folder=$folder">Previous Page</a>
+		  #end if
 		  <table>
 		  #if $folder != ''
 		  	<!-- We are in a subfolder, offer the option to return to NPL -->
@@ -84,21 +91,21 @@
 						#set $this_status = $status[$unquote($row['Url'])]
 						#if $this_status['running'] and $this_status['rate'] != ""
 							Transfering - $this_status['rate'] KB/s<br>
-							<a href="/TiVoConnect?Command=ToGoStop&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Folder=$folder">Stop Transfer</a>
+							<a href="/TiVoConnect?Command=ToGoStop&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Redirect=$redirect">Stop Transfer</a>
 						#elif $this_status['running'] and $this_status['rate'] == ""
 							Initiating Transfer.<br>
 							Please Wait
 						#elif $this_status['error']
 							Error - $this_status['error']<br>
-							<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Folder=$folder">Try Transfer Again.</a>
+							<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Redirect=$redirect">Try Transfer Again.</a>
 						#elif $this_status['finished']
 							Transfer Complete!
 						#else
 							Transfer Stopped<br>
-							<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Folder=$folder">Try Transfer Again.</a>
+							<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Redirect=$redirect">Try Transfer Again.</a>
 						#end if
 					#else
-						<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Folder=$folder">Transfer This.</a>
+						<a href="/TiVoConnect?Command=ToGo&Container=$(container)&Url=$(row['Url'])&TiVo=$tivoIP&Redirect=$redirect">Transfer This.</a>
 					#end if
 					</td>
 				#else
@@ -109,6 +116,10 @@
 			  </tr>
 		  #end for
 		  </table>
+		  #if ($TotalItems - $ItemCount) > ($ItemStart + 1)
+		     #set $Offset = $shows_per_page - 1
+		     <a href="/TiVoConnect?Command=NPL&Container=$container&TiVo=$tivoIP&AnchorItem=$FirstAnchor&AnchorOffset=$Offset&Folder=$folder">Next Page</a>
+		  #end if
 	  #else
 	  	  <!-- No TiVo IP Provided so display instructions -->
 	  	  <form method="get" action="/TiVoConnect">
