@@ -263,7 +263,8 @@ class Admin(Plugin):
         t.data = data
         t.unquote = unquote
         t.len = len
-        handler.wfile.write(t)
+        o = ''.join([i for i in unicode(t) if i not in (u'\u200b')])
+        handler.wfile.write(o.encode('latin-1'))
 
     def get_tivo_file(self, url, mak, tivoIP, outfile):
         #global status
