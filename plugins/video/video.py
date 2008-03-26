@@ -8,6 +8,7 @@ from UserDict import DictMixin
 from datetime import datetime, timedelta
 import config
 import time
+import mind
 from debug import debug_write, fn_attr
 
 SCRIPTDIR = os.path.dirname(__file__)
@@ -403,6 +404,7 @@ class Video(Plugin):
         t.escape = escape
         t.crc = zlib.crc32
         t.guid = config.getGUID()
+        t.tivos = handler.tivos
         handler.wfile.write(t)
 
     def TVBusQuery(self, handler, query):
@@ -422,6 +424,56 @@ class Video(Plugin):
         t.video = file_info
         t.escape = escape
         handler.wfile.write(t)
+
+    def XSL(self, handler, query):
+        file = open(os.path.join(SCRIPTDIR, 'templates', 'container.xsl'))
+        handler.send_response(200)
+        handler.end_headers()
+        handler.wfile.write(file.read())
+
+    
+    def Push(self, handler, query):
+        file = unquote(query['File'][0])
+        tsn = query['tsn'][0]
+        path = self.get_local_path(handler, query)
+        file_path = path + file
+
+        file_info = VideoDetails()
+        file_info['valid'] = transcode.supported_format(file_path)
+        if file_info['valid']:
+            file_info.update(self.__metadata_full(file_path, tsn))
+
+        import socket
+        ip, port = handler.connection.getsockname()
+        container = quote(query['Container'][0].split('/')[0])
+
+        url = 'http://%s:%s/%s%s' % (ip, port, container, quote(file))
+
+        print 'tsn', tsn
+        print 'url', url
+        print query
+
+        username = config.getTivoUsername()
+        password = config.getTivoPassword()
+
+        if not username or not password:
+            raise Exception("tivo_username and tivo_password required")
+
+        m = mind.Mind(username, password, True)
+        m.pushVideo(
+            tsn = tsn, 
+            url = url, 
+            description = file_info['description'],
+            duration = file_info['duration'],
+            size = file_info['size'],
+            title = file_info['title'],
+            subtitle = file_info['name'])
+
+        referer = handler.headers.getheader('Referer')
+        handler.send_response(302)
+        handler.send_header('Location', referer)
+        handler.end_headers()
+
 
 class VideoDetails(DictMixin):
 

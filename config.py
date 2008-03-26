@@ -22,6 +22,12 @@ def getGUID():
         guid = '123456'
     return guid
 
+def getTivoUsername():
+    return config.get('Server', 'tivo_username')
+
+def getTivoPassword():
+    return config.get('Server', 'tivo_password')
+
 def getBeaconAddresses():
     if config.has_option('Server', 'beacon'):
         beacon_ips = config.get('Server', 'beacon')

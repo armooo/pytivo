@@ -128,6 +128,12 @@ class TivoHTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             t.admin = '<br><b>No Admin plugin installed in pyTivo.conf</b><br> If you wish to use'\
                       + ' the admin plugin add the following lines to pyTivo.conf<br><br>'\
                       + '[Admin]<br>type=admin'
+
+        t.shares = 'Video shares:<br/>'
+        for section, settings in config.getShares():
+            if settings.get('type') == 'video':
+                t.shares += '<a href="TiVoConnect?Command=QueryContainer&Container=' + section\
+                    + '">' +  section + '</a><br/>'
         
         self.wfile.write(t)
         self.end_headers()

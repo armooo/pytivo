@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet type="text/xsl" href="/TiVoConnect?Command=XSL&amp;Container=$quote($name)"?>
 <TiVoContainer>
+    <Tivos>
+        #for $tivo in $tivos
+            #if $tivo
+                <Tivo>$tivo</Tivo>
+            #end if
+        #end for
+    </Tivos>
     <ItemStart>$start</ItemStart>
     <ItemCount>#echo len($videos) #</ItemCount>
     <Details>
@@ -60,6 +68,10 @@
                 <AcceptsParams>No</AcceptsParams>
                 <Url>/TiVoConnect?Command=TVBusQuery&amp;Container=$quote($container)&amp;File=$quote($video.part_path)</Url>
             </TiVoVideoDetails>
+            <Push>
+                <Container>$quote($container)</Container>
+                <File>$quote($video.part_path)</File>
+            </Push>
         </Links>
     </Item>
     #end if
