@@ -143,9 +143,12 @@ class Admin(Plugin):
         handler.wfile.write(t)
         
     def NPL(self, handler, query):
+        shows_per_page = 50 #Change this to alter the number of shows returned per page
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
         folder = ''
+        AnchorItem = ''
+        AnchorOffset= ''
         for name, data in config.getShares():
             if cname == name:
                 if 'tivo_mak' in data:
@@ -159,10 +162,16 @@ class Admin(Plugin):
 
         if 'TiVo' in query:
             tivoIP = query['TiVo'][0]
-            theurl = 'https://'+ tivoIP +'/TiVoConnect?Command=QueryContainer&Container=/NowPlaying'
+            theurl = 'https://'+ tivoIP +'/TiVoConnect?Command=QueryContainer&ItemCount='+ str(shows_per_page) +'&Container=/NowPlaying'
             if 'Folder' in query:
                 folder += str(query['Folder'][0])
                 theurl += '/' + folder
+            if 'AnchorItem' in query:
+                AnchorItem += str(query['AnchorItem'][0])
+                theurl += '&AnchorItem=' + quote(AnchorItem)
+            if 'AnchorOffset' in query:
+                AnchorOffset += str(query['AnchorOffset'][0])
+                theurl += '&AnchorOffset=' + AnchorOffset
 
             password = tivo_mak #TiVo MAK
 
@@ -211,6 +220,10 @@ class Admin(Plugin):
 
             xmldoc = minidom.parseString(tivo_cache[theurl]['thepage'])
             items = xmldoc.getElementsByTagName('Item')
+            TotalItems = xmldoc.getElementsByTagName('Details')[0].getElementsByTagName('TotalItems')[0].firstChild.data
+            ItemStart = xmldoc.getElementsByTagName('ItemStart')[0].firstChild.data
+            ItemCount = xmldoc.getElementsByTagName('ItemCount')[0].firstChild.data
+            FirstAnchor = items[0].getElementsByTagName("Links")[0].getElementsByTagName("Content")[0].getElementsByTagName("Url")[0].firstChild.data
 
             data = []
             for item in items:
@@ -247,6 +260,10 @@ class Admin(Plugin):
         else:
             data = []
             tivoIP = ''
+            TotalItems = 0
+            ItemStart = 0
+            ItemCount = 0
+            FirstAnchor = ''
 
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
@@ -263,6 +280,12 @@ class Admin(Plugin):
         t.data = data
         t.unquote = unquote
         t.len = len
+        t.TotalItems = int(TotalItems)
+        t.ItemStart = int(ItemStart)
+        t.ItemCount = int(ItemCount)
+        t.FirstAnchor = quote(FirstAnchor)
+        t.shows_per_page = shows_per_page
+        t.redirect = quote(unquote_plus(handler.path).split('/')[1])
         o = ''.join([i for i in unicode(t) if i not in (u'\u200b')])
         handler.wfile.write(o.encode('latin-1'))
 
@@ -323,9 +346,6 @@ class Admin(Plugin):
                     togo_path = data['togo_path']
                 else:
                     togo_path = ""
-        folder = ''
-        if 'Folder' in query:
-            folder += str(query['Folder'][0])
         if tivo_mak != "" and togo_path != "":
             parse_url = urlparse(str(query['Url'][0]))
             theurl = 'http://' + parse_url[1].split(':')[0] + parse_url[2] + "?" + parse_url[4]
@@ -344,9 +364,9 @@ class Admin(Plugin):
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
             t.container = cname
             t.time = '3'
-            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder
+            t.url = '/'+ query['Redirect'][0]
             t.text = '<h3>Transfer Initiated.</h3>  <br>You selected transfer has been initiated.'+\
-                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder +'"> ToGo</a> page will reload in 3 seconds.'
+                     '<br> The <a href="/'+ query['Redirect'][0] +'"> ToGo</a> page will reload in 3 seconds.'
             handler.wfile.write(t)
         else:
             handler.send_response(200)
@@ -354,17 +374,14 @@ class Admin(Plugin):
             t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
             t.container = cname
             t.time = '10'
-            t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder
+            t.url = '/'+ query['Redirect'][0]
             t.text = '<h3>Missing Data.</h3>  <br>You must set both "tivo_mak" and "togo_path" before using this function.'+\
-                     '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder +'"> ToGo</a> page will reload in 10 seconds.'
+                     '<br> The <a href="/'+ query['Redirect'][0] +'"> ToGo</a> page will reload in 10 seconds.'
             handler.wfile.write(t)
 
     def ToGoStop(self, handler, query):
         parse_url = urlparse(str(query['Url'][0]))
         theurl = 'http://' + parse_url[1].split(':')[0] + parse_url[2] + "?" + parse_url[4]
-        folder = ''
-        if 'Folder' in query:
-            folder += str(query['Folder'][0])
         
         status[theurl]['running'] = False
         
@@ -375,9 +392,9 @@ class Admin(Plugin):
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'redirect.tmpl'))
         t.container = cname
         t.time = '3'
-        t.url = '/TiVoConnect?Command=NPL&Container=' + cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder
+        t.url = '/'+ query['Redirect'][0]
         t.text = '<h3>Transfer Stopped.</h3>  <br>Your transfer has been stopped.'+\
-                 '<br> The <a href="/TiVoConnect?Command=NPL&Container='+ cname + '&TiVo=' + query['TiVo'][0] + '&Folder=' + folder +'"> ToGo</a> page will reload in 3 seconds.'
+                 '<br> The <a href="/'+ query['Redirect'][0] +'"> ToGo</a> page will reload in 3 seconds.'
         handler.wfile.write(t)
 
 
