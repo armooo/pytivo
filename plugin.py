@@ -12,14 +12,15 @@ class Error:
     CONTENT_TYPE = 'text/html'
 
 def GetPlugin(name):
-    module_name = '.'.join(['plugins', name, name])
-    module = __import__(module_name, globals(), locals(), name)
-    plugin = getattr(module, module.CLASS_NAME)()
-    return plugin
-    #except ImportError:
-    #    print 'Error no', name, 'plugin exists. Check the type ' \
-    #    'setting for your share.'
-    #    return Error
+    try:
+        module_name = '.'.join(['plugins', name, name])
+        module = __import__(module_name, globals(), locals(), name)
+        plugin = getattr(module, module.CLASS_NAME)()
+        return plugin
+    except ImportError:
+        print 'Error no', name, 'plugin exists. Check the type ' \
+        'setting for your share.'
+        return Error
 
 class Plugin(object):
 
