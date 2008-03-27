@@ -462,15 +462,22 @@ class Video(Plugin):
         if not username or not password:
             raise Exception("tivo_username and tivo_password required")
 
-        m = mind.Mind(username, password, True)
-        m.pushVideo(
-            tsn = tsn, 
-            url = url, 
-            description = file_info['description'],
-            duration = file_info['duration'] / 1000,
-            size = file_info['size'],
-            title = file_info['title'],
-            subtitle = file_info['name'])
+        try:
+            m = mind.Mind(username, password, True)
+            m.pushVideo(
+                tsn = tsn, 
+                url = url, 
+                description = file_info['description'],
+                duration = file_info['duration'] / 1000,
+                size = file_info['size'],
+                title = file_info['title'],
+                subtitle = file_info['name'])
+        except Exception, e:
+            import traceback
+            handler.send_response(500)
+            handler.end_headers()
+            handler.wfile.write('%s\n\n%s' % (e, traceback.format_exc() ))
+            raise
 
         referer = handler.headers.getheader('Referer')
         handler.send_response(302)

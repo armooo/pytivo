@@ -13,14 +13,13 @@ class Error:
 
 def GetPlugin(name):
     module_name = '.'.join(['plugins', name, name])
-    try:
-        module = __import__(module_name, globals(), locals(), name)
-        plugin = getattr(module, module.CLASS_NAME)()
-        return plugin
-    except:
-        print 'Error no', name, 'plugin exists. Check the type ' \
-              'setting for your share.'
-        return Error
+    module = __import__(module_name, globals(), locals(), name)
+    plugin = getattr(module, module.CLASS_NAME)()
+    return plugin
+    #except ImportError:
+    #    print 'Error no', name, 'plugin exists. Check the type ' \
+    #    'setting for your share.'
+    #    return Error
 
 class Plugin(object):
 

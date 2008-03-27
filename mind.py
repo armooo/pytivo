@@ -3,219 +3,234 @@ import urllib2
 import urllib
 import struct
 import httplib 
-import xml.etree.ElementTree as ElementTree 
 import time
+import warnings
 
-
-class Mind:
-    def __init__(self, username, password, debug=False):
-        self.__username = username
-        self.__password = password 
-
-        self.__debug = debug
-
-        self.__cj = cookielib.CookieJar()
-        self.__opener = urllib2.build_opener(urllib2.HTTPSHandler(debuglevel=1), urllib2.HTTPCookieProcessor(self.__cj))
-
-        self.__login()
-
-        if not self.__pcBodySearch():
-            self.__pcBodyStore('pyTivo', True)
-
-    def pushVideo(self, tsn, url, description='test', duration='40000', size='3000000', title='test', subtitle='test'):
+try:
+    import xml.etree.ElementTree as ElementTree 
+except ImportError:
+    try:
+        import elementtree.ElementTree as ElementTree
+    except ImportError:
+        warnings.warn('Python 2.5 or higher or elementtree is needed to use the TivoPush')
         
-        # It looks like tivo only supports one pc per house
-        pc_body_id = self.__pcBodySearch()[0]
-        offer_id, content_id = self.__bodyOfferModify(tsn, pc_body_id, description, duration, size, title, subtitle, url)
-        self.__subscribe(offer_id, content_id, tsn)
+if 'ElementTree' not in locals():
 
-    def bodyOfferSchedule(self, pc_body_id):
+    class Mind:
+        def __init__(self, *arg, **karg):
+            raise Exception('Python 2.5 or higher or elementtree is needed to use the TivoPush')
+    
+else:
 
-        data = {'pcBodyId' : pc_body_id,}
-        r = urllib2.Request(
-            '/Steph%27s%20Videos/The%20Fairly%20Odd%20Parents%20-%20Channel%20Chasers.xvid-pyro.avi', 
-            dictcode(data),
-            {'Content-Type' : 'x-tivo/dict-binary'}
-        )
-        result = self.__opener.open(r)
+    class Mind:
+        def __init__(self, username, password, debug=False):
+            self.__username = username
+            self.__password = password 
 
-        self.__log('bodyOfferSchedule\n%s\n\n%sg' % (data, result))
+            self.__debug = debug
 
-        return result.read()
+            self.__cj = cookielib.CookieJar()
+            self.__opener = urllib2.build_opener(urllib2.HTTPSHandler(debuglevel=1), urllib2.HTTPCookieProcessor(self.__cj))
 
-    def __log(self, message):
-        if self.__debug:
-            print message
-            print
+            self.__login()
 
-    def __login(self):
+            if not self.__pcBodySearch():
+                self.__pcBodyStore('pyTivo', True)
 
-        data = {
-            'cams_security_domain' : 'tivocom',
-            'cams_login_config' : 'http',
-            'cams_cb_username' : self.__username,
-            'cams_cb_password' : self.__password,
-            'cams_original_url' : '/mind/mind7?type=infoGet'
-        }
+        def pushVideo(self, tsn, url, description='test', duration='40000', size='3000000', title='test', subtitle='test'):
+            
+            # It looks like tivo only supports one pc per house
+            pc_body_id = self.__pcBodySearch()[0]
+            offer_id, content_id = self.__bodyOfferModify(tsn, pc_body_id, description, duration, size, title, subtitle, url)
+            self.__subscribe(offer_id, content_id, tsn)
 
-        r =  urllib2.Request(
-            'https://mind.tivo.com:8181/mind/login', 
-            urllib.urlencode(data)
-        )
-        try:
+        def bodyOfferSchedule(self, pc_body_id):
+
+            data = {'pcBodyId' : pc_body_id,}
+            r = urllib2.Request(
+                '/Steph%27s%20Videos/The%20Fairly%20Odd%20Parents%20-%20Channel%20Chasers.xvid-pyro.avi', 
+                dictcode(data),
+                {'Content-Type' : 'x-tivo/dict-binary'}
+            )
             result = self.__opener.open(r)
-        except:
-            pass
 
-        self.__log('__login\n%s' % (data))
+            self.__log('bodyOfferSchedule\n%s\n\n%sg' % (data, result))
 
-    def __bodyOfferModify(self, tsn, pc_body_id, description, duration, size, title, subtitle, url):
+            return result.read()
 
-        data = {
-            'bodyId' : 'tsn:' + tsn,
-            'description' : description,
-            'duration' : duration,
-            'encodingType' : 'mpeg2ProgramStream',
-            'partnerId' : 'tivo:pt.3187',
-            'pcBodyId' : pc_body_id,
-            'publishDate' : time.strftime('%Y-%m-%d %H:%M%S', time.gmtime()),
-            'size' : size,
-            'source' : 'file:/C%3A%2FDocuments%20and%20Settings%2FStephanie%2FDesktop%2FVideo',
-            'state' : 'complete',
-            'subtitle' : subtitle,
-            'title' : title,
-            'url' : url,
-        }
-        r = urllib2.Request(
-            'https://mind.tivo.com:8181/mind/mind7?type=bodyOfferModify&bodyId=tsn:' + tsn, 
-            dictcode(data),
-            {'Content-Type' : 'x-tivo/dict-binary'}
-        )
-        result = self.__opener.open(r)
+        def __log(self, message):
+            if self.__debug:
+                print message
+                print
 
-        xml = ElementTree.parse(result).find('.')
-        
-        self.__log('__bodyOfferModify\n%s\n\n%sg' % (data, ElementTree.tostring(xml)))
+        def __login(self):
 
-        if xml.findtext('state') != 'complete':
-            raise Exception(ElementTree.tostring(xml))
+            data = {
+                'cams_security_domain' : 'tivocom',
+                'cams_login_config' : 'http',
+                'cams_cb_username' : self.__username,
+                'cams_cb_password' : self.__password,
+                'cams_original_url' : '/mind/mind7?type=infoGet'
+            }
 
-        offer_id = xml.findtext('offerId')
-        content_id = offer_id.replace('of','ct')
+            r =  urllib2.Request(
+                'https://mind.tivo.com:8181/mind/login', 
+                urllib.urlencode(data)
+            )
+            try:
+                result = self.__opener.open(r)
+            except:
+                pass
 
-        return offer_id, content_id
+            self.__log('__login\n%s' % (data))
 
+        def __bodyOfferModify(self, tsn, pc_body_id, description, duration, size, title, subtitle, url):
 
-    def __subscribe(self, offer_id, content_id, tsn):
-        data =  {
-            'bodyId' : 'tsn:' + tsn,
-            'idSetSource' : {
-                'contentId': content_id,
-                'offerId' : offer_id,
-                'type' : 'singleOfferSource',
-            },
-            'title' : 'pcBodySubscription',
-            'uiType' : 'cds',
-        }
-        
-        r = urllib2.Request(
-            'https://mind.tivo.com:8181/mind/mind7?type=subscribe&bodyId=tsn:' + tsn, 
-            dictcode(data),
-            {'Content-Type' : 'x-tivo/dict-binary'}
-        )
-        result = self.__opener.open(r)
+            data = {
+                'bodyId' : 'tsn:' + tsn,
+                'description' : description,
+                'duration' : duration,
+                'encodingType' : 'mpeg2ProgramStream',
+                'partnerId' : 'tivo:pt.3187',
+                'pcBodyId' : pc_body_id,
+                'publishDate' : time.strftime('%Y-%m-%d %H:%M%S', time.gmtime()),
+                'size' : size,
+                'source' : 'file:/C%3A%2FDocuments%20and%20Settings%2FStephanie%2FDesktop%2FVideo',
+                'state' : 'complete',
+                'subtitle' : subtitle,
+                'title' : title,
+                'url' : url,
+            }
+            r = urllib2.Request(
+                'https://mind.tivo.com:8181/mind/mind7?type=bodyOfferModify&bodyId=tsn:' + tsn, 
+                dictcode(data),
+                {'Content-Type' : 'x-tivo/dict-binary'}
+            )
+            result = self.__opener.open(r)
 
-        xml = ElementTree.parse(result).find('.')
+            xml = ElementTree.parse(result).find('.')
+            
+            self.__log('__bodyOfferModify\n%s\n\n%sg' % (data, ElementTree.tostring(xml)))
 
-        self.__log('__subscribe\n%s\n\n%sg' % (data, ElementTree.tostring(xml)))
+            if xml.findtext('state') != 'complete':
+                raise Exception(ElementTree.tostring(xml))
 
-        return xml
+            offer_id = xml.findtext('offerId')
+            content_id = offer_id.replace('of','ct')
 
-    def __pcBodySearch(self):
-
-        data = {}
-        r = urllib2.Request(
-            'https://mind.tivo.com:8181/mind/mind7?type=pcBodySearch', 
-            dictcode(data),
-            {'Content-Type' : 'x-tivo/dict-binary'}
-        )
-        result = self.__opener.open(r)
-
-        xml = ElementTree.parse(result).find('.')
+            return offer_id, content_id
 
 
-        self.__log('__pcBodySearch\n%s\n\n%sg' % (data, ElementTree.tostring(xml)))
+        def __subscribe(self, offer_id, content_id, tsn):
+            data =  {
+                'bodyId' : 'tsn:' + tsn,
+                'idSetSource' : {
+                    'contentId': content_id,
+                    'offerId' : offer_id,
+                    'type' : 'singleOfferSource',
+                },
+                'title' : 'pcBodySubscription',
+                'uiType' : 'cds',
+            }
+            
+            r = urllib2.Request(
+                'https://mind.tivo.com:8181/mind/mind7?type=subscribe&bodyId=tsn:' + tsn, 
+                dictcode(data),
+                {'Content-Type' : 'x-tivo/dict-binary'}
+            )
+            result = self.__opener.open(r)
 
-        return [id.text for id in xml.findall('pcBody/pcBodyId')]
+            xml = ElementTree.parse(result).find('.')
 
-    def __collectionIdSearch(self, url):
+            self.__log('__subscribe\n%s\n\n%sg' % (data, ElementTree.tostring(xml)))
 
-        data = {'url' : url}
-        r = urllib2.Request(
-            'https://mind.tivo.com:8181/mind/mind7?type=collectionIdSearch', 
-            dictcode(data),
-            {'Content-Type' : 'x-tivo/dict-binary'}
-        )
-        result = self.__opener.open(r)
+            return xml
 
-        xml = ElementTree.parse( result ).find('.')
-        collection_id = xml.findtext('collectionId')
+        def __pcBodySearch(self):
 
-        self.__log('__collectionIdSearch\n%s\n\n%sg' % (data, ElementTree.tostring(xml)))
+            data = {}
+            r = urllib2.Request(
+                'https://mind.tivo.com:8181/mind/mind7?type=pcBodySearch', 
+                dictcode(data),
+                {'Content-Type' : 'x-tivo/dict-binary'}
+            )
+            result = self.__opener.open(r)
 
-        return collection_id
-
-    def __pcBodyStore(self, name, replace=False):
-       
-        data = {
-            'name' : name,
-            'replaceExisting' : str(replace).lower(),
-        }
-
-        r = urllib2.Request(
-            'https://mind.tivo.com:8181/mind/mind7?type=pcBodyStore', 
-            dictcode(data), 
-            {'Content-Type' : 'x-tivo/dict-binary'}
-        )
-        result = self.__opener.open(r)
-
-        xml = ElementTree.parse(result).find('.')
-
-        self.__log('__pcBodySearch\n%s\n\n%s' % (data, ElementTree.tostring(xml)))
-
-        return xml
+            xml = ElementTree.parse(result).find('.')
 
 
-def dictcode(d):
-    """Helper to create x-tivo/dict-binary"""
-    output = []
+            self.__log('__pcBodySearch\n%s\n\n%sg' % (data, ElementTree.tostring(xml)))
 
-    keys = [str(k) for k in d]
-    keys.sort()
+            return [id.text for id in xml.findall('pcBody/pcBodyId')]
 
-    for k in keys:
-        v = d[k]
+        def __collectionIdSearch(self, url):
 
-        l = len(k) | 128
-        output.append( struct.pack('>B', l) )
-        output.append( k )
+            data = {'url' : url}
+            r = urllib2.Request(
+                'https://mind.tivo.com:8181/mind/mind7?type=collectionIdSearch', 
+                dictcode(data),
+                {'Content-Type' : 'x-tivo/dict-binary'}
+            )
+            result = self.__opener.open(r)
 
-        if isinstance(v, dict):
-            output.append( struct.pack('>B', 0x02) )
-            output.append( dictcode(v) )
+            xml = ElementTree.parse( result ).find('.')
+            collection_id = xml.findtext('collectionId')
 
-        else:
-            v = str(v)
-            output.append( struct.pack('>B', 0x01) )
-            l = len(v) | 128
+            self.__log('__collectionIdSearch\n%s\n\n%sg' % (data, ElementTree.tostring(xml)))
+
+            return collection_id
+
+        def __pcBodyStore(self, name, replace=False):
+           
+            data = {
+                'name' : name,
+                'replaceExisting' : str(replace).lower(),
+            }
+
+            r = urllib2.Request(
+                'https://mind.tivo.com:8181/mind/mind7?type=pcBodyStore', 
+                dictcode(data), 
+                {'Content-Type' : 'x-tivo/dict-binary'}
+            )
+            result = self.__opener.open(r)
+
+            xml = ElementTree.parse(result).find('.')
+
+            self.__log('__pcBodySearch\n%s\n\n%s' % (data, ElementTree.tostring(xml)))
+
+            return xml
+
+
+    def dictcode(d):
+        """Helper to create x-tivo/dict-binary"""
+        output = []
+
+        keys = [str(k) for k in d]
+        keys.sort()
+
+        for k in keys:
+            v = d[k]
+
+            l = len(k) | 128
             output.append( struct.pack('>B', l) )
-            output.append( v )
+            output.append( k )
 
-        output.append( struct.pack('>B', 0x00) )
+            if isinstance(v, dict):
+                output.append( struct.pack('>B', 0x02) )
+                output.append( dictcode(v) )
 
-    output.append( struct.pack('>B', 0x80) )
+            else:
+                v = str(v)
+                output.append( struct.pack('>B', 0x01) )
+                l = len(v) | 128
+                output.append( struct.pack('>B', l) )
+                output.append( v )
 
-    return ''.join(output)
+            output.append( struct.pack('>B', 0x00) )
+
+        output.append( struct.pack('>B', 0x80) )
+
+        return ''.join(output)
 
 
 if __name__ == '__main__':
