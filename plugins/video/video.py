@@ -444,8 +444,11 @@ class Video(Plugin):
             file_info.update(self.__metadata_full(file_path, tsn))
 
         import socket
-        ip, port = handler.connection.getsockname()
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('tivo.com',123))
+        ip = s.getsockname()[0]
         container = quote(query['Container'][0].split('/')[0])
+        port = config.getPort()
 
         url = 'http://%s:%s/%s%s' % (ip, port, container, quote(file))
 
