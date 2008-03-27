@@ -69,8 +69,8 @@
                 <Url>/TiVoConnect?Command=TVBusQuery&amp;Container=$quote($container)&amp;File=$quote($video.part_path)</Url>
             </TiVoVideoDetails>
             <Push>
-                <Container>$quote($container)</Container>
-                <File>$quote($video.part_path)</File>
+                <Container>$escape($container)</Container>
+                <File>$escape($video.part_path)</File>
             </Push>
         </Links>
     </Item>
