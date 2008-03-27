@@ -95,13 +95,14 @@ class Mind:
 
         xml = ElementTree.parse(result).find('.')
         
+        self.__log('__bodyOfferModify\n%s\n\n%sg' % (data, ElementTree.tostring(xml)))
+
         if xml.findtext('state') != 'complete':
             raise Exception(ElementTree.tostring(xml))
 
         offer_id = xml.findtext('offerId')
         content_id = offer_id.replace('of','ct')
 
-        self.__log('__bodyOfferModify\n%s\n\n%sg' % (data, ElementTree.tostring(xml)))
         return offer_id, content_id
 
 
