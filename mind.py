@@ -5,6 +5,7 @@ import struct
 import httplib 
 import time
 import warnings
+import itertools
 
 try:
     import xml.etree.ElementTree as ElementTree 
@@ -211,8 +212,7 @@ else:
         for k in keys:
             v = d[k]
 
-            l = len(k) | 128
-            output.append( struct.pack('>B', l) )
+            output.append( varint( len(k) ) )
             output.append( k )
 
             if isinstance(v, dict):
@@ -222,8 +222,7 @@ else:
             else:
                 v = str(v)
                 output.append( struct.pack('>B', 0x01) )
-                l = len(v) | 128
-                output.append( struct.pack('>B', l) )
+                output.append( varint( len(v) ) ) 
                 output.append( v )
 
             output.append( struct.pack('>B', 0x00) )
@@ -232,13 +231,29 @@ else:
 
         return ''.join(output)
 
+    def varint(i):
+        import sys
 
-if __name__ == '__main__':
-        username = 'armooo@armooo.net'
-        password = 'in(into)'
-        tsn = '6520001802C0F2A'
-        url = 'http://10.0.1.52:9032/Steph%27s%20Videos/Weekend%20%28Godard%201967%29.avi'
+        bits = []
+        while i:
+            bits.append(i & 0x01)
+            i = i  >> 1
+        
+        if not bits:
+            output = [0]
+        else:
+            output = []
 
-        mind = Mind(username, password, True)
-        mind.pushVideo(tsn, url)
+        while bits:
+            byte = 0
+            mybits = bits[:7]
+            del bits[:7]
+           
+            for bit, p in zip(mybits, itertools.count()):
+                byte += bit * (2 ** p)
+
+            output.append(byte)
+
+        output[-1] = output[-1] | 0x80
+        return ''.join([chr(b) for b in output])
 
