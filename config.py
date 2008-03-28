@@ -1,5 +1,7 @@
 import ConfigParser, os
 import re
+import random
+import string
 from ConfigParser import NoOptionError
 
 BLACKLIST_169 = ('540', '649')
@@ -17,9 +19,9 @@ def reset():
 
 def getGUID():
     if config.has_option('Server', 'GUID'):
-        guid = config.get('Server', 'GUID')
+        return config.get('Server', 'GUID')
     else:
-        guid = '123456'
+        return [random.choice(string.letters) for i in range(10)]
     return guid
 
 def getTivoUsername():
