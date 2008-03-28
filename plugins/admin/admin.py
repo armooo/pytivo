@@ -268,6 +268,7 @@ class Admin(Plugin):
         subcname = query['Container'][0]
         cname = subcname.split('/')[0]
         handler.send_response(200)
+        handler.send_header('Content-Type', 'text/html; charset=UTF-8')
         handler.end_headers()
         t = Template(file=os.path.join(SCRIPTDIR,'templates', 'npl.tmpl'))
         t.folder = folder
@@ -286,8 +287,7 @@ class Admin(Plugin):
         t.FirstAnchor = quote(FirstAnchor)
         t.shows_per_page = shows_per_page
         t.redirect = quote(unquote_plus(handler.path).split('/')[1])
-        o = ''.join([i for i in unicode(t) if i not in (u'\u200b')])
-        handler.wfile.write(o.encode('latin-1'))
+        handler.wfile.write(unicode(t).encode('utf-8'))
 
     def get_tivo_file(self, url, mak, tivoIP, outfile):
         #global status
