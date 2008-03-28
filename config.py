@@ -21,7 +21,7 @@ def getGUID():
     if config.has_option('Server', 'GUID'):
         return config.get('Server', 'GUID')
     else:
-        return [random.choice(string.letters) for i in range(10)]
+        return ''.join([random.choice(string.letters) for i in range(10)])
     return guid
 
 def getTivoUsername():
