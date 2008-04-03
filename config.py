@@ -8,8 +8,11 @@ BLACKLIST_169 = ('540', '649')
 
 config = ConfigParser.ConfigParser()
 p = os.path.dirname(__file__)
-config_file = os.path.join(p, 'pyTivo.conf')
-config.read(config_file)
+config_files = [
+    '/etc/pyTivo.conf',
+    os.path.join(p, 'pyTivo.conf'),
+]
+config.read(config_files)
 
 def reset():
     global config
