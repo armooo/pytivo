@@ -188,8 +188,12 @@ class pyTivoConfigurator(Frame):
         self.buildButtons()
 
         self.updateContainerList()
-
-if __name__ == '__main__':
+    
+def main():
     root = Tk()
     app = pyTivoConfigurator(master=root)
     app.mainloop()
+
+
+if __name__ == '__main__':
+    main()
