@@ -165,7 +165,7 @@ def select_aspect(inFile, tsn = ''):
     multiplier16by9 = (16.0 * TIVO_HEIGHT) / (9.0 * TIVO_WIDTH)
     multiplier4by3  =  (4.0 * TIVO_HEIGHT) / (3.0 * TIVO_WIDTH)
 
-    if config.isHDtivo(tsn) and not optres:
+    if config.isHDtivo(tsn) and optres:
         if config.getPixelAR(0):
             if vpar == None:
                 npar = config.getPixelAR(1)
