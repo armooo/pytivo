@@ -5,6 +5,8 @@ from debug import debug_write, fn_attr
 info_cache = lrucache.LRUCache(1000)
 videotest = os.path.join(os.path.dirname(__file__), 'videotest.mpg')
 
+BAD_MPEG_FPS = ['15.00']
+
 def ffmpeg_path():
     return config.get('Server', 'ffmpeg')
 
@@ -37,7 +39,7 @@ def transcode(inFile, outFile, tsn=''):
     settings = {}
     settings['video_codec'] = select_videocodec(tsn)
     settings['video_br'] = select_videobr(tsn)
-    settings['video_fps'] = select_videofps(tsn)
+    settings['video_fps'] = select_videofps(inFile, tsn)
     settings['max_video_br'] = select_maxvideobr()
     settings['buff_size'] = select_buffsize()
     settings['aspect_ratio'] = ' '.join(select_aspect(inFile, tsn))
@@ -92,9 +94,10 @@ def select_audioch(tsn):
         return '-ac '+config.getAudioCH(tsn)
     return ''
 
-def select_videofps(tsn):
+def select_videofps(inFile, tsn):
+    type, width, height, fps, millisecs, kbps, akbps, acodec, afreq, vpar =  video_info(inFile)
     vfps = '-r 29.97'  #default
-    if config.isHDtivo(tsn):
+    if config.isHDtivo(tsn) and fps not in BAD_MPEG_FPS:
         vfps = ' '
     if config.getVideoFPS(tsn) != None:
         vfps = '-r '+config.getVideoFPS(tsn)
