@@ -1,15 +1,15 @@
 import transcode, os, socket, re, urllib, zlib
 from Cheetah.Template import Template
-from plugin import Plugin, quote, unquote
+from pyTivo.plugin import Plugin, quote, unquote
 from urlparse import urlparse
 from xml.sax.saxutils import escape
 from lrucache import LRUCache
 from UserDict import DictMixin
 from datetime import datetime, timedelta
-import config
+import pyTivo.config as config
 import time
-import mind
-from debug import debug_write, fn_attr
+import pyTivo.mind as mind
+from pyTivo.debug import debug_write, fn_attr
 
 SCRIPTDIR = os.path.dirname(__file__)
 

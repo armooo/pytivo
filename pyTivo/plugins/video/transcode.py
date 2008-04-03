@@ -1,6 +1,6 @@
 import subprocess, shutil, os, re, sys, ConfigParser, time, lrucache, math
-import config
-from debug import debug_write, fn_attr
+import pyTivo.config as config
+from pyTivo.debug import debug_write, fn_attr
 
 info_cache = lrucache.LRUCache(1000)
 videotest = os.path.join(os.path.dirname(__file__), 'videotest.mpg')
